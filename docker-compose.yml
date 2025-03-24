@@ -7,5 +7,5 @@ services:
       - NODE_ENV=development
     volumes:
       - .:/app
-    command: ["npx", "next", "dev", "--turbopack"]
+    command: ["npx", "next", "dev"]
     restart: always
