@@ -1,0 +1,11 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8001:3000"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - .:/app
+    command: ["npx", "next", "dev", "--turbopack"]
+    restart: always
