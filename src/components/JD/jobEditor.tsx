@@ -16,6 +16,7 @@ interface JobEditorProps {
   );
   const [location, setLocation] = useState("Ha Noi");
   const [jobType, setJobType] = useState("Full time");
+  const [experienceYears, setExperienceYears] = useState("5+ years");
   const [keyResponsibilities, setKeyResponsibilities] = useState(`- Analyze system requirements, and develop web applications.
     - Ensure code quality, adhere to SOLID principles, apply design patterns, and optimize database performance.
     - Coordinate with the Project Manager and Bridge SE to resolve issues.
@@ -48,7 +49,7 @@ interface JobEditorProps {
 - Full gross salary payment for compulsory insurance.
 - Awards for outstanding performance on a quarterly and yearly basis.`)
 
-  // Thêm các state cho kết quả phân tích
+  // Add state for keyword analysis result
 //   const [keywords, setKeywords] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -79,7 +80,7 @@ interface JobEditorProps {
     );
   };
 
-  // Hàm gửi dữ liệu đến API Flask
+  // Send data to Flask API
   const parseJobDescription = async () => {
     setLoading(true);
     setError(null);
@@ -93,6 +94,7 @@ interface JobEditorProps {
           jobTitle,
           location,
           jobType,
+          experienceYears,
           keyResponsibilities,
           mustHave,
           niceToHave,
@@ -117,7 +119,7 @@ interface JobEditorProps {
   };
 
   return (
-    <div className="w-full max-w-4xl mt-8 mx-auto p-6 bg-white shadow-lg rounded-lg border border-gray-200">
+    <div className="w-full max-w-4xl mt-2 mx-auto p-6 bg-white shadow-lg rounded-lg border border-gray-200">
         <div className="border-b border-gray-200 pb-4">
             <h1 className="text-4xl font-bold">
                 <EditableText value={jobTitle} onChange={setJobTitle} />
@@ -128,6 +130,9 @@ interface JobEditorProps {
                 </span>
                 <span>
                 <strong>Type:</strong> <EditableText value={jobType} onChange={setJobType} />
+                </span>
+                <span>
+                <strong>Experience:</strong> <EditableText value={experienceYears} onChange={setExperienceYears} />
                 </span>
             </div>
         </div>
@@ -156,7 +161,7 @@ interface JobEditorProps {
             <EditableTextarea value={ourOffer} onChange={setOurOffer} />
         </div>
 
-        {/* Nút phân tích JD */}
+        {/* Button to analyze JD */}
         <div className="mt-8 flex justify-center">
           <button
             onClick={parseJobDescription}
@@ -174,14 +179,14 @@ interface JobEditorProps {
           </button>
         </div>
 
-        {/* Hiển thị lỗi nếu có */}
+        {/* Show error if there is */}
         {error && (
           <div className="mt-4 p-4 bg-red-50 border border-red-300 rounded text-red-700">
             {error}
           </div>
         )}
 
-        {/* Hiển thị kết quả */}
+        {/* Show result */}
         {/* {renderKeywords()} */}
     </div>
   );

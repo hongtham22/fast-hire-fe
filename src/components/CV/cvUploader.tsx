@@ -8,11 +8,48 @@ const PDFViewer = dynamic(() => import('@/components/CV/PDFViewer'), {
   loading: () => <p>Loading PDF viewer...</p>
 });
 
-interface CVUploaderProps {
-  setCvText: React.Dispatch<React.SetStateAction<string | null>>;
+interface StructuredData {
+  candidate: {
+    name: string;
+    location: string;
+    email: string;
+    phone: string;
+    role_job: string;
+    experience_years: string;
+  };
+  experience: Array<{
+    role: string;
+    company: string;
+    duration: string;
+    projects: Array<{
+      name: string;
+      tasks: string[];
+    }>;
+  }>;
+  education: Array<{
+    major: string;
+    university: string;
+    gpa: string;
+    degree: string;
+    graduation_year: string;
+    duration: string;
+  }>;
+  language: Array<{
+    language: string;
+    level: string;
+  }>;
+  programing_langugue: string[];
+  technical_skill: string[];
+  soft_skill: string[];
+  certificate: string[];
 }
 
-const CVUploader: React.FC<CVUploaderProps> = ({ setCvText }) => {
+interface CVUploaderProps {
+  setCvText: React.Dispatch<React.SetStateAction<string | null>>;
+  setStructuredData: React.Dispatch<React.SetStateAction<StructuredData | null>>;
+}
+
+const CVUploader: React.FC<CVUploaderProps> = ({ setCvText, setStructuredData }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -24,7 +61,7 @@ const CVUploader: React.FC<CVUploaderProps> = ({ setCvText }) => {
     // Check file type
     if (!['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain']
         .includes(file.type)) {
-      setError('Please upload a PDF, DOCX, or TXT file');
+      setError('Please upload a PDF file');
       return;
     }
 
@@ -47,31 +84,38 @@ const CVUploader: React.FC<CVUploaderProps> = ({ setCvText }) => {
       }
 
       const data = await response.json();
-      setCvText(data.text);
+      setCvText(data.raw_text);
+      if (data.structured_data) {
+        setStructuredData(data.structured_data);
+      } else {
+        setStructuredData(null);
+      }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'An unknown error occurred');
+      setCvText(null);
+      setStructuredData(null);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="w-1/2 mt-8 bg-white p-6 rounded-lg border border-gray-200">
+    <div className="w-1/2 mt-8 bg-white p-6 rounded-lg border border-gray-200 mx-auto">
       <h2 className="text-2xl font-semibold mb-4">Upload CV</h2>
       
       <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-orange-600 transition-colors">
         <Upload size={48} className="text-gray-400 mb-4" />
-        <label className="cursor-pointer">
-          <span className="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700 transition-colors">
+        <label className="cursor-pointer block">
+          <div className="inline-block bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700 transition-colors">
             {loading ? (
               <div className="flex items-center gap-2">
                 <Loader2 size={20} className="animate-spin" />
                 <span>Processing...</span>
               </div>
             ) : (
-              'Choose File'
+              <span className="block w-full text-center">Choose File</span>
             )}
-          </span>
+          </div>
           <input
             type="file"
             className="hidden"
@@ -81,7 +125,7 @@ const CVUploader: React.FC<CVUploaderProps> = ({ setCvText }) => {
           />
         </label>
         <p className="text-sm text-gray-500 mt-2">
-          Supported formats: PDF, DOCX, TXT
+          Supported formats PDF
         </p>
       </div>
 
