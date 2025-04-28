@@ -1,6 +1,7 @@
 "use client";
 
 import Header from "@/app/layout/header";
+import Footer from "../layout/footer";
 
 const PublicLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
@@ -8,6 +9,7 @@ const PublicLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         <main className="">
             <Header />
             {children}
+            <Footer />
         </main>
     </div>
   );

@@ -2,31 +2,13 @@
 
 import React, { useState } from 'react';
 import MatchingResult from '@/components/MatchingResult';
-
-interface MatchingData {
-  score: number;
-  matches: {
-    must_have: Array<{
-      field: string;
-      cv_value: string;
-      jd_value: string;
-    }>;
-    nice_to_have: Array<{
-      field: string;
-      cv_value: string;
-      jd_value: string;
-    }>;
-  };
-  total_must_have: number;
-  total_nice_to_have: number;
-  matched_must_have: number;
-  matched_nice_to_have: number;
-}
+import { evaluateMatching } from '@/lib/api';
+import { MatchingResult as MatchingResultType, JobDescriptionData } from '@/types/api';
 
 export default function MatchingPage() {
   const [cvText, setCvText] = useState('');
   const [jdData, setJdData] = useState('');
-  const [matchingData, setMatchingData] = useState<MatchingData | null>(null);
+  const [matchingData, setMatchingData] = useState<MatchingResultType | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -36,25 +18,21 @@ export default function MatchingPage() {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/evaluate-matching', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          cv_text: cvText,
-          jd_data: JSON.parse(jdData),
-        }),
+      const parsedJdData = JSON.parse(jdData) as JobDescriptionData;
+      
+      const { data, error } = await evaluateMatching({
+        cv_text: cvText,
+        jd_data: parsedJdData,
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to evaluate matching');
+      
+      if (error) {
+        setError(error);
+      } else if (data) {
+        setMatchingData(data);
       }
-
-      const data = await response.json();
-      setMatchingData(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      // Handle JSON parsing errors
+      setError(err instanceof Error ? err.message : 'Invalid JSON format');
     } finally {
       setLoading(false);
     }

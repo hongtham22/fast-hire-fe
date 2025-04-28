@@ -1,21 +1,11 @@
 import React from 'react';
+import { MatchField, MatchingResult as MatchingResultType } from '@/types/api';
 
-interface Match {
-  field: string;
-  cv_value: string;
-  jd_value: string;
-}
-
-interface MatchingResultProps {
-  score: number;
+interface MatchingResultProps extends Omit<MatchingResultType, 'matches'> {
   matches: {
-    must_have: Match[];
-    nice_to_have: Match[];
+    must_have: MatchField[];
+    nice_to_have: MatchField[];
   };
-  total_must_have: number;
-  total_nice_to_have: number;
-  matched_must_have: number;
-  matched_nice_to_have: number;
 }
 
 const MatchingResult: React.FC<MatchingResultProps> = ({

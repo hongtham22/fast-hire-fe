@@ -2,15 +2,14 @@
 import React, { useState } from "react";
 import { Edit3, Loader2 } from "lucide-react";
 import EditableTextarea from "../ui/editableTextarea";
+import { parseJobDescription } from "@/lib/api";
+import { JobDescriptionInput, JobDescriptionData } from "@/types/api";
 
 interface JobEditorProps {
-    setKeywords: React.Dispatch<React.SetStateAction<{
-      [category: string]: string[];
-    } | null>>;
-  }
+    setKeywords: (data: JobDescriptionData | null) => void;
+}
 
-  
-  const JobEditor: React.FC<JobEditorProps> = ({ setKeywords }) => {
+const JobEditor: React.FC<JobEditorProps> = ({ setKeywords }) => {
   const [jobTitle, setJobTitle] = useState(
     "Senior Ruby on Rails Developer"
   );
@@ -80,42 +79,32 @@ interface JobEditorProps {
     );
   };
 
-  // Send data to Flask API
-  const parseJobDescription = async () => {
+  // Send data to API
+  const parseJobDescriptionData = async () => {
     setLoading(true);
     setError(null);
-    try {
-      const response = await fetch('http://127.0.0.1:5000/parse-jd', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          jobTitle,
-          location,
-          jobType,
-          experienceYears,
-          keyResponsibilities,
-          mustHave,
-          niceToHave,
-          languageSkills
-        }),
-      });
+    
+    const jobData: JobDescriptionInput = {
+      jobTitle,
+      location,
+      jobType,
+      experienceYears,
+      keyResponsibilities,
+      mustHave,
+      niceToHave,
+      languageSkills
+    };
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to parse job description');
-      }
-
-      const data = await response.json();
+    const { data, error } = await parseJobDescription(jobData);
+    
+    if (error) {
+      setError(error);
+    } else if (data) {
       console.log(data);
       setKeywords(data);
-    //   setKeywords(data);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'An unknown error occurred');
-    } finally {
-      setLoading(false);
     }
+    
+    setLoading(false);
   };
 
   return (
@@ -156,7 +145,7 @@ interface JobEditorProps {
         </div>
         <hr className="my-4" />
         <h2 className="mt-4 text-3xl font-semibold">Our offer</h2>
-        <h3 className="mt-4 text-sm font-semibold text-orange-dark">At ZIGExN VeNtura, we believe in fostering an environment where our employees can thrive both professionally and personally. Here are some of the benefits and perks you can look forward to:</h3>
+        <h3 className="mt-4 text-sm font-semibold text-orange-dark">At Fast Hire, we believe in fostering an environment where our employees can thrive both professionally and personally. Here are some of the benefits and perks you can look forward to:</h3>
         <div className="mt-4 text-md whitespace-pre-line">
             <EditableTextarea value={ourOffer} onChange={setOurOffer} />
         </div>
@@ -164,7 +153,7 @@ interface JobEditorProps {
         {/* Button to analyze JD */}
         <div className="mt-8 flex justify-center">
           <button
-            onClick={parseJobDescription}
+            onClick={parseJobDescriptionData}
             disabled={loading}
             className="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center space-x-2 disabled:opacity-70"
           >
