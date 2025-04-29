@@ -8,6 +8,24 @@ import {
   MatchingResult
 } from '@/types/api';
 
+// Types for the HR Job API
+export interface JobListItem {
+  id: string;
+  jobTitle: string;
+  department: string;
+  applicationCount: number;
+  status: 'pending' | 'approved' | 'closed';
+  expireDate: string | null;
+  createdAt: string;
+}
+
+export interface JobListResponse {
+  jobs: JobListItem[];
+  total: number;
+}
+
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';
+
 /**
  * Generic fetch wrapper with error handling
  */
@@ -139,6 +157,42 @@ export async function evaluateMatching(
   });
 }
 
+/**
+ * Fetch all jobs for HR with application counts
+ */
+export async function getJobsForHR(options?: {
+  page?: number;
+  limit?: number;
+  status?: 'pending' | 'approved' | 'closed';
+  query?: string;
+}): Promise<ApiResponse<JobListResponse>> {
+  // Build query parameters
+  const queryParams = new URLSearchParams();
+  
+  if (options?.page) queryParams.append('page', options.page.toString());
+  if (options?.limit) queryParams.append('limit', options.limit.toString());
+  if (options?.status) queryParams.append('status', options.status);
+  if (options?.query) queryParams.append('query', options.query);
+  
+  const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+  
+  return fetch(`${API_BASE_URL}/jobs/hr/all${queryString}`)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => ({ data, error: null }))
+    .catch(error => {
+      console.error('API Error:', error);
+      return {
+        data: null,
+        error: error instanceof Error ? error.message : 'An unknown error occurred'
+      };
+    });
+}
+
 // Re-export types for easier access
 export type {
   ApiResponse,
@@ -148,3 +202,46 @@ export type {
   MatchingInput,
   MatchingResult
 }; 
+
+/**
+ * Application interface for job applications
+ */
+export interface Application {
+  id: string;
+  applicant: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  job: {
+    id: string;
+    jobTitle: string;
+  };
+  matchScore?: number;
+  status: 'new' | 'in_review' | 'interview' | 'rejected' | 'hired';
+  createdAt: string;
+}
+
+/**
+ * Fetch applications for a specific job ID
+ */
+export async function getApplicationsByJobId(jobId: string): Promise<ApiResponse<Application[]>> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/applications/by-job/${jobId}`);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('API Error:', errorText);
+      throw new Error(errorText || `Request failed with status ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return { data, error: null };
+  } catch (error) {
+    console.error('API Error:', error);
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'An unknown error occurred'
+    };
+  }
+} 
