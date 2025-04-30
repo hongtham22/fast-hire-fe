@@ -7,6 +7,8 @@ import {
   MatchingInput,
   MatchingResult
 } from '@/types/api';
+import { StructuredData } from '@/types/cv';
+import { JobKeywordData } from '@/types/job';
 
 // Types for the HR Job API
 export interface JobListItem {
@@ -22,6 +24,18 @@ export interface JobListItem {
 export interface JobListResponse {
   jobs: JobListItem[];
   total: number;
+}
+
+export interface JobDetail {
+  id: string;
+  jobTitle: string;
+  description: string;
+  department?: string;
+  location?: string;
+  salary?: string;
+  status?: string;
+  createdAt?: string;
+  expireDate?: string | null;
 }
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';
@@ -193,6 +207,31 @@ export async function getJobsForHR(options?: {
     });
 }
 
+/**
+ * Fetch job keywords for a specific job ID from the public endpoint
+ * This uses the direct public URL that's known to work
+ */
+export async function getPublicJobKeywords(jobId: string): Promise<ApiResponse<JobKeywordData>> {
+  try {
+    const response = await fetch(`http://127.0.0.1:3000/jobs/${jobId}/keywords`);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('API Error:', errorText);
+      throw new Error(errorText || `Request failed with status ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return { data, error: null };
+  } catch (error) {
+    console.error('API Error:', error);
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'An unknown error occurred'
+    };
+  }
+}
+
 // Re-export types for easier access
 export type {
   ApiResponse,
@@ -220,6 +259,7 @@ export interface Application {
   matchScore?: number;
   status: 'new' | 'in_review' | 'interview' | 'rejected' | 'hired';
   createdAt: string;
+  cvFileUrl?: string;
 }
 
 /**
@@ -228,6 +268,86 @@ export interface Application {
 export async function getApplicationsByJobId(jobId: string): Promise<ApiResponse<Application[]>> {
   try {
     const response = await fetch(`${API_BASE_URL}/applications/by-job/${jobId}`);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('API Error:', errorText);
+      throw new Error(errorText || `Request failed with status ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return { data, error: null };
+  } catch (error) {
+    console.error('API Error:', error);
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'An unknown error occurred'
+    };
+  }
+}
+
+/**
+ * CV keywords response interface
+ */
+export interface CVKeywordsResponse {
+  raw_text: string;
+  structured_data: StructuredData;
+}
+
+/**
+ * Fetch CV keywords for a specific application ID
+ */
+export async function getCVKeywords(applicationId: string): Promise<ApiResponse<CVKeywordsResponse>> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/cv-keywords/by-application/${applicationId}`);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('API Error:', errorText);
+      throw new Error(errorText || `Request failed with status ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return { data, error: null };
+  } catch (error) {
+    console.error('API Error:', error);
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'An unknown error occurred'
+    };
+  }
+}
+
+/**
+ * Fetch application details by ID
+ */
+export async function getApplicationById(applicationId: string): Promise<ApiResponse<Application>> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/applications/${applicationId}`);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('API Error:', errorText);
+      throw new Error(errorText || `Request failed with status ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return { data, error: null };
+  } catch (error) {
+    console.error('API Error:', error);
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'An unknown error occurred'
+    };
+  }
+}
+
+/**
+ * Fetch detailed information for a specific job
+ */
+export async function getJobDetail(jobId: string): Promise<ApiResponse<JobDetail>> {
+  try {
+    const response = await fetch(`http://127.0.0.1:3000/jobs/${jobId}`);
     
     if (!response.ok) {
       const errorText = await response.text();

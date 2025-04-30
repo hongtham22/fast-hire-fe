@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Search, Filter, ArrowLeft, Loader2, FileText } from "lucide-react";
+import { Search, Filter, ArrowLeft, Loader2, FileText, Tag } from "lucide-react";
 import { getApplicationsByJobId, Application } from "@/lib/api";
 
 // Interface for the API response from backend
@@ -120,24 +120,18 @@ export default function JobApplicationsPage() {
     }
   };
 
-  const openCVFile = (cvFileUrl: string | undefined) => {
+  const openCVFile = (cvFileUrl: string | undefined, applicationId: string) => {
     if (!cvFileUrl) {
       alert('CV file not available');
       return;
     }
     
-    // Determine if this is a full URL or a relative path
-    let fullUrl: string;
-    if (cvFileUrl.startsWith('http://') || cvFileUrl.startsWith('https://')) {
-      fullUrl = cvFileUrl;
-    } else {
-      // If it's a relative path, construct the full URL
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';
-      fullUrl = `${baseUrl}/${cvFileUrl.startsWith('/') ? cvFileUrl.slice(1) : cvFileUrl}`;
-    }
-    
-    // Open in a new tab
-    window.open(fullUrl, '_blank');
+    // Navigate to CV viewer page instead of opening in a new tab
+    router.push(`/HR/applications/cv-viewer/${applicationId}`);
+  };
+
+  const viewJobKeywords = () => {
+    router.push(`/HR/job-postings/${jobId}/keywords`);
   };
 
   const filteredApplications = applications.filter(app => 
@@ -211,6 +205,13 @@ export default function JobApplicationsPage() {
             {jobTitle ? `Applications for ${jobTitle}` : 'View all applications for this job position'}
           </p>
         </div>
+        <button 
+          onClick={viewJobKeywords}
+          className="flex items-center gap-2 rounded-md bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700"
+        >
+          <Tag className="h-4 w-4" />
+          View Keywords
+        </button>
       </div>
 
       <div className="flex items-center gap-4">
@@ -282,7 +283,7 @@ export default function JobApplicationsPage() {
                 <div className="col-span-2 space-x-2">
                   <button 
                     className="rounded border px-2 py-1 text-xs font-medium hover:bg-gray-50"
-                    onClick={() => openCVFile(application.cvFileUrl)}
+                    onClick={() => openCVFile(application.cvFileUrl, application.id)}
                   >
                     <span className="flex items-center">
                       <FileText className="mr-1 h-3 w-3" />

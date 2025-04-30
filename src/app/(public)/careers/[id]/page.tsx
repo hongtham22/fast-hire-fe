@@ -8,6 +8,7 @@ import { useJobs } from "@/app/context/JobsContext";
 import { IoShareSocialOutline } from "react-icons/io5";
 import { IoArrowForwardOutline } from "react-icons/io5";
 import ApplicationModal from "@/app/components/ApplicationModal";
+import KeywordAnalysisModal from "@/components/JD/KeywordAnalysisModal";
 
 const JobDetailPage = () => {
   const {
@@ -19,6 +20,7 @@ const JobDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isKeywordModalOpen, setIsKeywordModalOpen] = useState(false);
 
   const params = useParams();
   const jobId = params.id as string;
@@ -66,6 +68,10 @@ const JobDetailPage = () => {
   const handleApply = () => {
     // Open the application modal instead of navigation
     setIsModalOpen(true);
+  };
+
+  const handleViewKeywords = () => {
+    setIsKeywordModalOpen(true);
   };
 
   // Show loading state only if both context is loading or local loading state is true
@@ -163,23 +169,32 @@ const JobDetailPage = () => {
                       {job.location.name}
                     </p>
                   </div>
-                  <button
-                    onClick={handleApply}
-                    type="button"
-                    className="relative flex items-center justify-between overflow-hidden rounded-full border border-orange-dark py-3 pl-6 pr-14 w-[214px] xl:py-[15px] xl:pr-[55px] xl:w-[180px] bg-white group disabled:opacity-50"
-                  >
-                    <div className="absolute right-0 h-[500px] w-[500px] rounded-full shadow-2xl transition-transform duration-500 ease-in-out scale-0 bg-orange-dark group-hover:scale-100"></div>
-                    <span className="relative z-10 transition-colors duration-500 text-orange-dark group-hover:text-white font-extrabold">
-                      Apply Now
-                    </span>
-                    <div className="absolute right-1 top-1/2 z-10 -translate-y-1/2 transform">
-                      <div className="relative flex items-center justify-center">
-                        <div className="h-10 w-10 rounded-full transition-all duration-500 ease-in-out bg-orange-dark flex items-center justify-center group-hover:bg-white">
-                          <IoArrowForwardOutline className="h-5 w-5 text-white group-hover:text-orange-dark transition-colors duration-500" />
+                  <div className="flex space-x-4">
+                    <button
+                      onClick={handleViewKeywords}
+                      type="button"
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                    >
+                      View Keywords
+                    </button>
+                    <button
+                      onClick={handleApply}
+                      type="button"
+                      className="relative flex items-center justify-between overflow-hidden rounded-full border border-orange-dark py-3 pl-6 pr-14 w-[214px] xl:py-[15px] xl:pr-[55px] xl:w-[180px] bg-white group disabled:opacity-50"
+                    >
+                      <div className="absolute right-0 h-[500px] w-[500px] rounded-full shadow-2xl transition-transform duration-500 ease-in-out scale-0 bg-orange-dark group-hover:scale-100"></div>
+                      <span className="relative z-10 transition-colors duration-500 text-orange-dark group-hover:text-white font-extrabold">
+                        Apply Now
+                      </span>
+                      <div className="absolute right-1 top-1/2 z-10 -translate-y-1/2 transform">
+                        <div className="relative flex items-center justify-center">
+                          <div className="h-10 w-10 rounded-full transition-all duration-500 ease-in-out bg-orange-dark flex items-center justify-center group-hover:bg-white">
+                            <IoArrowForwardOutline className="h-5 w-5 text-white group-hover:text-orange-dark transition-colors duration-500" />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </button>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="mb-8 flex flex-wrap items-center text-sm text-gray-600">
@@ -346,6 +361,13 @@ const JobDetailPage = () => {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
         jobTitle={job?.title || job?.jobTitle || ""}
+        jobId={jobId}
+      />
+
+      {/* Keyword Analysis Modal */}
+      <KeywordAnalysisModal
+        isOpen={isKeywordModalOpen}
+        onClose={() => setIsKeywordModalOpen(false)}
         jobId={jobId}
       />
     </>
