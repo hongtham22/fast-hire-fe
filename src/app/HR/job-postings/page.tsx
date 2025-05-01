@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { Plus, Search, Loader2 } from "lucide-react";
 import { getJobsForHR, JobListItem } from "@/lib/api";
 import { useRouter } from "next/navigation";
-import KeywordAnalysisModal from "@/components/JD/KeywordAnalysisModal";
 
 export default function JobPostingsPage() {
   const [jobs, setJobs] = useState<JobListItem[]>([]);
@@ -13,8 +12,6 @@ export default function JobPostingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved" | "closed">("all");
-  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
-  const [isKeywordModalOpen, setIsKeywordModalOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -77,10 +74,6 @@ export default function JobPostingsPage() {
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
 
-  const viewJobKeywords = (jobId: string) => {
-    setSelectedJobId(jobId);
-    setIsKeywordModalOpen(true);
-  };
 
   const viewJobApplications = (jobId: string) => {
     router.push(`/HR/job-postings/${jobId}/applications`);
@@ -160,12 +153,6 @@ export default function JobPostingsPage() {
                   </span>
                 </div>
                 <div className="space-x-2">
-                  <button 
-                    className="rounded border border-orange-600 bg-orange-50 text-orange-700 px-2 py-1 text-xs font-medium hover:bg-orange-100"
-                    onClick={() => viewJobKeywords(job.id)}
-                  >
-                    Keywords
-                  </button>
                   <button className="rounded border px-2 py-1 text-xs font-medium hover:bg-gray-50">
                     Edit
                   </button>
@@ -191,13 +178,6 @@ export default function JobPostingsPage() {
         </div>
       )}
       
-      {selectedJobId && (
-        <KeywordAnalysisModal
-          isOpen={isKeywordModalOpen}
-          onClose={() => setIsKeywordModalOpen(false)}
-          jobId={selectedJobId}
-        />
-      )}
     </div>
   );
 } 

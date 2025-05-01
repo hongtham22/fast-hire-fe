@@ -11,7 +11,7 @@ const JobKeywordView: React.FC<JobKeywordViewProps> = ({ keywords }) => {
 
   return (
     <div className="w-full bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-      <h2 className="text-2xl font-semibold mb-4 text-blue-600 border-b pb-2">Job Requirements</h2>
+      <h2 className="text-2xl font-semibold mb-4 text-blue-600 border-b pb-2">Extracted Keywords</h2>
       
       <div className="space-y-6">
         {/* Role and Experience */}
