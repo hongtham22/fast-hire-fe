@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Loader2 } from 'lucide-react';
-import Link from 'next/link';
 import CVViewer from '@/components/CV/CVViewer';
 import { getApplicationById } from '@/lib/api';
 
@@ -52,7 +51,7 @@ export default function CVViewerPage() {
     if (applicationId) {
       fetchApplicationData();
     }
-  }, [applicationId]);
+  }, [applicationId, cvFileUrl]);
   
   if (loading) {
     return (
@@ -79,7 +78,7 @@ export default function CVViewerPage() {
   }
 
   return (
-    <div className="bg-gray-100 w-full h-full flex flex-col pt-[40px] pb-20 px-12">
+    <div className="w-full flex flex-col pt-[40px] pb-20 px-12 bg-gray-100">
       <div className="flex justify-between items-center mb-6">
         <button 
           onClick={() => router.back()}
@@ -88,10 +87,6 @@ export default function CVViewerPage() {
           <ArrowLeft className="h-4 w-4" />
           Back to Applications
         </button>
-        
-        <Link href="/cv_parser" className="text-md font-bold text-emerald-500">
-          &gt;&gt;&gt; Link to CV Parser
-        </Link>
       </div>
       
       <h1 className="text-2xl font-bold mb-6">CV Viewer</h1>

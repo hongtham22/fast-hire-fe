@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
-import { getCVKeywords, CVKeywordsResponse } from '@/lib/api';
+import { getCVKeywords } from '@/lib/api';
 import { StructuredData } from '@/types/cv';
 
 interface CVViewerProps {
@@ -97,23 +97,23 @@ const CVViewer: React.FC<CVViewerProps> = ({ applicationId, cvFileUrl }) => {
   }
 
   return (
-    <div className="flex flex-row gap-6">
+    <div className="flex flex-row gap-6 ">
       {/* CV Text display */}
-      <div className="w-1/2">
+      <div className="w-1/2 bg-gray-100">
         {cvFileUrl && cvFileUrl.toLowerCase().endsWith('.pdf') && (
           <div className="mb-8">
             <h3 className="text-xl font-semibold mb-4 text-emerald-500">PDF View</h3>
             <iframe 
               src={`${process.env.NEXT_PUBLIC_API_BASE_URL}/${cvFileUrl.startsWith('/') ? cvFileUrl.slice(1) : cvFileUrl}`}
-              className="w-full h-[600px] border border-gray-300 rounded-lg"
+              className="w-full h-[1000px] border border-gray-300 rounded-lg"
             />
           </div>
         )}
 
-        <div className="mt-4">
+        <div className="mt-4 ">
           <h3 className="text-xl font-semibold mb-4 text-emerald-500 border-b pb-2">Raw Text</h3>
           <textarea
-            className="w-full h-[600px] p-4 border border-gray-300 rounded-lg font-mono text-sm bg-gray-50"
+            className="w-full h-[600px] p-4 border border-gray-300 rounded-lg font-mono text-sm"
             value={cvText}
             readOnly
           />

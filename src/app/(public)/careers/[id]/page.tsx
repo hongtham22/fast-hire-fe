@@ -8,7 +8,6 @@ import { useJobs } from "@/app/context/JobsContext";
 import { IoShareSocialOutline } from "react-icons/io5";
 import { IoArrowForwardOutline } from "react-icons/io5";
 import ApplicationModal from "@/app/components/ApplicationModal";
-import KeywordAnalysisModal from "@/components/JD/KeywordAnalysisModal";
 
 const JobDetailPage = () => {
   const {
@@ -20,7 +19,6 @@ const JobDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isKeywordModalOpen, setIsKeywordModalOpen] = useState(false);
 
   const params = useParams();
   const jobId = params.id as string;
@@ -68,10 +66,6 @@ const JobDetailPage = () => {
   const handleApply = () => {
     // Open the application modal instead of navigation
     setIsModalOpen(true);
-  };
-
-  const handleViewKeywords = () => {
-    setIsKeywordModalOpen(true);
   };
 
   // Show loading state only if both context is loading or local loading state is true
@@ -170,13 +164,6 @@ const JobDetailPage = () => {
                     </p>
                   </div>
                   <div className="flex space-x-4">
-                    <button
-                      onClick={handleViewKeywords}
-                      type="button"
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
-                    >
-                      View Keywords
-                    </button>
                     <button
                       onClick={handleApply}
                       type="button"
@@ -364,12 +351,6 @@ const JobDetailPage = () => {
         jobId={jobId}
       />
 
-      {/* Keyword Analysis Modal */}
-      <KeywordAnalysisModal
-        isOpen={isKeywordModalOpen}
-        onClose={() => setIsKeywordModalOpen(false)}
-        jobId={jobId}
-      />
     </>
   );
 };
