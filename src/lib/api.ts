@@ -5,7 +5,6 @@ import {
   JobDescriptionInput,
   JobDescriptionData,
   MatchingInput,
-  MatchingResult
 } from '@/types/api';
 import { StructuredData } from '@/types/cv';
 import { JobKeywordData } from '@/types/job';
@@ -159,17 +158,6 @@ export async function parseJobDescription(
   });
 }
 
-/**
- * CV-JD Matching API
- */
-export async function evaluateMatching(
-  matchingData: MatchingInput
-): Promise<ApiResponse<MatchingResult>> {
-  return fetchApi<MatchingResult>('/evaluate-matching', {
-    method: 'POST',
-    body: JSON.stringify(matchingData),
-  });
-}
 
 /**
  * Fetch all jobs for HR with application counts
@@ -239,7 +227,6 @@ export type {
   JobDescriptionInput,
   JobDescriptionData,
   MatchingInput,
-  MatchingResult
 }; 
 
 /**

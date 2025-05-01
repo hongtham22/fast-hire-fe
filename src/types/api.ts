@@ -55,15 +55,3 @@ export interface MatchField {
   cv_value: string;
   jd_value: string;
 }
-
-export interface MatchingResult {
-  score: number;
-  matches: {
-    must_have: MatchField[];
-    nice_to_have: MatchField[];
-  };
-  total_must_have: number;
-  total_nice_to_have: number;
-  matched_must_have: number;
-  matched_nice_to_have: number;
-} 
