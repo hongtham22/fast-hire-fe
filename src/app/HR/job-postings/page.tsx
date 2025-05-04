@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Search, Loader2 } from "lucide-react";
-import { getJobsForHR, JobListItem } from "@/lib/api";
+import { Plus, Search, Loader2, Trash2, AlertCircle } from "lucide-react";
+import { getJobsForHR, JobListItem, deleteJob } from "@/lib/api";
 import { useRouter } from "next/navigation";
+import CreateJobModal from "@/components/JobModal/CreateJobModal";
 
 export default function JobPostingsPage() {
   const [jobs, setJobs] = useState<JobListItem[]>([]);
@@ -12,6 +13,9 @@ export default function JobPostingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved" | "closed">("all");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -74,9 +78,38 @@ export default function JobPostingsPage() {
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
 
-
   const viewJobApplications = (jobId: string) => {
     router.push(`/HR/job-postings/${jobId}/applications`);
+  };
+
+  const handleJobCreated = () => {
+    fetchJobs();
+    setIsCreateModalOpen(false);
+  };
+
+  const handleDeleteJob = async (jobId: string) => {
+    if (!confirm("Are you sure you want to delete this job posting? This will also delete all related keyword data.")) {
+      return;
+    }
+    
+    setDeleteLoading(jobId);
+    setDeleteError(null);
+    
+    try {
+      const response = await deleteJob(jobId);
+      
+      if (response.error) {
+        setDeleteError(response.error);
+      } else {
+        // Refresh the job list
+        fetchJobs();
+      }
+    } catch (err) {
+      setDeleteError("Failed to delete job");
+      console.error(err);
+    } finally {
+      setDeleteLoading(null);
+    }
   };
 
   return (
@@ -86,7 +119,10 @@ export default function JobPostingsPage() {
           <h1 className="text-2xl font-bold">Job Postings</h1>
           <p className="text-gray-500">Manage your active and closed job postings</p>
         </div>
-        <button className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+        <button 
+          onClick={() => setIsCreateModalOpen(true)}
+          className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+        >
           <Plus className="h-4 w-4" />
           New Job Posting
         </button>
@@ -122,6 +158,13 @@ export default function JobPostingsPage() {
           {error}
         </div>
       )}
+
+      {deleteError && (
+        <div className="rounded-md bg-red-50 p-4 text-red-700 flex items-center gap-2">
+          <AlertCircle className="h-5 w-5" />
+          <span>{deleteError}</span>
+        </div>
+      )}
       
       <div className="rounded-xl border shadow-sm">
         <div className="grid grid-cols-6 gap-4 border-b bg-gray-50 px-6 py-3 font-medium">
@@ -152,7 +195,7 @@ export default function JobPostingsPage() {
                     {capitalizeFirstLetter(job.status)}
                   </span>
                 </div>
-                <div className="space-x-2">
+                <div className="space-x-2 flex items-center">
                   <button className="rounded border px-2 py-1 text-xs font-medium hover:bg-gray-50">
                     Edit
                   </button>
@@ -161,6 +204,18 @@ export default function JobPostingsPage() {
                     onClick={() => viewJobApplications(job.id)}
                   >
                     View
+                  </button>
+                  <button 
+                    className="rounded border border-red-200 bg-red-50 hover:bg-red-100 px-2 py-1 text-xs font-medium text-red-600 flex items-center gap-1"
+                    onClick={() => handleDeleteJob(job.id)}
+                    disabled={deleteLoading === job.id}
+                  >
+                    {deleteLoading === job.id ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-3 w-3" />
+                    )}
+                    Delete
                   </button>
                 </div>
               </div>
@@ -178,6 +233,14 @@ export default function JobPostingsPage() {
         </div>
       )}
       
+      {/* Create Job Modal */}
+      {isCreateModalOpen && (
+        <CreateJobModal 
+          isOpen={isCreateModalOpen} 
+          onClose={() => setIsCreateModalOpen(false)}
+          onJobCreated={handleJobCreated}
+        />
+      )}
     </div>
   );
 } 

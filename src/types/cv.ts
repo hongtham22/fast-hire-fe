@@ -28,7 +28,7 @@ export interface StructuredData {
     language: string;
     level: string;
   }>;
-  programing_langugue: string[];
+  programming_language: string[];
   technical_skill: string[];
   soft_skill: string[];
   certificate: string[];

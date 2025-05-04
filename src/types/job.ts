@@ -20,7 +20,7 @@ export interface JobKeywordData {
       requirement_type: string;
     };
   }>;
-  programing_langugue?: Array<{
+  programming_language?: Array<{
     value: string;
     requirement_type: string;
   }>;

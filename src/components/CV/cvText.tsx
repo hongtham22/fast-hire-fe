@@ -116,7 +116,7 @@ const CVText: React.FC<CVTextProps> = ({ cvText, structuredData }) => {
                 <div className="bg-white p-3 rounded shadow-sm">
                   <h5 className="font-medium text-emerald-500 mb-2">Programming Languages</h5>
                   <div className="flex flex-wrap gap-2">
-                    {structuredData.programing_langugue.map((lang, index) => (
+                    {structuredData.programming_language.map((lang, index) => (
                       <span key={index} className="bg-[#fff8e1] text-[#FF7A00] border border-orange-100 px-2 py-1 rounded-full text-sm">{lang}</span>
                     ))}
                   </div>

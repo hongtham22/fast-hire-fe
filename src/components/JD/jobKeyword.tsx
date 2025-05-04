@@ -84,11 +84,11 @@ const JobKeyword: React.FC<JobKeywordProps> = ({ keywords }) => {
             )}
 
             {/* Programming Languages */}
-            {keywords.programing_langugue && keywords.programing_langugue.length > 0 && (
+            {keywords.programming_language && keywords.programming_language.length > 0 && (
               <div className="bg-white p-3 rounded shadow-sm">
                 <h5 className="font-medium text-emerald-500 mb-2">Programming Languages</h5>
                 <div className="flex flex-wrap gap-2">
-                  {keywords.programing_langugue.map((lang, index) => (
+                  {keywords.programming_language.map((lang, index) => (
                     <span 
                       key={index} 
                       className={`px-2 py-1 rounded-full text-sm ${

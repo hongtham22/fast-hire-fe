@@ -14,7 +14,6 @@ const JobEditor: React.FC<JobEditorProps> = ({ setKeywords }) => {
     "Senior Ruby on Rails Developer"
   );
   const [location, setLocation] = useState("Ha Noi");
-  const [jobType, setJobType] = useState("Full time");
   const [experienceYears, setExperienceYears] = useState("5+ years");
   const [keyResponsibilities, setKeyResponsibilities] = useState(`- Analyze system requirements, and develop web applications.
     - Ensure code quality, adhere to SOLID principles, apply design patterns, and optimize database performance.
@@ -87,7 +86,6 @@ const JobEditor: React.FC<JobEditorProps> = ({ setKeywords }) => {
     const jobData: JobDescriptionInput = {
       jobTitle,
       location,
-      jobType,
       experienceYears,
       keyResponsibilities,
       mustHave,
@@ -116,9 +114,6 @@ const JobEditor: React.FC<JobEditorProps> = ({ setKeywords }) => {
             <div className="text-gray-600 my-4 flex space-x-4">
                 <span>
                 <strong>Location:</strong> <EditableText value={location} onChange={setLocation} />
-                </span>
-                <span>
-                <strong>Type:</strong> <EditableText value={jobType} onChange={setJobType} />
                 </span>
                 <span>
                 <strong>Experience:</strong> <EditableText value={experienceYears} onChange={setExperienceYears} />

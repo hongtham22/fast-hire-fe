@@ -39,6 +39,12 @@ export interface JobDetail {
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';
 
+// Add the Location interface
+export interface Location {
+  id: string;
+  name: string;
+}
+
 /**
  * Generic fetch wrapper with error handling
  */
@@ -335,6 +341,54 @@ export async function getApplicationById(applicationId: string): Promise<ApiResp
 export async function getJobDetail(jobId: string): Promise<ApiResponse<JobDetail>> {
   try {
     const response = await fetch(`http://127.0.0.1:3000/jobs/${jobId}`);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('API Error:', errorText);
+      throw new Error(errorText || `Request failed with status ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return { data, error: null };
+  } catch (error) {
+    console.error('API Error:', error);
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'An unknown error occurred'
+    };
+  }
+}
+
+// Add function to fetch locations
+export async function getLocations(): Promise<ApiResponse<Location[]>> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/locations`);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('API Error:', errorText);
+      throw new Error(errorText || `Request failed with status ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return { data, error: null };
+  } catch (error) {
+    console.error('API Error:', error);
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'An unknown error occurred'
+    };
+  }
+}
+
+/**
+ * Delete a job and its related data
+ */
+export async function deleteJob(jobId: string): Promise<ApiResponse<{ message: string }>> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/jobs/${jobId}`, {
+      method: 'DELETE',
+    });
     
     if (!response.ok) {
       const errorText = await response.text();

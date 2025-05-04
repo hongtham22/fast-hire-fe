@@ -27,7 +27,6 @@ export interface JobKeyworRespone {
 export interface JobDescriptionInput {
   jobTitle: string;
   location: string;
-  jobType: string;
   experienceYears: string;
   keyResponsibilities: string;
   mustHave: string;
