@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Search, Filter, ArrowLeft, Loader2, FileText, Tag } from "lucide-react";
+import { Search, Filter, ArrowLeft, Loader2, FileText, Tag, X, Info } from "lucide-react";
 import { getApplicationsByJobId, Application } from "@/lib/api";
+import MatchScoreCircle from "@/components/MatchScoreCircle";
 
 // Interface for the API response from backend
 interface ApplicationApiResponse {
@@ -32,6 +33,36 @@ interface ApplicationApiResponse {
 // Extended Application interface to include cvFileUrl
 interface ApplicationWithCV extends Application {
   cvFileUrl?: string;
+  missingFeedback?: string | null;
+}
+
+// Feedback modal component
+function FeedbackModal({ isOpen, onClose, feedback }: { isOpen: boolean; onClose: () => void; feedback: string }) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="relative w-full max-w-2xl rounded-lg bg-white p-6 shadow-xl">
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-lg font-medium">Missing Requirements</h3>
+          <button onClick={onClose} className="rounded-full p-1 hover:bg-gray-100">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="max-h-96 overflow-y-auto">
+          <p className="whitespace-pre-wrap text-gray-700">{feedback}</p>
+        </div>
+        <div className="mt-6 flex justify-end">
+          <button
+            onClick={onClose}
+            className="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function JobApplicationsPage() {
@@ -40,6 +71,8 @@ export default function JobApplicationsPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [jobTitle, setJobTitle] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [currentFeedback, setCurrentFeedback] = useState("");
   
   const params = useParams();
   const router = useRouter();
@@ -91,10 +124,11 @@ export default function JobApplicationsPage() {
                 id: item.jobId || '',
                 jobTitle: item.job?.jobTitle || 'Unknown Position',
               },
-              matchScore: item.matchingScore !== null ? Number(item.matchingScore) : undefined,
+              matchScore: item.matchingScore !== null ? Math.floor(Number(item.matchingScore)) : undefined,
               status: status,
               createdAt: item.submittedAt || new Date().toISOString(),
               cvFileUrl: item.cvFileUrl, // Include CV file URL
+              missingFeedback: item.missingFeedback, // Include missing feedback
             };
           });
 
@@ -132,6 +166,11 @@ export default function JobApplicationsPage() {
 
   const viewJobKeywords = () => {
     router.push(`/HR/job-postings/${jobId}/keywords`);
+  };
+
+  const openFeedbackModal = (feedback: string) => {
+    setCurrentFeedback(feedback);
+    setModalOpen(true);
   };
 
   const filteredApplications = applications.filter(app => 
@@ -241,11 +280,12 @@ export default function JobApplicationsPage() {
       
       <div className="rounded-xl border shadow-sm">
         <div className="grid grid-cols-8 gap-4 border-b bg-gray-50 px-6 py-3 font-medium">
-          <div className="col-span-2">Candidate</div>
+          <div className="">Match Score</div>
+          <div>Candidate</div>
           <div>Email</div>
-          <div>Match Score</div>
           <div>Date Applied</div>
           <div>Status</div>
+          <div>Missing feedback</div>
           <div className="col-span-2">Actions</div>
         </div>
         
@@ -261,24 +301,32 @@ export default function JobApplicationsPage() {
           <div className="divide-y">
             {filteredApplications.map((application) => (
               <div key={application.id} className="grid grid-cols-8 gap-4 px-6 py-4">
-                <div className="col-span-2 font-medium">{application.applicant.name}</div>
-                <div className="text-gray-600">{application.applicant.email}</div>
                 <div>
-                  <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                    (application.matchScore || 0) >= 90 
-                      ? "bg-green-100 text-green-700" 
-                      : (application.matchScore || 0) >= 80 
-                        ? "bg-blue-100 text-blue-700" 
-                        : "bg-yellow-100 text-yellow-700"
-                  }`}>
-                    {application.matchScore || "N/A"}%
-                  </span>
+                  <MatchScoreCircle score={application.matchScore || 0} />
                 </div>
+                <div className="font-medium">{application.applicant.name}</div>
+                <div className="text-gray-600">{application.applicant.email}</div>
                 <div className="text-gray-600">{formatDate(application.createdAt)}</div>
                 <div>
                   <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getStatusBadgeClass(application.status)}`}>
                     {getStatusDisplay(application.status)}
                   </span>
+                </div>
+                <div className="text-gray-600">
+                  {application.missingFeedback ? (
+                    <div className="flex items-center">
+                      <span className="mr-2 font-normal text-sm text-green-700">Missing Feedback</span>
+                      <button 
+                        onClick={() => openFeedbackModal(application.missingFeedback || '')}
+                        className="flex items-center rounded-full bg-gray-100 p-1 text-gray-600 hover:bg-gray-200"
+                        title="View details"
+                      >
+                        <Info className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-green-600">Complete</span>
+                  )}
                 </div>
                 <div className="col-span-2 space-x-2">
                   <button 
@@ -302,6 +350,12 @@ export default function JobApplicationsPage() {
           </div>
         )}
       </div>
+      
+      <FeedbackModal 
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        feedback={currentFeedback}
+      />
     </div>
   );
 } 
