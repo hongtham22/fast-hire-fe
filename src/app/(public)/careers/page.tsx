@@ -222,7 +222,7 @@ const CareersPage = () => {
                     }
                     className="group relative bg-white border rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 cursor-pointer"
                   >
-                    {/* Ripple effect bán nguyệt */}
+                    {/* Semi-circular ripple effect */}
                     <span className="absolute bottom-0 left-1/2 w-0 h-0 bg-orange-primary opacity-0 rounded-t-full transform -translate-x-1/2 transition-all ease-out duration-1000 group-hover:w-[300%] group-hover:h-[200%] group-hover:opacity-100"></span>
 
                     <div className="relative p-10 z-10 text-black group-hover:text-white transition-colors duration-1000">
