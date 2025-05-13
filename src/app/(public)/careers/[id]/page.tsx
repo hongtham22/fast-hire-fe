@@ -3,11 +3,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import ListJobs from "@/app/components/listJobs";
+import ListJobs from "@/components/listJobs";
 import { useJobs } from "@/app/context/JobsContext";
 import { IoShareSocialOutline } from "react-icons/io5";
 import { IoArrowForwardOutline } from "react-icons/io5";
-import ApplicationModal from "@/app/components/ApplicationModal";
+import ApplicationModal from "@/components/ApplicationModal";
 
 const JobDetailPage = () => {
   const {
@@ -222,15 +222,15 @@ const JobDetailPage = () => {
                       Get excited to create Life Media Platforms from Vietnam to
                       the World!
                       {"\n\n"}
-                      At ZIGExN VeNtura, we&apos;re part of a larger vision driven by
-                      ZIGExN Co., Ltd., a leading life media platform company in
-                      Japan. Our parent company offers over 40 services in domains
+                      At FastHire, we&apos;re part of a larger vision driven by
+                      FastHire Co., Ltd., a leading life media platform company in
+                      Vietnam. Our parent company offers over 40 services in domains
                       like jobs, housing, cars, and travel. Recognized with
-                      prestigious awards such as the Japan Technology Fast 50
-                      (Deloitte, 2015) and named a Great Place to Work in Japan,
-                      ZIGExN is now expanding its global impact.
+                      prestigious awards such as the Vietnam Technology Fast 50
+                      (Deloitte, 2015) and named a Great Place to Work in Vietnam,
+                      FastHire is now expanding its global impact.
                       {"\n\n"}
-                      At ZIGExN VeNtura, we specialize in software development and
+                      At FastHire, we specialize in software development and
                       Internet services, building multi-product solutions based on
                       life media platforms. Our talented engineers in Ho Chi Minh,
                       Hanoi, and Da Nang collaborate to develop innovations that

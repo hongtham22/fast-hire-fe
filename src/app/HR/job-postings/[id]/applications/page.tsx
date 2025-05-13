@@ -14,6 +14,14 @@ interface ApplicationApiResponse {
   cvFileUrl: string;
   submittedAt: string;
   matchingScore: number | null;
+  roleScore: number | null;
+  expScore: number | null;
+  programmingScore: number | null;
+  technicalScore: number | null;
+  softScore: number | null;
+  langsScore: number | null;
+  keyScore: number | null;
+  certScore: number | null;
   missingFeedback: string | null;
   note: string | null;
   result: boolean | null;
@@ -30,10 +38,19 @@ interface ApplicationApiResponse {
   };
 }
 
-// Extended Application interface to include cvFileUrl
+// Extended Application interface to include cvFileUrl and detailed scores
 interface ApplicationWithCV extends Application {
   cvFileUrl?: string;
   missingFeedback?: string | null;
+  matchingScore?: number | null;
+  roleScore?: number;
+  expScore?: number;
+  programmingScore?: number;
+  technicalScore?: number;
+  softScore?: number;
+  langsScore?: number;
+  keyScore?: number;
+  certScore?: number;
 }
 
 // Feedback modal component
@@ -108,7 +125,6 @@ export default function JobApplicationsPage() {
             } else if (item.result === false) {
               status = 'rejected';
             } else {
-              // If result is null, use new status
               status = 'new';
             }
             
@@ -127,8 +143,17 @@ export default function JobApplicationsPage() {
               matchScore: item.matchingScore !== null ? Math.floor(Number(item.matchingScore)) : undefined,
               status: status,
               createdAt: item.submittedAt || new Date().toISOString(),
-              cvFileUrl: item.cvFileUrl, // Include CV file URL
-              missingFeedback: item.missingFeedback, // Include missing feedback
+              cvFileUrl: item.cvFileUrl,
+              missingFeedback: item.missingFeedback,
+              matchingScore: item.matchingScore !== null ? Number(item.matchingScore) : undefined,
+              roleScore: item.roleScore !== null ? Number(item.roleScore) : undefined,
+              expScore: item.expScore !== null ? Number(item.expScore) : undefined,
+              programmingScore: item.programmingScore !== null ? Number(item.programmingScore) : undefined,
+              technicalScore: item.technicalScore !== null ? Number(item.technicalScore) : undefined,
+              softScore: item.softScore !== null ? Number(item.softScore) : undefined,
+              langsScore: item.langsScore !== null ? Number(item.langsScore) : undefined,
+              keyScore: item.keyScore !== null ? Number(item.keyScore) : undefined,
+              certScore: item.certScore !== null ? Number(item.certScore) : undefined,
             };
           });
 
@@ -180,23 +205,27 @@ export default function JobApplicationsPage() {
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
-      
-      // Check if date is valid
+  
       if (isNaN(date.getTime())) {
         return "Invalid date";
       }
-      
+  
       return new Intl.DateTimeFormat("en-US", {
         year: "numeric",
         month: "long",
-        day: "numeric"
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false, 
+        timeZone: "Asia/Ho_Chi_Minh", 
       }).format(date);
     } catch (error) {
       console.error("Error formatting date:", error);
       return "Invalid date";
     }
   };
-
+  
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
       case "hired":
@@ -279,14 +308,14 @@ export default function JobApplicationsPage() {
       )}
       
       <div className="rounded-xl border shadow-sm">
-        <div className="grid grid-cols-8 gap-4 border-b bg-gray-50 px-6 py-3 font-medium">
+        <div className="grid grid-cols-7 gap-5 border-b bg-gray-50 px-6 py-3 font-medium">
           <div className="">Match Score</div>
           <div>Candidate</div>
           <div>Email</div>
           <div>Date Applied</div>
           <div>Status</div>
           <div>Missing feedback</div>
-          <div className="col-span-2">Actions</div>
+          <div>Actions</div>
         </div>
         
         {loading ? (
@@ -300,9 +329,21 @@ export default function JobApplicationsPage() {
         ) : (
           <div className="divide-y">
             {filteredApplications.map((application) => (
-              <div key={application.id} className="grid grid-cols-8 gap-4 px-6 py-4">
-                <div>
-                  <MatchScoreCircle score={application.matchScore || 0} />
+              <div key={application.id} className="grid grid-cols-7 gap-5 px-6 py-4">
+                <div className="">
+                  <MatchScoreCircle 
+                    score={application.matchScore || 0} 
+                    scores={application.roleScore !== undefined ? {
+                      roleScore: application.roleScore,
+                      expScore: application.expScore || 0,
+                      programmingScore: application.programmingScore || 0,
+                      technicalScore: application.technicalScore || 0,
+                      softScore: application.softScore || 0,
+                      langsScore: application.langsScore || 0,
+                      keyScore: application.keyScore || 0,
+                      certScore: application.certScore || 0,
+                    } : undefined}
+                  />
                 </div>
                 <div className="font-medium">{application.applicant.name}</div>
                 <div className="text-gray-600">{application.applicant.email}</div>
@@ -328,7 +369,7 @@ export default function JobApplicationsPage() {
                     <span className="text-xs text-green-600">Complete</span>
                   )}
                 </div>
-                <div className="col-span-2 space-x-2">
+                <div className="">
                   <button 
                     className="rounded border px-2 py-1 text-xs font-medium hover:bg-gray-50"
                     onClick={() => openCVFile(application.cvFileUrl, application.id)}
@@ -340,9 +381,6 @@ export default function JobApplicationsPage() {
                   </button>
                   <button className="rounded border px-2 py-1 text-xs font-medium hover:bg-gray-50">
                     View
-                  </button>
-                  <button className="rounded border px-2 py-1 text-xs font-medium hover:bg-gray-50">
-                    Process
                   </button>
                 </div>
               </div>

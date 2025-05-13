@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 
-function EditableTextarea({ value, onChange }) {
+function EditableTextarea({ value, onChange }: { value: string; onChange: (text: string) => void }) {
   const [isEditing, setIsEditing] = useState(false);
   const [text, setText] = useState(value);
 

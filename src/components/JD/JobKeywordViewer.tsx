@@ -2,13 +2,14 @@
 import React, { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { getPublicJobKeywords } from "@/lib/api";
+import { JobKeywordData } from "@/types/job";
 
 interface JobKeywordViewerProps {
   jobId: string;
 }
 
 const JobKeywordViewer: React.FC<JobKeywordViewerProps> = ({ jobId }) => {
-  const [keywords, setKeywords] = useState<any>(null);
+  const [keywords, setKeywords] = useState<JobKeywordData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -59,6 +60,7 @@ const JobKeywordViewer: React.FC<JobKeywordViewerProps> = ({ jobId }) => {
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const renderCategoryValue = (category: string, value: any) => {
     // Handle different types of values based on category
     if (!value || (Array.isArray(value) && value.length === 0)) {

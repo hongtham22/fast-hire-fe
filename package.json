@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@radix-ui/react-hover-card": "^1.1.13",
     "@radix-ui/react-slot": "^1.1.2",
     "@shadcn/ui": "^0.0.4",
     "@types/react-pdf": "^5.0.7",
@@ -21,6 +22,7 @@
     "react-dom": "^18",
     "react-icons": "^5.5.0",
     "react-pdf": "^9.2.1",
+    "recharts": "^2.15.3",
     "tailwind-merge": "^3.0.2",
     "tailwindcss-animate": "^1.0.7"
   },

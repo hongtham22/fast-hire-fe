@@ -115,6 +115,7 @@ export const JobsProvider: React.FC<JobsProviderProps> = ({ children }) => {
 
   useEffect(() => {
     fetchJobs();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const value = {

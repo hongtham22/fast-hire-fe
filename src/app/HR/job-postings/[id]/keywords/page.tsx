@@ -6,13 +6,13 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 import JobKeywordView from "@/components/JD/JobKeywordView";
 import { JobKeywordData } from "@/types/job";
 import { getPublicJobKeywords } from "@/lib/api";
-import { useJobs } from "@/app/context/JobsContext";
+import { Job, useJobs } from "@/app/context/JobsContext";
 
 export default function JobKeywordsPage() {
   const [keywordData, setKeywordData] = useState<JobKeywordData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [job, setJob] = useState<any>(null);
+  const [job, setJob] = useState<Job | null>(null);
   const { fetchJobById } = useJobs();
 
   const params = useParams();

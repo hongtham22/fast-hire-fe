@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useJobs } from '../context/JobsContext';
+import { useJobs } from '../app/context/JobsContext';
 
 function ListJobs() {
   const { jobs, loading, error } = useJobs();
