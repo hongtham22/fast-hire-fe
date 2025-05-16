@@ -63,7 +63,7 @@ export default function SidebarHR() {
           <span className="text-xs bg-blue-100 text-blue-700 px-1 py-0.5 rounded">HR</span>
         </Link>
       </div>
-      <nav className="flex-1 overflow-auto py-4">
+      <nav className="flex-1 py-4">
         <ul className="grid gap-1 px-2">
           {navItems.map((item) => (
             <li key={item.href}>

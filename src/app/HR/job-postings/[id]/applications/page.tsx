@@ -369,7 +369,7 @@ export default function JobApplicationsPage() {
                     <span className="text-xs text-green-600">Complete</span>
                   )}
                 </div>
-                <div className="">
+                <div className="flex items-start gap-2">
                   <button 
                     className="rounded border px-2 py-1 text-xs font-medium hover:bg-gray-50"
                     onClick={() => openCVFile(application.cvFileUrl, application.id)}
@@ -379,7 +379,10 @@ export default function JobApplicationsPage() {
                       View CV
                     </span>
                   </button>
-                  <button className="rounded border px-2 py-1 text-xs font-medium hover:bg-gray-50">
+                  <button 
+                    className="rounded border px-2 py-1 text-xs font-medium hover:bg-gray-50"
+                    onClick={() => router.push(`/HR/job-postings/${jobId}/applications/${application.id}/evaluate`)}
+                  >
                     View
                   </button>
                 </div>

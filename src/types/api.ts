@@ -54,3 +54,32 @@ export interface MatchField {
   cv_value: string;
   jd_value: string;
 }
+
+export interface Application {
+  id: string;
+  applicantId: string;
+  jobId: string;
+  cvFileUrl: string;
+  submittedAt: string;
+  matchingScore: number | null;
+  roleScore: number | null;
+  expScore: number | null;
+  programmingScore: number | null;
+  technicalScore: number | null;
+  softScore: number | null;
+  langsScore: number | null;
+  keyScore: number | null;
+  certScore: number | null;
+  missingFeedback: string | null;
+  note: string | null;
+  result: boolean | null;
+  applicant: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  job: {
+    id: string;
+    jobTitle: string;
+  };
+}
