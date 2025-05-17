@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   IoSearchOutline,
@@ -30,7 +30,7 @@ interface Location {
   name: string;
 }
 
-const CareersPage = () => {
+const CareersContent = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
@@ -292,6 +292,17 @@ const CareersPage = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+// Wrap the component that uses useSearchParams with Suspense boundary
+const CareersPage = () => {
+  return (
+    <Suspense fallback={<div className="bg-gray-100 w-full h-full px-40 py-24 flex items-center justify-center">
+      <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+    </div>}>
+      <CareersContent />
+    </Suspense>
   );
 };
 
