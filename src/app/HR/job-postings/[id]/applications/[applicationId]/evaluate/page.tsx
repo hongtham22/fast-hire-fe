@@ -10,6 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Application } from "@/types/api";
 import MatchScoreChartInline from "@/components/matchScoreChartInline";
+import { IoArrowForwardOutline } from 'react-icons/io5';
+import Link from 'next/link';
 
 export default function ApplicationEvaluationPage() {
   const [application, setApplication] = useState<Application | null>(null);
@@ -94,7 +96,6 @@ export default function ApplicationEvaluationPage() {
     }
   };
 
-
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -164,24 +165,46 @@ export default function ApplicationEvaluationPage() {
                       {formatDate(application.submittedAt)}
                     </p>
                   </div>
+
+                  <div className="mt-4">
+                    <Link href={`/HR/applications/cv-viewer/${application.id}`}>
+                      <button
+                        type="button"
+                        className="relative flex items-center justify-between overflow-hidden rounded-full border border-orange-dark py-3 pl-6 pr-14 w-[210px] xl:py-[15px] xl:pr-[55px] bg-white group"
+                      >
+                        <div className="absolute right-0 h-[500px] w-[600px] rounded-full shadow-2xl transition-transform duration-500 ease-in-out scale-0 bg-orange-dark group-hover:scale-100"></div>
+                        <span className="relative z-10 transition-colors duration-500 text-orange-dark group-hover:text-white font-extrabold">
+                          View keywords
+                        </span>
+                        <div className="absolute right-1 top-1/2 z-10 -translate-y-1/2 transform">
+                          <div className="relative flex items-center justify-center">
+                            <div className="h-10 w-10 rounded-full transition-all duration-500 ease-in-out bg-orange-dark flex items-center justify-center group-hover:bg-white">
+                              <IoArrowForwardOutline className="h-5 w-5 text-white group-hover:text-orange-dark transition-colors duration-500" />
+                            </div>
+                          </div>
+                        </div>
+                      </button>
+                    </Link>
+                  </div>
+                  
                 </div>
                 <div className="w-1/2">
                   <MatchScoreChartInline
-                    roleScore={application.roleScore || 0}
-                    expScore={application.expScore || 0}
-                    programmingScore={application.programmingScore || 0}
-                    technicalScore={application.technicalScore || 0}
-                    softScore={application.softScore || 0}
-                    langsScore={application.langsScore || 0}
-                    keyScore={application.keyScore || 0}
-                    certScore={application.certScore || 0}
-                    totalScore={application.matchingScore || 0}
+                    roleScore={Number(application?.roleScore ?? 0)}
+                    expScore={Number(application?.expScore ?? 0)}
+                    programmingScore={Number(application?.programmingScore ?? 0)}
+                    technicalScore={Number(application?.technicalScore ?? 0)}
+                    softScore={Number(application?.softScore ?? 0)}
+                    langsScore={Number(application?.langsScore ?? 0)}
+                    keyScore={Number(application?.keyScore ?? 0)}
+                    certScore={Number(application?.certScore ?? 0)}
+                    totalScore={Number(application?.matchingScore ?? 0)}
                   />
                 </div>
               </div>
             </CardContent>
           </Card>
-        
+
           {application.missingFeedback && (
             <MissingRequirementsCard feedback={application.missingFeedback} />
           )}

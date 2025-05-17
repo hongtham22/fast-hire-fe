@@ -6,9 +6,9 @@ COPY package*.json ./
 
 RUN npm install --legacy-peer-deps
 
-COPY . .
-
-RUN npm run build
+# Comment out the build step to avoid rebuilding the app when the Dockerfile changes
+# COPY . .
+# RUN npm run build
 
 EXPOSE 3000
 

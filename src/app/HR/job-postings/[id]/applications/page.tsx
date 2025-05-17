@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Search, Filter, ArrowLeft, Loader2, FileText, Tag, X, Info } from "lucide-react";
+import { Search, Filter, ArrowLeft, Loader2, Tag, X, Info } from "lucide-react";
 import { getApplicationsByJobId, Application } from "@/lib/api";
 import MatchScoreCircle from "@/components/MatchScoreCircle";
 
@@ -177,16 +177,6 @@ export default function JobApplicationsPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const openCVFile = (cvFileUrl: string | undefined, applicationId: string) => {
-    if (!cvFileUrl) {
-      alert('CV file not available');
-      return;
-    }
-    
-    // Navigate to CV viewer page instead of opening in a new tab
-    router.push(`/HR/applications/cv-viewer/${applicationId}`);
   };
 
   const viewJobKeywords = () => {
@@ -370,15 +360,6 @@ export default function JobApplicationsPage() {
                   )}
                 </div>
                 <div className="flex items-start gap-2">
-                  <button 
-                    className="rounded border px-2 py-1 text-xs font-medium hover:bg-gray-50"
-                    onClick={() => openCVFile(application.cvFileUrl, application.id)}
-                  >
-                    <span className="flex items-center">
-                      <FileText className="mr-1 h-3 w-3" />
-                      View CV
-                    </span>
-                  </button>
                   <button 
                     className="rounded border px-2 py-1 text-xs font-medium hover:bg-gray-50"
                     onClick={() => router.push(`/HR/job-postings/${jobId}/applications/${application.id}/evaluate`)}

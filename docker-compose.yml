@@ -5,6 +5,7 @@ services:
       - "8001:3000"
     environment:
       - NODE_ENV=development
+      - WATCHPACK_POLLING=true
     volumes:
       - .:/app
       - /app/node_modules 
