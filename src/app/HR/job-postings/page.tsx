@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Search, Loader2, Trash2, AlertCircle } from "lucide-react";
+import { Plus, Search, Loader2, Trash2, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { getJobsForHR, JobListItem, deleteJob } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import CreateJobModal from "@/components/JobModal/CreateJobModal";
@@ -16,12 +16,14 @@ export default function JobPostingsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
   const router = useRouter();
 
   useEffect(() => {
     fetchJobs();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, statusFilter]);
+  }, [searchQuery, statusFilter, currentPage]);
 
   const fetchJobs = async () => {
     setLoading(true);
@@ -33,8 +35,8 @@ export default function JobPostingsPage() {
         query?: string;
         status?: "pending" | "approved" | "closed";
       } = {
-        page: 1,
-        limit: 10,
+        page: currentPage,
+        limit: itemsPerPage,
       };
 
       if (searchQuery) {
@@ -83,6 +85,7 @@ export default function JobPostingsPage() {
   };
 
   const handleJobCreated = () => {
+    setCurrentPage(1); // Reset to first page when new job is created
     fetchJobs();
     setIsCreateModalOpen(false);
   };
@@ -110,6 +113,53 @@ export default function JobPostingsPage() {
     } finally {
       setDeleteLoading(null);
     }
+  };
+
+  // Pagination helpers
+  const totalPages = Math.ceil(totalJobs / itemsPerPage);
+  
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePageClick = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Generate page numbers to display
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPageButtons = 5; // Maximum number of page buttons to show
+    
+    if (totalPages <= maxPageButtons) {
+      // Show all pages if there are few pages
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      // Show a range of pages
+      let startPage = Math.max(1, currentPage - Math.floor(maxPageButtons / 2));
+      let endPage = startPage + maxPageButtons - 1;
+      
+      if (endPage > totalPages) {
+        endPage = totalPages;
+        startPage = Math.max(1, endPage - maxPageButtons + 1);
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+      }
+    }
+    
+    return pageNumbers;
   };
 
   return (
@@ -229,7 +279,44 @@ export default function JobPostingsPage() {
           <div className="text-sm text-gray-500">
             Showing {jobs.length} of {totalJobs} job postings
           </div>
-          {/* Pagination component would go here */}
+          
+          {/* Pagination controls */}
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={handlePreviousPage}
+              disabled={currentPage === 1 || loading}
+              className={`rounded border p-1 ${
+                currentPage === 1 || loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'
+              }`}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            
+            {getPageNumbers().map((page) => (
+              <button
+                key={page}
+                onClick={() => handlePageClick(page)}
+                disabled={loading}
+                className={`rounded px-3 py-1 text-sm font-medium ${
+                  currentPage === page
+                    ? 'bg-blue-50 text-blue-600 border border-blue-200'
+                    : 'border hover:bg-gray-100'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+            
+            <button
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages || loading}
+              className={`rounded border p-1 ${
+                currentPage === totalPages || loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'
+              }`}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       )}
       
