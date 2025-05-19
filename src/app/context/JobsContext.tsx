@@ -21,6 +21,12 @@ export interface Job {
   niceToHave?: string;
   languageSkills?: string;
   ourOffer?: string;
+  creator?: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+  };
 }
 
 interface JobsContextType {

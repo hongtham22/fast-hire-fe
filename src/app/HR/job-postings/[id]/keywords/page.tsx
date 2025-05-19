@@ -90,6 +90,56 @@ export default function JobKeywordsPage() {
       ) : (
         <div className="flex w-full gap-8">
           <div className="w-1/2 p-4 overflow-y-auto border-r">
+            <div className="mb-4 flex gap-6">
+              <div className="mt-2 space-y-2">
+                <p>
+                  <span className="font-medium">Posted By:</span>{" "}
+                  {job?.creator?.name}
+                </p>
+              </div>
+              <div className="mt-2 space-y-2">
+                <p>
+                  <span className="font-medium">Email:</span>{" "}
+                  {job?.creator?.email}
+                </p>
+              </div>
+            </div>
+            <div className="mb-8 flex flex-wrap items-center text-sm text-gray-600 gap-8">
+              <div className="mb-2">
+                <span className="font-semibold">Posted:</span>{" "}
+                {new Date(job?.createdAt || "").toLocaleDateString()}
+              </div>
+              {job?.expireDate && (
+                <div className="mb-2">
+                  <span className="font-semibold">Closing Date:</span>{" "}
+                  {new Date(job.expireDate).toLocaleDateString()}
+                </div>
+              )}
+              {job?.experienceYear && (
+                <div className="mb-2">
+                  <span className="font-semibold">Experience:</span>{" "}
+                  {job.experienceYear}+ years
+                </div>
+              )}
+              {job?.location && (
+                <div className="mb-2 flex items-center">
+                  <span className="font-semibold mr-2">Location:</span>
+                  <svg
+                    className="w-5 h-5 mr-1"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                      clipRule="evenodd"
+                    ></path>
+                  </svg>
+                  {job.location.name}
+                </div>
+              )}
+            </div>
+
             <h3 className="text-xl font-bold mb-4">Job Description</h3>
             {loading ? (
               <p>Loading job details...</p>
@@ -122,11 +172,18 @@ export default function JobKeywordsPage() {
                     <p className="whitespace-pre-line">{job?.languageSkills}</p>
                   </div>
                 )}
+
+                {job?.ourOffer && (
+                  <div>
+                    <h4 className="text-lg font-semibold">Our Offer</h4>
+                    <p className="whitespace-pre-line">{job?.ourOffer}</p>
+                  </div>
+                )}
               </div>
             )}
           </div>
           <div className="w-1/2 p-4 overflow-y-auto bg-gray-50">
-          <JobKeywordView keywords={keywordData} />
+            <JobKeywordView keywords={keywordData} />
           </div>
         </div>
       )}

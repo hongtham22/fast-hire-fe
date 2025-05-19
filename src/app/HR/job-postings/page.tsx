@@ -5,6 +5,8 @@ import { Plus, Search, Loader2, Trash2, AlertCircle, ChevronLeft, ChevronRight }
 import { getJobsForHR, JobListItem, deleteJob } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import CreateJobModal from "@/components/JobModal/CreateJobModal";
+import EditJobModal from "@/components/JobModal/EditJobModal";
+import { Job } from "@/app/context/JobsContext";
 
 export default function JobPostingsPage() {
   const [jobs, setJobs] = useState<JobListItem[]>([]);
@@ -14,6 +16,8 @@ export default function JobPostingsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved" | "closed">("all");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -113,6 +117,27 @@ export default function JobPostingsPage() {
     } finally {
       setDeleteLoading(null);
     }
+  };
+
+  const handleEditJob = async (job: JobListItem) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/jobs/${job.id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch job details');
+      }
+      const jobDetails = await response.json();
+      setSelectedJob(jobDetails);
+      setIsEditModalOpen(true);
+    } catch (err) {
+      console.error('Error fetching job details:', err);
+      setError('Failed to load job details for editing');
+    }
+  };
+
+  const handleJobUpdated = () => {
+    fetchJobs();
+    setIsEditModalOpen(false);
+    setSelectedJob(null);
   };
 
   // Pagination helpers
@@ -246,7 +271,10 @@ export default function JobPostingsPage() {
                   </span>
                 </div>
                 <div className="space-x-2 flex items-center">
-                  <button className="rounded border px-2 py-1 text-xs font-medium hover:bg-gray-50">
+                  <button 
+                    className="rounded border px-2 py-1 text-xs font-medium hover:bg-gray-50"
+                    onClick={() => handleEditJob(job)}
+                  >
                     Edit
                   </button>
                   <button 
@@ -326,6 +354,19 @@ export default function JobPostingsPage() {
           isOpen={isCreateModalOpen} 
           onClose={() => setIsCreateModalOpen(false)}
           onJobCreated={handleJobCreated}
+        />
+      )}
+
+      {/* Edit Job Modal */}
+      {selectedJob && (
+        <EditJobModal
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setSelectedJob(null);
+          }}
+          onJobUpdated={handleJobUpdated}
+          job={selectedJob}
         />
       )}
     </div>
