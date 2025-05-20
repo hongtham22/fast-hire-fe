@@ -76,7 +76,7 @@ export default function CreateJobModal({ isOpen, onClose, onJobCreated }: Create
           keyResponsibility,
           ourOffer,
           expireDate: expireDate || undefined,
-          status: 'approved'
+          status: 'pending'
         }),
       });
 

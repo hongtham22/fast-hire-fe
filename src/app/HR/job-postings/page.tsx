@@ -37,7 +37,7 @@ export default function JobPostingsPage() {
         page: number;
         limit: number;
         query?: string;
-        status?: "pending" | "approved" | "closed";
+        status?: "pending" | "approved" | "closed" | "rejected";
       } = {
         page: currentPage,
         limit: itemsPerPage,
@@ -75,6 +75,8 @@ export default function JobPostingsPage() {
         return "bg-yellow-100 text-yellow-700";
       case "closed":
         return "bg-gray-100 text-gray-700";
+      case "rejected":
+        return "bg-red-100 text-red-700";
       default:
         return "bg-blue-100 text-blue-700";
     }

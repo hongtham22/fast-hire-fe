@@ -15,7 +15,7 @@ export interface JobListItem {
   jobTitle: string;
   department: string;
   applicationCount: number;
-  status: 'pending' | 'approved' | 'closed';
+  status: 'pending' | 'approved' | 'closed' | 'rejected';
   expireDate: string | null;
   createdAt: string;
 }
@@ -171,7 +171,7 @@ export async function parseJobDescription(
 export async function getJobsForHR(options?: {
   page?: number;
   limit?: number;
-  status?: 'pending' | 'approved' | 'closed';
+  status?: 'pending' | 'approved' | 'closed' | 'rejected';
   query?: string;
 }): Promise<ApiResponse<JobListResponse>> {
   // Build query parameters

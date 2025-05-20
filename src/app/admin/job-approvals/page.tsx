@@ -7,16 +7,24 @@ import {
   X,
   Eye,
 } from 'lucide-react';
+import { getJobsForHR, getJobDetail, JobListItem } from '@/lib/api';
 
-interface JobPosting {
-  id: string;
-  title: string;
-  department: string;
-  location: string;
-  experience: string;
-  status: 'pending' | 'approved' | 'rejected';
-  createdAt: string;
-  createdBy: string;
+interface JobPosting extends JobListItem {
+  location: {
+    id: string;
+    name: string;
+  };
+  experienceYear: number;
+  creator?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  mustHave?: string;
+  niceToHave?: string;
+  languageSkills?: string;
+  keyResponsibility?: string;
+  ourOffer?: string;
 }
 
 export default function JobApprovals() {
@@ -24,52 +32,118 @@ export default function JobApprovals() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [selectedJob, setSelectedJob] = useState<JobPosting | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // TODO: Fetch actual job postings from API
-    // This is mock data for now
-    setJobs([
-      {
-        id: '1',
-        title: 'Senior Software Engineer',
-        department: 'Engineering',
-        location: 'Ho Chi Minh City',
-        experience: '5+ years',
-        status: 'pending',
-        createdAt: '2024-03-20',
-        createdBy: 'Sarah Johnson'
-      },
-      {
-        id: '2',
-        title: 'Product Manager',
-        department: 'Product',
-        location: 'Hanoi',
-        experience: '3+ years',
-        status: 'pending',
-        createdAt: '2024-03-19',
-        createdBy: 'Michael Chen'
-      }
-    ]);
-    setIsLoading(false);
-  }, []);
+    fetchJobs();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery]);
 
-  const filteredJobs = jobs.filter(job =>
-    job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    job.department.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const fetchJobs = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await getJobsForHR({
+        status: 'pending',
+        query: searchQuery
+      });
+      
+      if (response.error) {
+        setError(response.error);
+      } else {
+        setJobs(response.data?.jobs as JobPosting[] || []);
+      }
+    } catch (err) {
+      setError('Failed to load job postings');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleApprove = async (jobId: string) => {
-    // TODO: Implement job approval
-    console.log('Approve job:', jobId);
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/jobs/${jobId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: 'approved' })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to approve job');
+      }
+
+      // Refresh the job list
+      fetchJobs();
+      setSelectedJob(null);
+    } catch (err) {
+      console.error('Error approving job:', err);
+      setError('Failed to approve job');
+    }
   };
 
   const handleReject = async (jobId: string) => {
-    // TODO: Implement job rejection
-    console.log('Reject job:', jobId);
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/jobs/${jobId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: 'rejected' })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to reject job');
+      }
+
+      // Refresh the job list
+      fetchJobs();
+      setSelectedJob(null);
+    } catch (err) {
+      console.error('Error rejecting job:', err);
+      setError('Failed to reject job');
+    }
   };
 
-  const handleViewDetails = (job: JobPosting) => {
-    setSelectedJob(job);
+  const handleViewDetails = async (job: JobPosting) => {
+    try {
+      const response = await getJobDetail(job.id);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      // Keep the existing job data if the API response is missing required fields
+      if (response.data) {
+        const updatedJob: JobPosting = {
+          ...job,
+          ...response.data,
+          // Ensure required fields are present
+          location: typeof response.data.location === 'string' 
+            ? { id: '', name: response.data.location }
+            : response.data.location || job.location,
+          experienceYear: job.experienceYear,
+          applicationCount: job.applicationCount,
+          status: job.status // Keep the original status to maintain type safety
+        };
+        setSelectedJob(updatedJob);
+      } else {
+        setSelectedJob(job);
+      }
+    } catch (err) {
+      console.error('Error fetching job details:', err);
+      setError('Failed to load job details');
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   return (
@@ -77,6 +151,12 @@ export default function JobApprovals() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Job Approvals</h1>
       </div>
+
+      {error && (
+        <div className="rounded-md bg-red-50 p-4 text-red-700">
+          {error}
+        </div>
+      )}
 
       {/* Search and filters */}
       <div className="flex items-center space-x-4">
@@ -104,13 +184,13 @@ export default function JobApprovals() {
                   Job Title
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Department
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Location
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Experience
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Created At
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Created By
@@ -130,29 +210,29 @@ export default function JobApprovals() {
                     Loading...
                   </td>
                 </tr>
-              ) : filteredJobs.length === 0 ? (
+              ) : jobs.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500">
                     No jobs found
                   </td>
                 </tr>
               ) : (
-                filteredJobs.map((job) => (
+                jobs.map((job) => (
                   <tr key={job.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{job.title}</div>
+                      <div className="text-sm font-medium text-gray-900">{job.jobTitle}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{job.department}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{job.location}</div>
+                      <div className="text-sm text-gray-900">{job.experienceYear} years</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{job.experience}</div>
+                      <div className="text-sm text-gray-900">{formatDate(job.createdAt)}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{job.createdBy}</div>
+                      <div className="text-sm text-gray-900">{job.creator?.name || 'Unknown'}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 text-xs font-semibold leading-5 rounded-full ${
@@ -214,28 +294,79 @@ export default function JobApprovals() {
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <h3 className="text-lg font-medium text-gray-900">{selectedJob.title}</h3>
-                <p className="text-sm text-gray-500">{selectedJob.department}</p>
+                <h3 className="text-lg font-medium text-gray-900">{selectedJob.jobTitle}</h3>
+                <p className="text-sm text-gray-500">{selectedJob.location.name}</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Location</p>
-                  <p className="text-sm text-gray-900">{selectedJob.location}</p>
-                </div>
-                <div>
                   <p className="text-sm font-medium text-gray-500">Experience</p>
-                  <p className="text-sm text-gray-900">{selectedJob.experience}</p>
+                  <p className="text-sm text-gray-900">{selectedJob.experienceYear} years</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500">Created By</p>
-                  <p className="text-sm text-gray-900">{selectedJob.createdBy}</p>
+                  <p className="text-sm text-gray-900">{selectedJob.creator?.name || 'Unknown'}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500">Created At</p>
-                  <p className="text-sm text-gray-900">{selectedJob.createdAt}</p>
+                  <p className="text-sm text-gray-900">{formatDate(selectedJob.createdAt)}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Status</p>
+                  <p className="text-sm text-gray-900">{selectedJob.status}</p>
                 </div>
               </div>
-              {/* Add more job details here */}
+              
+              {selectedJob.mustHave && (
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Must Have</p>
+                  <p className="text-sm text-gray-900 whitespace-pre-wrap">{selectedJob.mustHave}</p>
+                </div>
+              )}
+              
+              {selectedJob.niceToHave && (
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Nice to Have</p>
+                  <p className="text-sm text-gray-900 whitespace-pre-wrap">{selectedJob.niceToHave}</p>
+                </div>
+              )}
+              
+              {selectedJob.languageSkills && (
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Language Skills</p>
+                  <p className="text-sm text-gray-900 whitespace-pre-wrap">{selectedJob.languageSkills}</p>
+                </div>
+              )}
+              
+              {selectedJob.keyResponsibility && (
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Key Responsibilities</p>
+                  <p className="text-sm text-gray-900 whitespace-pre-wrap">{selectedJob.keyResponsibility}</p>
+                </div>
+              )}
+              
+              {selectedJob.ourOffer && (
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Our Offer</p>
+                  <p className="text-sm text-gray-900 whitespace-pre-wrap">{selectedJob.ourOffer}</p>
+                </div>
+              )}
+
+              {selectedJob.status === 'pending' && (
+                <div className="flex justify-end space-x-4 pt-4 border-t">
+                  <button
+                    onClick={() => handleReject(selectedJob.id)}
+                    className="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 rounded-md hover:bg-red-200"
+                  >
+                    Reject
+                  </button>
+                  <button
+                    onClick={() => handleApprove(selectedJob.id)}
+                    className="px-4 py-2 text-sm font-medium text-green-700 bg-green-100 rounded-md hover:bg-green-200"
+                  >
+                    Approve
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
