@@ -1,0 +1,129 @@
+import { Eye } from 'lucide-react';
+
+interface Job {
+  id: string;
+  jobTitle: string;
+  location: {
+    id: string;
+    name: string;
+  };
+  experienceYear: number;
+  status: 'draft' | 'pending' | 'approved' | 'rejected' | 'closed';
+  createdAt: string;
+  expireDate?: string;
+  totalApplications: number;
+}
+
+interface JobTableProps {
+  jobs: Job[];
+  isLoading: boolean;
+  onViewDetails: (jobId: string) => void;
+}
+
+export default function JobTable({ jobs, isLoading, onViewDetails }: JobTableProps) {
+  const getStatusColor = (status: Job['status']) => {
+    switch (status) {
+      case 'draft':
+        return 'bg-gray-100 text-gray-800';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'approved':
+        return 'bg-green-100 text-green-800';
+      case 'rejected':
+        return 'bg-red-100 text-red-800';
+      case 'closed':
+        return 'bg-gray-100 text-gray-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  return (
+    <div className="bg-white shadow rounded-lg">
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Job Title
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Location
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Experience
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Applications
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Created At
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Expire Date
+              </th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {isLoading ? (
+              <tr>
+                <td colSpan={8} className="px-6 py-4 text-center text-sm text-gray-500">
+                  Loading...
+                </td>
+              </tr>
+            ) : jobs.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="px-6 py-4 text-center text-sm text-gray-500">
+                  No jobs found
+                </td>
+              </tr>
+            ) : (
+              jobs.map((job) => (
+                <tr key={job.id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">{job.jobTitle}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{job.location.name}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{job.experienceYear} years</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex px-2 text-xs font-semibold leading-5 rounded-full ${getStatusColor(job.status)}`}>
+                      {job.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{job.totalApplications}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {job.createdAt}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {job.expireDate || 'N/A'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button
+                      onClick={() => onViewDetails(job.id)}
+                      className="text-gray-400 hover:text-gray-500"
+                      title="View Details"
+                    >
+                      <Eye className="w-5 h-5" />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+} 
