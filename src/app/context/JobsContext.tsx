@@ -66,7 +66,7 @@ export const JobsProvider: React.FC<JobsProviderProps> = ({ children }) => {
     
     try {
       // Add a high limit parameter to get all jobs at once
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/jobs/open?limit=1000`;
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/jobs/open?limit=1000`;
       const response = await fetch(apiUrl);
       
       if (!response.ok) {
@@ -95,7 +95,7 @@ export const JobsProvider: React.FC<JobsProviderProps> = ({ children }) => {
     // If not found in cache, fetch from API
     try {
       setLoading(true);
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/jobs/${id}`;
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/jobs/${id}`;
       const response = await fetch(apiUrl);
       
       if (!response.ok) {

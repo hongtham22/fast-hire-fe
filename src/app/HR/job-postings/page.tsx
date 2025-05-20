@@ -14,7 +14,7 @@ export default function JobPostingsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved" | "closed">("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved" | "closed" | "rejected">("all");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
@@ -121,9 +121,37 @@ export default function JobPostingsPage() {
     }
   };
 
+  const handleCloseJob = async (jobId: string) => {
+    if (!confirm("Are you sure you want to close this job posting?")) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/jobs/${jobId}/close`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          closeReason: 'manual' // Flag indicating HR closed this job manually
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to close job');
+      }
+      
+      // Refresh the job list
+      fetchJobs();
+    } catch (err) {
+      console.error('Error closing job:', err);
+      setError('Failed to close job');
+    }
+  };
+
   const handleEditJob = async (job: JobListItem) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/jobs/${job.id}`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/jobs/${job.id}`);
       if (!response.ok) {
         throw new Error('Failed to fetch job details');
       }
@@ -136,10 +164,24 @@ export default function JobPostingsPage() {
     }
   };
 
-  const handleJobUpdated = () => {
-    fetchJobs();
-    setIsEditModalOpen(false);
-    setSelectedJob(null);
+  const handleJobUpdated = async () => {
+    try {
+      // If job was pending and was edited, trigger keyword extraction
+      if (selectedJob?.status === 'pending') {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/jobs/${selectedJob.id}/extract-keywords`, {
+          method: 'POST',
+        });
+        if (!response.ok) {
+          throw new Error('Failed to extract keywords');
+        }
+      }
+      fetchJobs();
+      setIsEditModalOpen(false);
+      setSelectedJob(null);
+    } catch (err) {
+      console.error('Error updating job:', err);
+      setError('Failed to update job');
+    }
   };
 
   // Pagination helpers
@@ -221,12 +263,13 @@ export default function JobPostingsPage() {
         <select 
           className="rounded-md border border-gray-300 py-2 pl-3 pr-8 text-sm"
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as 'all' | 'approved' | 'pending' | 'closed')}
+          onChange={(e) => setStatusFilter(e.target.value as 'all' | 'approved' | 'pending' | 'closed' | 'rejected')}
         >
           <option value="all">All Status</option>
           <option value="approved">Approved</option>
           <option value="pending">Pending</option>
           <option value="closed">Closed</option>
+          <option value="rejected">Rejected</option>
         </select>
       </div>
       
@@ -273,18 +316,28 @@ export default function JobPostingsPage() {
                   </span>
                 </div>
                 <div className="space-x-2 flex items-center">
-                  <button 
-                    className="rounded border px-2 py-1 text-xs font-medium hover:bg-gray-50"
-                    onClick={() => handleEditJob(job)}
-                  >
-                    Edit
-                  </button>
+                  {job.status === 'pending' && (
+                    <button 
+                      className="rounded border px-2 py-1 text-xs font-medium hover:bg-gray-50"
+                      onClick={() => handleEditJob(job)}
+                    >
+                      Edit
+                    </button>
+                  )}
                   <button 
                     className="rounded border px-2 py-1 text-xs font-medium hover:bg-gray-50"
                     onClick={() => viewJobApplications(job.id)}
                   >
                     View
                   </button>
+                  {job.status === 'approved' && (
+                    <button 
+                      className="rounded border border-yellow-200 bg-yellow-50 hover:bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-600"
+                      onClick={() => handleCloseJob(job.id)}
+                    >
+                      Close
+                    </button>
+                  )}
                   <button 
                     className="rounded border border-red-200 bg-red-50 hover:bg-red-100 px-2 py-1 text-xs font-medium text-red-600 flex items-center gap-1"
                     onClick={() => handleDeleteJob(job.id)}
