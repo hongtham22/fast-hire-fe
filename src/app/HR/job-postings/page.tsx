@@ -318,7 +318,7 @@ export default function JobPostingsPage() {
                 <div className="space-x-2 flex items-center">
                   {job.status === 'pending' && (
                     <button 
-                      className="rounded border px-2 py-1 text-xs font-medium hover:bg-gray-50"
+                      className="rounded border px-2 py-1 text-xs font-medium hover:bg-gray-50 border-orange-primary"
                       onClick={() => handleEditJob(job)}
                     >
                       Edit
@@ -332,14 +332,14 @@ export default function JobPostingsPage() {
                   </button>
                   {job.status === 'approved' && (
                     <button 
-                      className="rounded border border-yellow-200 bg-yellow-50 hover:bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-600"
+                      className="rounded border border-yellow-500 bg-yellow-50 hover:bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-600"
                       onClick={() => handleCloseJob(job.id)}
                     >
                       Close
                     </button>
                   )}
                   <button 
-                    className="rounded border border-red-200 bg-red-50 hover:bg-red-100 px-2 py-1 text-xs font-medium text-red-600 flex items-center gap-1"
+                    className="rounded border border-red-200 bg-red-50 hover:bg-red-100 px-2 py-1 text-xs font-medium text-red-600 flex items-center gap-1 opacity-0"
                     onClick={() => handleDeleteJob(job.id)}
                     disabled={deleteLoading === job.id}
                   >

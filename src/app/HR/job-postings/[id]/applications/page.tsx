@@ -317,12 +317,12 @@ export default function JobApplicationsPage() {
           className="flex items-center gap-2 rounded-md bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700"
         >
           <Tag className="h-4 w-4" />
-          View Keywords
+          View JD & Keywords
         </button>
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="relative flex-1">
+        <div className="relative flex-1 max-w-1/3">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
             <Search className="h-4 w-4 text-gray-400" />
           </div>
@@ -334,10 +334,10 @@ export default function JobApplicationsPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <button className="flex items-center gap-2 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50">
+        {/* <button className="flex items-center gap-2 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50">
           <Filter className="h-4 w-4" />
           Filters
-        </button>
+        </button> */}
       </div>
 
       {error && (

@@ -226,13 +226,13 @@ export default function JobApprovals() {
                       <div className="text-sm text-gray-900">{job.department}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{job.experienceYear} years</div>
+                      <div className="text-sm text-gray-900">{job.experienceYear || 2} years</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{formatDate(job.createdAt)}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{job.creator?.name || 'Unknown'}</div>
+                      <div className="text-sm text-gray-900">{job.creator?.name || 'HR Manager'}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 text-xs font-semibold leading-5 rounded-full ${
@@ -251,22 +251,22 @@ export default function JobApprovals() {
                           onClick={() => handleViewDetails(job)}
                           className="text-gray-400 hover:text-gray-500"
                         >
-                          <Eye className="w-5 h-5" />
+                          <Eye className="w-6 h-6" />
                         </button>
                         {job.status === 'pending' && (
                           <>
-                            <button
+                            {/* <button
                               onClick={() => handleApprove(job.id)}
-                              className="text-green-400 hover:text-green-500"
+                              className="text-green-400 hover:text-green-500 opacity-0"
                             >
                               <Check className="w-5 h-5" />
-                            </button>
-                            <button
+                            </button> */}
+                            {/* <button
                               onClick={() => handleReject(job.id)}
-                              className="text-red-400 hover:text-red-500"
+                              className="text-red-400 hover:text-red-500 opacity-0"
                             >
                               <X className="w-5 h-5" />
-                            </button>
+                            </button> */}
                           </>
                         )}
                       </div>

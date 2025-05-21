@@ -35,11 +35,11 @@ const navItems: NavItem[] = [
     href: "/HR/candidates",
     icon: <User className="h-5 w-5" />,
   },
-  {
-    name: "Applications",
-    href: "/HR/applications",
-    icon: <FolderOpen className="h-5 w-5" />,
-  },
+  // {
+  //   name: "Applications",
+  //   href: "/HR/applications",
+  //   icon: <FolderOpen className="h-5 w-5" />,
+  // },
   {
     name: "Email Templates",
     href: "/HR/email-templates",
