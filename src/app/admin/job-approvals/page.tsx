@@ -255,18 +255,18 @@ export default function JobApprovals() {
                         </button>
                         {job.status === 'pending' && (
                           <>
-                            {/* <button
+                            <button
                               onClick={() => handleApprove(job.id)}
-                              className="text-green-400 hover:text-green-500 opacity-0"
+                              className="text-green-400 hover:text-green-500"
                             >
                               <Check className="w-5 h-5" />
-                            </button> */}
-                            {/* <button
+                            </button>
+                            <button
                               onClick={() => handleReject(job.id)}
-                              className="text-red-400 hover:text-red-500 opacity-0"
+                              className="text-red-400 hover:text-red-500"
                             >
                               <X className="w-5 h-5" />
-                            </button> */}
+                            </button>
                           </>
                         )}
                       </div>

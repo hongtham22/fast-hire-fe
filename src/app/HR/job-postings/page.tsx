@@ -339,7 +339,7 @@ export default function JobPostingsPage() {
                     </button>
                   )}
                   <button 
-                    className="rounded border border-red-200 bg-red-50 hover:bg-red-100 px-2 py-1 text-xs font-medium text-red-600 flex items-center gap-1 opacity-0"
+                    className="rounded border border-red-200 bg-red-50 hover:bg-red-100 px-2 py-1 text-xs font-medium text-red-600 flex items-center gap-1"
                     onClick={() => handleDeleteJob(job.id)}
                     disabled={deleteLoading === job.id}
                   >

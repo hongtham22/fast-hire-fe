@@ -405,4 +405,131 @@ export async function deleteJob(jobId: string): Promise<ApiResponse<{ message: s
       error: error instanceof Error ? error.message : 'An unknown error occurred'
     };
   }
+}
+
+/**
+ * Get all email templates
+ */
+export async function getEmailTemplates(): Promise<ApiResponse<EmailTemplate[]>> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/email/templates`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error fetching email templates: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { data, error: null };
+  } catch (error) {
+    console.error('API Error:', error);
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'An unknown error occurred',
+    };
+  }
+}
+
+/**
+ * Preview email for an application with a specific template
+ */
+export async function previewEmail(applicationId: string, templateId: string): Promise<ApiResponse<{ subject: string; body: string }>> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/email/preview/${applicationId}/${templateId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error previewing email: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { data, error: null };
+  } catch (error) {
+    console.error('API Error:', error);
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'An unknown error occurred',
+    };
+  }
+}
+
+/**
+ * Send email notification to a single application
+ */
+export async function sendSingleNotification(applicationId: string, templateId: string, markAsSent: boolean = true): Promise<ApiResponse<{success: boolean}>> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/email/send-notification/single`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        applicationId, 
+        templateId,
+        markAsSent
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error sending notification: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { data, error: null };
+  } catch (error) {
+    console.error('API Error:', error);
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'An unknown error occurred',
+    };
+  }
+}
+
+/**
+ * Send email notifications to multiple applications
+ */
+export async function sendBulkNotifications(applicationIds: string[], templateId: string, markAsSent: boolean = true): Promise<ApiResponse<{success: boolean}>> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/email/send-notification/bulk`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        applicationIds, 
+        templateId,
+        markAsSent
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error sending notifications: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { data, error: null };
+  } catch (error) {
+    console.error('API Error:', error);
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'An unknown error occurred',
+    };
+  }
+}
+
+export interface EmailTemplate {
+  id: string;
+  name: string;
+  subject_template: string;
+  body_template: string;
+  created_at: string;
+  updated_at: string;
 } 

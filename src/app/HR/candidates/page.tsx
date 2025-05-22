@@ -20,13 +20,6 @@ export default function CandidatesPage() {
           />
         </div>
         <select className="rounded-md border border-gray-300 py-2 pl-3 pr-8 text-sm">
-          <option>All departments</option>
-          <option>Engineering</option>
-          <option>Design</option>
-          <option>Product</option>
-          <option>Marketing</option>
-        </select>
-        <select className="rounded-md border border-gray-300 py-2 pl-3 pr-8 text-sm">
           <option>Sort by: Recent</option>
           <option>Sort by: Name</option>
           <option>Sort by: Rating</option>

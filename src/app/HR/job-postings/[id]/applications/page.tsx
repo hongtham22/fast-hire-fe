@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Search, Filter, ArrowLeft, Loader2, Tag, X } from "lucide-react";
+import { Search, ArrowLeft, Loader2, Tag, X, Mail } from "lucide-react";
 import { getApplicationsByJobId, Application } from "@/lib/api";
 import MatchScoreCircle from "@/components/MatchScoreCircle";
+import BulkEmailNotificationModal from "@/components/BulkEmailNotificationModal";
 
 // Interface for the API response from backend
 interface ApplicationApiResponse {
@@ -84,6 +85,7 @@ interface ApplicationWithCV extends Application {
   latest_company?: string | null;
   experience_years?: number | null;
   hasNote?: boolean;
+  emailSent?: boolean;
 }
 
 // Feedback modal component
@@ -134,6 +136,9 @@ export default function JobApplicationsPage() {
   const [jobTitle, setJobTitle] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [currentFeedback, setCurrentFeedback] = useState("");
+  const [isBulkEmailModalOpen, setIsBulkEmailModalOpen] = useState(false);
+  const [selectedApplicationIds, setSelectedApplicationIds] = useState<string[]>([]);
+  const [selectedStatus, setSelectedStatus] = useState<string>("");
 
   const params = useParams();
   const router = useRouter();
@@ -224,6 +229,7 @@ export default function JobApplicationsPage() {
               latest_company: item.latest_company || null,
               experience_years: item.experience_years || null,
               hasNote: item.note !== null && item.note !== "",
+              emailSent: false,
             };
           });
 
@@ -256,6 +262,22 @@ export default function JobApplicationsPage() {
   const openFeedbackModal = (feedback: string) => {
     setCurrentFeedback(feedback);
     setModalOpen(true);
+  };
+
+  const openBulkEmailModal = (status: string) => {
+    const applicationsWithStatus = applications.filter(app => 
+      (status === "hired" && app.status === "hired" && !app.emailSent) ||
+      (status === "rejected" && app.status === "rejected" && !app.emailSent)
+    );
+    
+    if (applicationsWithStatus.length === 0) {
+      setError(`No ${status === "hired" ? "accepted" : "rejected"} applications without email notifications.`);
+      return;
+    }
+    
+    setSelectedApplicationIds(applicationsWithStatus.map(app => app.id));
+    setSelectedStatus(status === "hired" ? "Accepted" : "Rejected");
+    setIsBulkEmailModalOpen(true);
   };
 
   const filteredApplications = applications.filter((app) =>
@@ -312,13 +334,31 @@ export default function JobApplicationsPage() {
               : "View all applications for this job position"}
           </p>
         </div>
-        <button
-          onClick={viewJobKeywords}
-          className="flex items-center gap-2 rounded-md bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700"
-        >
-          <Tag className="h-4 w-4" />
-          View JD & Keywords
-        </button>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => openBulkEmailModal("hired")}
+            className="flex items-center gap-2 rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+            disabled={loading}
+          >
+            <Mail className="h-4 w-4" />
+            Email Accepted
+          </button>
+          <button
+            onClick={() => openBulkEmailModal("rejected")}
+            className="flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+            disabled={loading}
+          >
+            <Mail className="h-4 w-4" />
+            Email Rejected
+          </button>
+          <button
+            onClick={viewJobKeywords}
+            className="flex items-center gap-2 rounded-md bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700"
+          >
+            <Tag className="h-4 w-4" />
+            View JD & Keywords
+          </button>
+        </div>
       </div>
 
       <div className="flex items-center gap-4">
@@ -520,6 +560,18 @@ export default function JobApplicationsPage() {
         onClose={() => setModalOpen(false)}
         feedback={currentFeedback}
       />
+
+      {isBulkEmailModalOpen && (
+        <BulkEmailNotificationModal
+          isOpen={isBulkEmailModalOpen}
+          onClose={() => {
+            setIsBulkEmailModalOpen(false);
+            fetchApplications(); // Refresh to update email sent status
+          }}
+          applicationIds={selectedApplicationIds}
+          statusText={selectedStatus}
+        />
+      )}
     </div>
   );
 }

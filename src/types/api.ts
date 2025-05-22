@@ -73,6 +73,7 @@ export interface Application {
   missingFeedback: string | null;
   note: string | null;
   result: boolean | null;
+  emailSent: boolean;
   applicant: {
     id: string;
     name: string;
@@ -82,4 +83,5 @@ export interface Application {
     id: string;
     jobTitle: string;
   };
+  status?: string; // Optional status field used in some components
 }

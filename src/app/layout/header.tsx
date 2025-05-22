@@ -35,7 +35,7 @@ function Header() {
       </nav>
 
       {/* Sign In Button */}
-      <button className="relative px-6 py-2 border-2 border-orange-primary text-orange-primary rounded-lg overflow-hidden transition-all duration-400 hover:bg-orange-primary hover:text-white opacity-0">
+      <button className="relative px-6 py-2 border-2 border-orange-primary text-orange-primary rounded-lg overflow-hidden transition-all duration-400 hover:bg-orange-primary hover:text-white">
         <span className="absolute inset-0 w-0 bg-orange-primary transition-all duration-400 group-hover:w-full"></span>
         <span className="relative">Sign In</span>
       </button>

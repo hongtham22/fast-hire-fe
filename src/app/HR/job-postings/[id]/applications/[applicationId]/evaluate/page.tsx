@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Mail } from "lucide-react";
 import { CVViewer } from "@/components/CVViewer";
 import { ApplicationEvaluationForm } from "@/components/ApplicationEvaluationForm";
 import { MissingRequirementsCard } from "@/components/MissingRequirementsCard";
@@ -12,11 +12,13 @@ import { Application } from "@/types/api";
 import MatchScoreChartInline from "@/components/matchScoreChartInline";
 import { IoArrowForwardOutline } from 'react-icons/io5';
 import Link from 'next/link';
+import EmailNotificationModal from "@/components/EmailNotificationModal";
 
 export default function ApplicationEvaluationPage() {
   const [application, setApplication] = useState<Application | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const params = useParams();
   const router = useRouter();
   const { id: jobId, applicationId } = params;
@@ -166,7 +168,7 @@ export default function ApplicationEvaluationPage() {
                     </p>
                   </div>
 
-                  <div className="mt-4">
+                  <div className="mt-4 flex gap-2">
                     <Link href={`/HR/applications/cv-viewer/${application.id}`}>
                       <button
                         type="button"
@@ -185,6 +187,19 @@ export default function ApplicationEvaluationPage() {
                         </div>
                       </button>
                     </Link>
+                    
+                    {application.result !== null && (
+                      <button
+                        type="button"
+                        onClick={() => setIsEmailModalOpen(true)}
+                        className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                        disabled={application.emailSent}
+                        title={application.emailSent ? "Notification email already sent" : "Send email notification"}
+                      >
+                        <Mail className="h-4 w-4" />
+                        {application.emailSent ? "Email Sent" : "Send Email"}
+                      </button>
+                    )}
                   </div>
                   
                 </div>
@@ -224,6 +239,15 @@ export default function ApplicationEvaluationPage() {
           </Card>
         </div>
       </div>
+
+      <EmailNotificationModal
+        isOpen={isEmailModalOpen}
+        onClose={() => {
+          setIsEmailModalOpen(false);
+          fetchApplication(); // Refresh to update email sent status
+        }}
+        applicationId={applicationId as string}
+      />
     </div>
   );
 }
