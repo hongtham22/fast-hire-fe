@@ -107,12 +107,12 @@ export default function JobKeywordsPage() {
             <div className="mb-8 flex flex-wrap items-center text-sm text-gray-600 gap-8">
               <div className="mb-2">
                 <span className="font-semibold">Posted:</span>{" "}
-                {new Date(job?.createdAt || "").toLocaleDateString()}
+                {new Date(job?.createdAt || "").toLocaleString()}
               </div>
               {job?.expireDate && (
                 <div className="mb-2">
                   <span className="font-semibold">Closing Date:</span>{" "}
-                  {new Date(job.expireDate).toLocaleDateString()}
+                  {new Date(job.expireDate).toLocaleString()}
                 </div>
               )}
               {job?.experienceYear && (

@@ -287,9 +287,10 @@ export default function JobPostingsPage() {
       )}
       
       <div className="rounded-xl border shadow-sm">
-        <div className="grid grid-cols-6 gap-4 border-b bg-gray-50 px-6 py-3 font-medium">
+        <div className="grid grid-cols-7 gap-4 border-b bg-gray-50 px-6 py-3 font-medium">
           <div className="col-span-2">Position</div>
-          <div>Department</div>
+          <div>Location</div>
+          <div>Created At</div>
           <div>Applications</div>
           <div>Status</div>
           <div>Actions</div>
@@ -306,9 +307,10 @@ export default function JobPostingsPage() {
         ) : (
           <div className="divide-y">
             {jobs.map((job) => (
-              <div key={job.id} className="grid grid-cols-6 gap-4 px-6 py-4">
+              <div key={job.id} className="grid grid-cols-7 gap-4 px-6 py-4">
                 <div className="col-span-2 font-medium">{job.jobTitle}</div>
-                <div className="text-gray-600">{job.department}</div>
+                <div className="text-gray-600">{job.location.name}</div>
+                <div className="text-gray-600"> {new Date(job.createdAt || "").toLocaleString()}</div>
                 <div className="text-gray-600">{job.applicationCount}</div>
                 <div>
                   <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getStatusBadgeClass(job.status)}`}>

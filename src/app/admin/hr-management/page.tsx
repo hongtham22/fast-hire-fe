@@ -9,7 +9,7 @@ interface HRUser {
   id: string;
   name: string;
   email: string;
-  department: string;
+  location: string;
   status: 'active' | 'inactive';
   lastActive: string;
 }
@@ -30,7 +30,7 @@ export default function HRManagementPage() {
             id: '1',
             name: 'John Doe',
             email: 'john@example.com',
-            department: 'IT',
+            location: 'IT',
             status: 'active',
             lastActive: '2024-03-20 10:30',
           },
@@ -38,7 +38,7 @@ export default function HRManagementPage() {
             id: '2',
             name: 'Jane Smith',
             email: 'jane@example.com',
-            department: 'HR',
+            location: 'HR',
             status: 'active',
             lastActive: '2024-03-20 09:15',
           },
@@ -60,7 +60,7 @@ export default function HRManagementPage() {
       id: Date.now().toString(),
       name: data.name,
       email: data.email,
-      department: data.department,
+      location: data.location,
       status: 'active',
       lastActive: new Date().toLocaleString(),
     };
@@ -86,7 +86,7 @@ export default function HRManagementPage() {
                 ...user,
                 name: data.name,
                 email: data.email,
-                department: data.department,
+                location: data.location,
               }
             : user
         )
@@ -131,7 +131,7 @@ export default function HRManagementPage() {
           initialData={editingUser ? {
             name: editingUser.name,
             email: editingUser.email,
-            department: editingUser.department,
+            location: editingUser.location,
           } : undefined}
           onSubmit={editingUser ? handleUpdateUser : handleCreateUser}
           onCancel={() => {

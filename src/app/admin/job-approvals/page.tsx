@@ -14,7 +14,7 @@ interface JobPosting extends JobListItem {
     id: string;
     name: string;
   };
-  experienceYear: number;
+  experienceYear?: number;
   creator?: {
     id: string;
     name: string;
@@ -51,7 +51,7 @@ export default function JobApprovals() {
       if (response.error) {
         setError(response.error);
       } else {
-        setJobs(response.data?.jobs as JobPosting[] || []);
+        setJobs(response.data?.jobs || []);
       }
     } catch (err) {
       setError('Failed to load job postings');
@@ -118,12 +118,10 @@ export default function JobApprovals() {
         const updatedJob: JobPosting = {
           ...job,
           ...response.data,
-          // Ensure required fields are present
-          location: typeof response.data.location === 'string' 
-            ? { id: '', name: response.data.location }
-            : response.data.location || job.location,
-          experienceYear: job.experienceYear,
-          applicationCount: job.applicationCount,
+          // Ensure location is an object with id and name properties
+          location: response.data.location && typeof response.data.location === 'object' 
+            ? response.data.location 
+            : job.location,
           status: job.status // Keep the original status to maintain type safety
         };
         setSelectedJob(updatedJob);
@@ -223,10 +221,10 @@ export default function JobApprovals() {
                       <div className="text-sm font-medium text-gray-900">{job.jobTitle}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{job.department}</div>
+                      <div className="text-sm text-gray-900">{job.location.name}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{job.experienceYear || 2} years</div>
+                      <div className="text-sm text-gray-900">{job.experienceYear ? `${job.experienceYear} years` : 'Not specified'}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{formatDate(job.createdAt)}</div>
@@ -300,7 +298,7 @@ export default function JobApprovals() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm font-medium text-gray-500">Experience</p>
-                  <p className="text-sm text-gray-900">{selectedJob.experienceYear} years</p>
+                  <p className="text-sm text-gray-900">{selectedJob.experienceYear ? `${selectedJob.experienceYear} years` : 'Not specified'}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500">Created By</p>

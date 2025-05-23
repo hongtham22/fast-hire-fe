@@ -13,7 +13,10 @@ import { JobKeywordData } from '@/types/job';
 export interface JobListItem {
   id: string;
   jobTitle: string;
-  department: string;
+  location: {
+    id: string;
+    name: string;
+  };
   applicationCount: number;
   status: 'pending' | 'approved' | 'closed' | 'rejected';
   expireDate: string | null;
@@ -29,12 +32,15 @@ export interface JobDetail {
   id: string;
   jobTitle: string;
   description: string;
-  department?: string;
-  location?: string;
+  location: {
+    id: string;
+    name: string;
+  };
   salary?: string;
   status?: string;
   createdAt?: string;
   expireDate?: string | null;
+  experienceYear?: number;
 }
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';

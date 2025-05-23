@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 interface CreateHRFormData {
   name: string;
   email: string;
-  department: string;
+  location: string;
   password: string;
   confirmPassword: string;
 }
@@ -16,7 +16,7 @@ export default function CreateHR() {
   const [formData, setFormData] = useState<CreateHRFormData>({
     name: '',
     email: '',
-    department: '',
+    location: '',
     password: '',
     confirmPassword: ''
   });

@@ -40,12 +40,12 @@ export default function SettingsPage() {
             </div>
             
             <div>
-              <label htmlFor="department" className="mb-1 block text-sm font-medium">
-                Department
+              <label htmlFor="location" className="mb-1 block text-sm font-medium">
+                location
               </label>
               <input
                 type="text"
-                id="department"
+                id="location"
                 className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                 defaultValue="Human Resources"
                 readOnly

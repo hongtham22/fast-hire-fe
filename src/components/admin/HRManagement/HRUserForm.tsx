@@ -4,7 +4,7 @@ import { X } from 'lucide-react';
 interface HRUserFormData {
   name: string;
   email: string;
-  department: string;
+  location: string;
   password?: string;
 }
 
@@ -24,7 +24,7 @@ export default function HRUserForm({
   const [formData, setFormData] = useState<HRUserFormData>({
     name: '',
     email: '',
-    department: '',
+    location: '',
     password: '',
   });
 
@@ -94,18 +94,18 @@ export default function HRUserForm({
           </div>
 
           <div>
-            <label htmlFor="department" className="block text-sm font-medium text-gray-700">
-              Department
+            <label htmlFor="location" className="block text-sm font-medium text-gray-700">
+              location
             </label>
             <select
-              id="department"
-              name="department"
-              value={formData.department}
+              id="location"
+              name="location"
+              value={formData.location}
               onChange={handleChange}
               required
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
             >
-              <option value="">Select a department</option>
+              <option value="">Select a location</option>
               <option value="IT">IT</option>
               <option value="HR">HR</option>
               <option value="Finance">Finance</option>
