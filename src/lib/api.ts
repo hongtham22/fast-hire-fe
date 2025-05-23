@@ -480,7 +480,8 @@ export async function sendSingleNotification(applicationId: string, templateId: 
       body: JSON.stringify({ 
         applicationId, 
         templateId,
-        markAsSent
+        markAsSent,
+        userId: '8318d00a-853d-48b2-a1eb-92f09ee2bcb0' // Hard-coded user ID
       }),
     });
 
@@ -512,7 +513,8 @@ export async function sendBulkNotifications(applicationIds: string[], templateId
       body: JSON.stringify({ 
         applicationIds, 
         templateId,
-        markAsSent
+        markAsSent,
+        userId: '8318d00a-853d-48b2-a1eb-92f09ee2bcb0' // Hard-coded user ID
       }),
     });
 

@@ -53,6 +53,7 @@ interface ApplicationApiResponse {
   hasStructuredData?: boolean;
   latest_company?: string | null;
   experience_years?: number | null;
+  emailSent?: boolean;
 }
 
 // Extended Application interface to include cvFileUrl and detailed scores
@@ -229,7 +230,7 @@ export default function JobApplicationsPage() {
               latest_company: item.latest_company || null,
               experience_years: item.experience_years || null,
               hasNote: item.note !== null && item.note !== "",
-              emailSent: false,
+              emailSent: item.emailSent || false,
             };
           });
 
@@ -546,6 +547,19 @@ export default function JobApplicationsPage() {
                       >
                         <span>View Feedback</span>
                       </button>
+                    )}
+                    
+                    {/* Email notification flag */}
+                    {application.status !== "new" && (
+                      <span 
+                        className={`flex items-center gap-1 text-xs ${
+                          application.emailSent ? "text-green-600" : "text-gray-500"
+                        }`}
+                        title={application.emailSent ? "Email notification sent" : "No email notification sent yet"}
+                      >
+                        <Mail className="h-3 w-3" />
+                        {application.emailSent ? "Email sent" : "No email"}
+                      </span>
                     )}
                   </div>
                 </div>

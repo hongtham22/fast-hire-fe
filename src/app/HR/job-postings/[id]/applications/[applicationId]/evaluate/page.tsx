@@ -192,11 +192,11 @@ export default function ApplicationEvaluationPage() {
                       <button
                         type="button"
                         onClick={() => setIsEmailModalOpen(true)}
-                        className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                        className="flex items-center gap-2 rounded-full bg-white-300 px-4 py-2 text-sm font-medium text-emerald-800 border border-emerald-500"
                         disabled={application.emailSent}
                         title={application.emailSent ? "Notification email already sent" : "Send email notification"}
                       >
-                        <Mail className="h-4 w-4" />
+                        <Mail className="h-5 w-5" />
                         {application.emailSent ? "Email Sent" : "Send Email"}
                       </button>
                     )}
