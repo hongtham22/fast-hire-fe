@@ -309,7 +309,7 @@ export default function JobPostingsPage() {
             {jobs.map((job) => (
               <div key={job.id} className="grid grid-cols-7 gap-4 px-6 py-4">
                 <div className="col-span-2 font-medium">{job.jobTitle}</div>
-                <div className="text-gray-600">{job.location.name}</div>
+                <div className="text-gray-600">{job.location}</div>
                 <div className="text-gray-600"> {new Date(job.createdAt || "").toLocaleString()}</div>
                 <div className="text-gray-600">{job.applicationCount}</div>
                 <div>

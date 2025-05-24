@@ -7,13 +7,16 @@ import {
   X,
   Eye,
 } from 'lucide-react';
-import { getJobsForHR, getJobDetail, JobListItem } from '@/lib/api';
+import { getJobsForHR, getJobDetail, JobListItem, Location, JobDetail } from '@/lib/api';
+import JobDetailsModal from '@/components/JobModal/JobDetailsModal';
 
-interface JobPosting extends JobListItem {
-  location: {
-    id: string;
-    name: string;
-  };
+// Type guard function to check if value is a Location object
+function isLocationObject(value: unknown): value is Location {
+  return typeof value === 'object' && value !== null && 'id' in value && 'name' in value;
+}
+
+interface JobPosting extends Omit<JobListItem, 'location'> {
+  location: Location;
   experienceYear?: number;
   creator?: {
     id: string;
@@ -25,6 +28,14 @@ interface JobPosting extends JobListItem {
   languageSkills?: string;
   keyResponsibility?: string;
   ourOffer?: string;
+  maxScoreRoleJob?: number;
+  maxScoreExperienceYears?: number;
+  maxScoreProgrammingLanguage?: number;
+  maxScoreKeyResponsibilities?: number;
+  maxScoreCertificate?: number;
+  maxScoreLanguage?: number;
+  maxScoreSoftSkill?: number;
+  maxScoreTechnicalSkill?: number;
 }
 
 export default function JobApprovals() {
@@ -51,7 +62,14 @@ export default function JobApprovals() {
       if (response.error) {
         setError(response.error);
       } else {
-        setJobs(response.data?.jobs || []);
+        // Transform the API response to match our JobPosting interface
+        const transformedJobs = (response.data?.jobs || []).map(job => ({
+          ...job,
+          location: isLocationObject(job.location) 
+            ? job.location 
+            : { id: 'unknown', name: job.location as string }
+        }));
+        setJobs(transformedJobs);
       }
     } catch (err) {
       setError('Failed to load job postings');
@@ -115,14 +133,35 @@ export default function JobApprovals() {
       }
       // Keep the existing job data if the API response is missing required fields
       if (response.data) {
+        // First create a variable with the API response data with type assertion
+        const responseData = response.data as JobDetail & {
+          maxScoreRoleJob?: number;
+          maxScoreExperienceYears?: number;
+          maxScoreProgrammingLanguage?: number;
+          maxScoreKeyResponsibilities?: number;
+          maxScoreCertificate?: number;
+          maxScoreLanguage?: number;
+          maxScoreSoftSkill?: number;
+          maxScoreTechnicalSkill?: number;
+        };
+        
         const updatedJob: JobPosting = {
           ...job,
-          ...response.data,
+          ...responseData,
           // Ensure location is an object with id and name properties
-          location: response.data.location && typeof response.data.location === 'object' 
-            ? response.data.location 
-            : job.location,
-          status: job.status // Keep the original status to maintain type safety
+          location: isLocationObject(responseData.location) 
+            ? responseData.location 
+            : { id: 'unknown', name: job.location.name },
+          status: job.status, // Keep the original status to maintain type safety
+          // Extract max score fields if they exist in the response
+          maxScoreRoleJob: responseData.maxScoreRoleJob,
+          maxScoreExperienceYears: responseData.maxScoreExperienceYears,
+          maxScoreProgrammingLanguage: responseData.maxScoreProgrammingLanguage,
+          maxScoreKeyResponsibilities: responseData.maxScoreKeyResponsibilities,
+          maxScoreCertificate: responseData.maxScoreCertificate,
+          maxScoreLanguage: responseData.maxScoreLanguage,
+          maxScoreSoftSkill: responseData.maxScoreSoftSkill,
+          maxScoreTechnicalSkill: responseData.maxScoreTechnicalSkill
         };
         setSelectedJob(updatedJob);
       } else {
@@ -278,97 +317,12 @@ export default function JobApprovals() {
       </div>
 
       {/* Job Details Modal */}
-      {selectedJob && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white z-10 flex items-center justify-between border-b p-4">
-              <h2 className="text-xl font-bold">Job Details</h2>
-              <button
-                onClick={() => setSelectedJob(null)}
-                className="p-1 rounded-full hover:bg-gray-100"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-            <div className="p-6 space-y-4">
-              <div>
-                <h3 className="text-lg font-medium text-gray-900">{selectedJob.jobTitle}</h3>
-                <p className="text-sm text-gray-500">{selectedJob.location.name}</p>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Experience</p>
-                  <p className="text-sm text-gray-900">{selectedJob.experienceYear ? `${selectedJob.experienceYear} years` : 'Not specified'}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Created By</p>
-                  <p className="text-sm text-gray-900">{selectedJob.creator?.name || 'Unknown'}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Created At</p>
-                  <p className="text-sm text-gray-900">{formatDate(selectedJob.createdAt)}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Status</p>
-                  <p className="text-sm text-gray-900">{selectedJob.status}</p>
-                </div>
-              </div>
-              
-              {selectedJob.mustHave && (
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Must Have</p>
-                  <p className="text-sm text-gray-900 whitespace-pre-wrap">{selectedJob.mustHave}</p>
-                </div>
-              )}
-              
-              {selectedJob.niceToHave && (
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Nice to Have</p>
-                  <p className="text-sm text-gray-900 whitespace-pre-wrap">{selectedJob.niceToHave}</p>
-                </div>
-              )}
-              
-              {selectedJob.languageSkills && (
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Language Skills</p>
-                  <p className="text-sm text-gray-900 whitespace-pre-wrap">{selectedJob.languageSkills}</p>
-                </div>
-              )}
-              
-              {selectedJob.keyResponsibility && (
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Key Responsibilities</p>
-                  <p className="text-sm text-gray-900 whitespace-pre-wrap">{selectedJob.keyResponsibility}</p>
-                </div>
-              )}
-              
-              {selectedJob.ourOffer && (
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Our Offer</p>
-                  <p className="text-sm text-gray-900 whitespace-pre-wrap">{selectedJob.ourOffer}</p>
-                </div>
-              )}
-
-              {selectedJob.status === 'pending' && (
-                <div className="flex justify-end space-x-4 pt-4 border-t">
-                  <button
-                    onClick={() => handleReject(selectedJob.id)}
-                    className="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 rounded-md hover:bg-red-200"
-                  >
-                    Reject
-                  </button>
-                  <button
-                    onClick={() => handleApprove(selectedJob.id)}
-                    className="px-4 py-2 text-sm font-medium text-green-700 bg-green-100 rounded-md hover:bg-green-200"
-                  >
-                    Approve
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      <JobDetailsModal 
+        job={selectedJob}
+        onClose={() => setSelectedJob(null)}
+        onApprove={handleApprove}
+        onReject={handleReject}
+      />
     </div>
   );
 } 

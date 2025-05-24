@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Loader2, X } from 'lucide-react';
 import { API_BASE_URL, getLocations, Location } from '@/lib/api';
+import MaxScoresEditor from './MaxScoresEditor';
 
 interface CreateJobModalProps {
   isOpen: boolean;
@@ -15,6 +16,8 @@ export default function CreateJobModal({ isOpen, onClose, onJobCreated }: Create
   const [error, setError] = useState<string | null>(null);
   const [locations, setLocations] = useState<Location[]>([]);
   const [locationsLoading, setLocationsLoading] = useState(false);
+  const [maxScores, setMaxScores] = useState<Record<string, number>>({});
+  const [maxScoresError, setMaxScoresError] = useState<string | null>(null);
 
   // Form state
   const [jobTitle, setJobTitle] = useState("");
@@ -53,9 +56,29 @@ export default function CreateJobModal({ isOpen, onClose, onJobCreated }: Create
       fetchLocations();
     }
   }, [isOpen]);
+  
+  const handleMaxScoresChange = (scores: Record<string, number>) => {
+    setMaxScores(scores);
+    
+    // Validate the total is 100
+    const total = Object.values(scores).reduce((sum, score) => sum + score, 0);
+    if (total !== 100) {
+      setMaxScoresError(`Total score weights must equal 100. Current total: ${total}`);
+    } else {
+      setMaxScoresError(null);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate that total max scores equals 100
+    const totalMaxScores = Object.values(maxScores).reduce((sum, score) => sum + score, 0);
+    if (totalMaxScores !== 100) {
+      setMaxScoresError(`Total score weights must equal 100. Current total: ${totalMaxScores}`);
+      return;
+    }
+    
     setLoading(true);
     setError(null);
 
@@ -76,7 +99,9 @@ export default function CreateJobModal({ isOpen, onClose, onJobCreated }: Create
           keyResponsibility,
           ourOffer,
           expireDate: expireDate || undefined,
-          status: 'pending'
+          status: 'pending',
+          // Include max scores
+          ...maxScores
         }),
       });
 
@@ -248,7 +273,16 @@ export default function CreateJobModal({ isOpen, onClose, onJobCreated }: Create
             ></textarea>
           </div>
           
-          <div className="pt-4 border-t flex justify-end space-x-3">
+          {/* Add MaxScoresEditor */}
+          <div className="border-t pt-4 mt-4">
+            <MaxScoresEditor 
+              values={maxScores}
+              onChange={handleMaxScoresChange}
+              error={maxScoresError}
+            />
+          </div>
+          
+          <div className="flex justify-end space-x-3 pt-4 border-t">
             <button
               type="button"
               onClick={onClose}
@@ -258,7 +292,7 @@ export default function CreateJobModal({ isOpen, onClose, onJobCreated }: Create
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !!maxScoresError}
               className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-70 flex items-center"
             >
               {loading ? (

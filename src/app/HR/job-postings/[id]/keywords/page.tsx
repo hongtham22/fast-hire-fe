@@ -140,6 +140,67 @@ export default function JobKeywordsPage() {
               )}
             </div>
 
+            {/* Add Matching Score Weights */}
+            {keywordData?.custom_max_scores && (
+              <div className="mb-6">
+                <h3 className="text-xl font-bold mb-4">Matching Score Weights</h3>
+                <div className="grid grid-cols-2 gap-4 bg-blue-50 p-4 rounded-lg">
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-2">
+                      {keywordData.custom_max_scores.role_job}
+                    </div>
+                    <span>Job Title Match</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-2">
+                      {keywordData.custom_max_scores.experience_years}
+                    </div>
+                    <span>Experience Years</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-2">
+                      {keywordData.custom_max_scores.programming_language}
+                    </div>
+                    <span>Programming Languages</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-2">
+                      {keywordData.custom_max_scores.key_responsibilities}
+                    </div>
+                    <span>Key Responsibilities</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-2">
+                      {keywordData.custom_max_scores.certificate}
+                    </div>
+                    <span>Certificates</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-2">
+                      {keywordData.custom_max_scores.language}
+                    </div>
+                    <span>Languages</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-2">
+                      {keywordData.custom_max_scores.soft_skill}
+                    </div>
+                    <span>Soft Skills</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-2">
+                      {keywordData.custom_max_scores.technical_skill}
+                    </div>
+                    <span>Technical Skills</span>
+                  </div>
+                </div>
+                <div className="mt-3 text-sm text-gray-600">
+                  <p>Total weighting score: {Object.values(keywordData.custom_max_scores).reduce((sum, value) => sum + value, 0)} points</p>
+                  <p>These weights represent the relative importance of each criterion when calculating candidate match scores.</p>
+                </div>
+              </div>
+            )}
+
             <h3 className="text-xl font-bold mb-4">Job Description</h3>
             {loading ? (
               <p>Loading job details...</p>

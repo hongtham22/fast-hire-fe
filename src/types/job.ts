@@ -50,4 +50,14 @@ export interface JobKeywordData {
     value: string;
     requirement_type: string;
   }>;
+  custom_max_scores?: {
+    role_job: number;
+    experience_years: number;
+    programming_language: number;
+    key_responsibilities: number;
+    certificate: number;
+    language: number;
+    soft_skill: number;
+    technical_skill: number;
+  };
 } 

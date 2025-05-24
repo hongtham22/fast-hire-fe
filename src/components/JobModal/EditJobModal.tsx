@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Loader2, X } from 'lucide-react';
 import { API_BASE_URL, getLocations, Location } from '@/lib/api';
 import { Job } from '@/app/context/JobsContext';
+import MaxScoresEditor from './MaxScoresEditor';
 
 interface EditJobModalProps {
   isOpen: boolean;
@@ -17,6 +18,8 @@ export default function EditJobModal({ isOpen, onClose, onJobUpdated, job }: Edi
   const [error, setError] = useState<string | null>(null);
   const [locations, setLocations] = useState<Location[]>([]);
   const [locationsLoading, setLocationsLoading] = useState(false);
+  const [maxScores, setMaxScores] = useState<Record<string, number>>({});
+  const [maxScoresError, setMaxScoresError] = useState<string | null>(null);
 
   // Form state
   const [jobTitle, setJobTitle] = useState(job.jobTitle);
@@ -49,13 +52,65 @@ export default function EditJobModal({ isOpen, onClose, onJobUpdated, job }: Edi
       }
     };
 
+    const fetchJobDetails = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/jobs/${job.id}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch job details');
+        }
+        const jobData = await response.json();
+
+        // Initialize max scores with values from the job if available
+        const initialMaxScores = {
+          maxScoreRoleJob: jobData.maxScoreRoleJob,
+          maxScoreExperienceYears: jobData.maxScoreExperienceYears,
+          maxScoreProgrammingLanguage: jobData.maxScoreProgrammingLanguage,
+          maxScoreKeyResponsibilities: jobData.maxScoreKeyResponsibilities,
+          maxScoreCertificate: jobData.maxScoreCertificate,
+          maxScoreLanguage: jobData.maxScoreLanguage,
+          maxScoreSoftSkill: jobData.maxScoreSoftSkill,
+          maxScoreTechnicalSkill: jobData.maxScoreTechnicalSkill
+        };
+        
+        // Filter out undefined values
+        const filteredMaxScores = Object.fromEntries(
+          Object.entries(initialMaxScores).filter(([, value]) => value !== undefined)
+        );
+        
+        setMaxScores(filteredMaxScores);
+      } catch (err) {
+        console.error('Error fetching job details:', err);
+      }
+    };
+
     if (isOpen) {
       fetchLocations();
+      fetchJobDetails();
     }
-  }, [isOpen]);
+  }, [isOpen, job.id]);
+  
+  const handleMaxScoresChange = (scores: Record<string, number>) => {
+    setMaxScores(scores);
+    
+    // Validate the total is 100
+    const total = Object.values(scores).reduce((sum, score) => sum + score, 0);
+    if (total !== 100) {
+      setMaxScoresError(`Total score weights must equal 100. Current total: ${total}`);
+    } else {
+      setMaxScoresError(null);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate that total max scores equals 100
+    const totalMaxScores = Object.values(maxScores).reduce((sum, score) => sum + score, 0);
+    if (totalMaxScores !== 100) {
+      setMaxScoresError(`Total score weights must equal 100. Current total: ${totalMaxScores}`);
+      return;
+    }
+    
     setLoading(true);
     setError(null);
 
@@ -75,7 +130,9 @@ export default function EditJobModal({ isOpen, onClose, onJobUpdated, job }: Edi
           keyResponsibility,
           ourOffer,
           expireDate: expireDate || undefined,
-          status: 'pending' // Set status to pending when edited
+          status: 'pending', // Set status to pending when edited
+          // Include max scores
+          ...maxScores
         }),
       });
 
@@ -243,7 +300,16 @@ export default function EditJobModal({ isOpen, onClose, onJobUpdated, job }: Edi
             ></textarea>
           </div>
           
-          <div className="flex justify-end space-x-3 pt-4">
+          {/* Add MaxScoresEditor */}
+          <div className="border-t pt-4 mt-4">
+            <MaxScoresEditor 
+              values={maxScores}
+              onChange={handleMaxScoresChange}
+              error={maxScoresError}
+            />
+          </div>
+          
+          <div className="flex justify-end space-x-3 pt-4 border-t">
             <button
               type="button"
               onClick={onClose}
@@ -253,7 +319,7 @@ export default function EditJobModal({ isOpen, onClose, onJobUpdated, job }: Edi
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !!maxScoresError}
               className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-70 flex items-center"
             >
               {loading ? (

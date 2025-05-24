@@ -13,10 +13,7 @@ import { JobKeywordData } from '@/types/job';
 export interface JobListItem {
   id: string;
   jobTitle: string;
-  location: {
-    id: string;
-    name: string;
-  };
+  location: string;
   applicationCount: number;
   status: 'pending' | 'approved' | 'closed' | 'rejected';
   expireDate: string | null;
