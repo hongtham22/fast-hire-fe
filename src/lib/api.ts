@@ -40,7 +40,7 @@ export interface JobDetail {
   experienceYear?: number;
 }
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
 
 // Add the Location interface
 export interface Location {
@@ -537,4 +537,29 @@ export interface EmailTemplate {
   body_template: string;
   created_at: string;
   updated_at: string;
-} 
+}
+
+export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
+  const token = localStorage.getItem('token');
+  
+  const config: RequestInit = {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+      ...options.headers,
+    },
+  };
+
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+  
+  if (response.status === 401) {
+    // Token expired, redirect to login
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/login';
+    return;
+  }
+
+  return response;
+}; 
