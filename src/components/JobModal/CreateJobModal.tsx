@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Loader2, X } from 'lucide-react';
-import { API_BASE_URL, getLocations, Location } from '@/lib/api';
+import { getLocations, Location, apiCall } from '@/lib/api';
 import MaxScoresEditor from './MaxScoresEditor';
 
 interface CreateJobModalProps {
@@ -84,11 +84,8 @@ export default function CreateJobModal({ isOpen, onClose, onJobCreated }: Create
 
     try {
       // Create job and extract keywords in one API call
-      const response = await fetch(`${API_BASE_URL}/jobs/create-with-keywords`, {
+      const response = await apiCall('/jobs/create-with-keywords', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           jobTitle,
           experienceYear,
@@ -104,6 +101,10 @@ export default function CreateJobModal({ isOpen, onClose, onJobCreated }: Create
           ...maxScores
         }),
       });
+
+      if (!response) {
+        throw new Error('No response received');
+      }
 
       if (!response.ok) {
         const errorData = await response.json();

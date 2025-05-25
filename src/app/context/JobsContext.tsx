@@ -1,5 +1,6 @@
 "use client"
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { apiCall } from '@/lib/api';
 
 // Define job interface
 export interface Job {
@@ -27,6 +28,11 @@ export interface Job {
     email: string;
     role: string;
   };
+  salary?: string;
+  status?: string;
+  createdAt?: string;
+  expireDate?: string | null;
+  experienceYear?: number;
 }
 
 interface JobsContextType {
@@ -65,9 +71,12 @@ export const JobsProvider: React.FC<JobsProviderProps> = ({ children }) => {
     setError(null);
     
     try {
-      // Add a high limit parameter to get all jobs at once
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/jobs/open?limit=1000`;
-      const response = await fetch(apiUrl);
+      // Use apiCall for authentication
+      const response = await apiCall('/jobs/open?limit=1000');
+      
+      if (!response) {
+        throw new Error('No response received');
+      }
       
       if (!response.ok) {
         throw new Error(`Failed to fetch jobs: ${response.status}`);
@@ -95,8 +104,11 @@ export const JobsProvider: React.FC<JobsProviderProps> = ({ children }) => {
     // If not found in cache, fetch from API
     try {
       setLoading(true);
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/jobs/${id}`;
-      const response = await fetch(apiUrl);
+      const response = await apiCall(`/jobs/${id}`);
+      
+      if (!response) {
+        throw new Error('No response received');
+      }
       
       if (!response.ok) {
         throw new Error(`Failed to fetch job: ${response.status}`);

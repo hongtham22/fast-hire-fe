@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Loader2, X } from 'lucide-react';
-import { API_BASE_URL, getLocations, Location } from '@/lib/api';
+import { getLocations, Location, apiCall } from '@/lib/api';
 import { Job } from '@/app/context/JobsContext';
 import MaxScoresEditor from './MaxScoresEditor';
 
@@ -54,8 +54,8 @@ export default function EditJobModal({ isOpen, onClose, onJobUpdated, job }: Edi
 
     const fetchJobDetails = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/jobs/${job.id}`);
-        if (!response.ok) {
+        const response = await apiCall(`/jobs/${job.id}`);
+        if (!response || !response.ok) {
           throw new Error('Failed to fetch job details');
         }
         const jobData = await response.json();
@@ -115,7 +115,7 @@ export default function EditJobModal({ isOpen, onClose, onJobUpdated, job }: Edi
     setError(null);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/jobs/${job.id}`, {
+      const response = await apiCall(`/jobs/${job.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -136,7 +136,7 @@ export default function EditJobModal({ isOpen, onClose, onJobUpdated, job }: Edi
         }),
       });
 
-      if (!response.ok) {
+      if (!response || !response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to update job');
       }

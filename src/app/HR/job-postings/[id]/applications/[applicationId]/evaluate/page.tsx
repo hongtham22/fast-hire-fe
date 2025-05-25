@@ -13,6 +13,7 @@ import MatchScoreChartInline from "@/components/matchScoreChartInline";
 import { IoArrowForwardOutline } from 'react-icons/io5';
 import Link from 'next/link';
 import EmailNotificationModal from "@/components/EmailNotificationModal";
+import { apiCall } from "@/lib/api";
 
 export default function ApplicationEvaluationPage() {
   const [application, setApplication] = useState<Application | null>(null);
@@ -30,10 +31,10 @@ export default function ApplicationEvaluationPage() {
 
   const fetchApplication = async () => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/applications/${jobId}/applications/${applicationId}`
+      const response = await apiCall(
+        `/applications/${jobId}/applications/${applicationId}`
       );
-      if (!response.ok) throw new Error("Failed to fetch application");
+      if (!response || !response.ok) throw new Error("Failed to fetch application");
       const data = await response.json();
       setApplication(data);
     } catch (error) {
@@ -74,8 +75,8 @@ export default function ApplicationEvaluationPage() {
   }) => {
     setSaving(true);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/applications/${jobId}/applications/${applicationId}/evaluate`,
+      const response = await apiCall(
+        `/applications/${jobId}/applications/${applicationId}/evaluate`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -83,7 +84,7 @@ export default function ApplicationEvaluationPage() {
         }
       );
 
-      if (!response.ok) throw new Error("Failed to save evaluation");
+      if (!response || !response.ok) throw new Error("Failed to save evaluation");
 
       toast.success("Evaluation saved successfully");
       // Only fetch if we're submitting a result to avoid unnecessary refreshes
