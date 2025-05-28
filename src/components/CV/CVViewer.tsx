@@ -104,7 +104,7 @@ const CVViewer: React.FC<CVViewerProps> = ({ applicationId, cvFileUrl }) => {
           <div className="mb-8">
             <h3 className="text-xl font-semibold mb-4 text-emerald-500">PDF View</h3>
             <iframe 
-              src={`${process.env.NEXT_PUBLIC_API_BASE_URL}/${cvFileUrl.startsWith('/') ? cvFileUrl.slice(1) : cvFileUrl}`}
+              src={cvFileUrl}
               className="w-full h-[1000px] border border-gray-300 rounded-lg"
             />
           </div>
@@ -114,7 +114,7 @@ const CVViewer: React.FC<CVViewerProps> = ({ applicationId, cvFileUrl }) => {
           <h3 className="text-xl font-semibold mb-4 text-emerald-500 border-b pb-2">Raw Text</h3>
           <textarea
             className="w-full h-[600px] p-4 border border-gray-300 rounded-lg font-mono text-sm"
-            value={cvText}
+            value={cvText || ''}
             readOnly
           />
         </div>
