@@ -187,7 +187,7 @@ const JobDetailPage = () => {
                 <div className="mb-8 flex flex-wrap items-center text-sm text-gray-600">
                   <div className="mr-6 mb-2">
                     <span className="font-semibold">Posted:</span>{" "}
-                    {formatDate(job.createdAt)}
+                    {formatDate(job.createdAt || 'No date')}
                   </div>
                   {job.expireDate && (
                     <div className="mr-6 mb-2">
