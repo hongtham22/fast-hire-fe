@@ -1,6 +1,11 @@
+"use client";
+
 import { Save } from "lucide-react";
+import { useAuth } from "@/app/context/AuthContext";
 
 export default function SettingsPage() {
+  const { user } = useAuth();
+
   return (
     <div className="space-y-6">
       <div>
@@ -23,7 +28,7 @@ export default function SettingsPage() {
                 type="text"
                 id="name"
                 className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-                defaultValue="HR Manager"
+                defaultValue={user?.name || "HR Manager"}
               />
             </div>
             
@@ -35,19 +40,19 @@ export default function SettingsPage() {
                 type="email"
                 id="email"
                 className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-                defaultValue="hr@company.com"
+                defaultValue={user?.email || "hr@company.com"}
               />
             </div>
             
             <div>
-              <label htmlFor="location" className="mb-1 block text-sm font-medium">
-                location
+              <label htmlFor="role" className="mb-1 block text-sm font-medium">
+                Role
               </label>
               <input
                 type="text"
-                id="location"
+                id="role"
                 className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-                defaultValue="Human Resources"
+                defaultValue={user?.role === 'hr' ? 'Human Resources' : user?.role || 'Human Resources'}
                 readOnly
               />
             </div>

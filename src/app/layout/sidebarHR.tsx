@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BarChart3,
-  FolderOpen,
   Mail,
   FileText,
   User,
@@ -12,6 +11,7 @@ import {
   LogOut,
 } from "lucide-react";
 import clsx from "clsx";
+import { useAuth } from "../context/AuthContext";
 
 type NavItem = {
   name: string;
@@ -54,6 +54,7 @@ const navItems: NavItem[] = [
 
 export default function SidebarHR() {
   const pathname = usePathname();
+  const { user, logout } = useAuth();
 
   return (
     <div className="flex h-full flex-col bg-white border-r">
@@ -89,11 +90,14 @@ export default function SidebarHR() {
             <User className="h-5 w-5 text-gray-500" />
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-medium">HR Manager</span>
-            <span className="text-xs text-gray-500">hr@company.com</span>
+            <span className="text-sm font-medium">{user?.name || 'user'}</span>
+            <span className="text-xs text-gray-500">{user?.email || 'email'}</span>
           </div>
         </div>
-        <button className="flex w-full items-center gap-3 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50">
+        <button 
+          onClick={logout}
+          className="flex w-full items-center gap-3 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+        >
           <LogOut className="h-5 w-5" />
           Sign out
         </button>

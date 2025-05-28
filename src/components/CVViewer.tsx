@@ -32,9 +32,7 @@ export function CVViewer({ cvFileUrl }: CVViewerProps) {
         </div>
       ) : (
         <iframe
-        src={`${process.env.NEXT_PUBLIC_API_BASE_URL}/${cvFileUrl.startsWith('/') ? cvFileUrl.slice(1) : cvFileUrl}`}
-
-          // src={cvFileUrl}
+          src={cvFileUrl}
           className="w-full h-full"
           onLoad={handleIframeLoad}
           onError={handleIframeError}

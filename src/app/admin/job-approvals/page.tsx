@@ -7,7 +7,7 @@ import {
   X,
   Eye,
 } from 'lucide-react';
-import { getJobsForHR, getJobDetail, JobListItem, Location, JobDetail } from '@/lib/api';
+import { getJobsForHR, getJobDetail, JobListItem, Location, JobDetail, apiCall } from '@/lib/api';
 import JobDetailsModal from '@/components/JobModal/JobDetailsModal';
 
 // Type guard function to check if value is a Location object
@@ -81,7 +81,7 @@ export default function JobApprovals() {
 
   const handleApprove = async (jobId: string) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/jobs/${jobId}`, {
+      const response = await apiCall(`/jobs/${jobId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -89,7 +89,7 @@ export default function JobApprovals() {
         body: JSON.stringify({ status: 'approved' })
       });
 
-      if (!response.ok) {
+      if (!response || !response.ok) {
         throw new Error('Failed to approve job');
       }
 
@@ -104,7 +104,7 @@ export default function JobApprovals() {
 
   const handleReject = async (jobId: string) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/jobs/${jobId}`, {
+      const response = await apiCall(`/jobs/${jobId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -112,7 +112,7 @@ export default function JobApprovals() {
         body: JSON.stringify({ status: 'rejected' })
       });
 
-      if (!response.ok) {
+      if (!response || !response.ok) {
         throw new Error('Failed to reject job');
       }
 
@@ -224,9 +224,6 @@ export default function JobApprovals() {
                   Location
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Experience
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Created At
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -263,13 +260,10 @@ export default function JobApprovals() {
                       <div className="text-sm text-gray-900">{job.location.name}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{job.experienceYear ? `${job.experienceYear} years` : 'Not specified'}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{formatDate(job.createdAt)}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{job.creator?.name || 'HR Manager'}</div>
+                      <div className="text-sm text-gray-900">{job.creator?.name || 'Name'}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 text-xs font-semibold leading-5 rounded-full ${

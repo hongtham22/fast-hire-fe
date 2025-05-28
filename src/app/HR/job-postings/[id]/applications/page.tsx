@@ -386,7 +386,7 @@ export default function JobApplicationsPage() {
       )}
 
       <div className="rounded-xl border shadow-sm">
-        <div className="grid grid-cols-11 gap-2 border-b bg-gray-50 px-3 py-3 text-sm font-medium text-gray-600">
+        <div className="grid grid-cols-12 gap-2 border-b bg-gray-50 px-4 py-3 text-sm font-medium text-gray-600">
           <div className="col-span-2">Candidate</div>
           <div className="col-span-2">Programming</div>
           <div className="col-span-2">Technical Skills</div>
@@ -394,6 +394,7 @@ export default function JobApplicationsPage() {
           <div className="col-span-1">University</div>
           <div className="col-span-1">GPA</div>
           <div className="col-span-1">Languages</div>
+          <div className="col-span-1">Applied At</div>
           <div className="col-span-1">Status</div>
         </div>
 
@@ -412,7 +413,7 @@ export default function JobApplicationsPage() {
             {filteredApplications.map((application) => (
               <div
                 key={application.id}
-                className="grid grid-cols-11 gap-2 px-3 py-4 hover:bg-gray-50 cursor-pointer"
+                className="grid grid-cols-12 gap-2 px-2 py-4 hover:bg-gray-50 cursor-pointer"
                 onClick={() =>
                   router.push(
                     `/HR/job-postings/${jobId}/applications/${application.id}/evaluate`
@@ -518,6 +519,10 @@ export default function JobApplicationsPage() {
                       <span className="text-xs text-gray-500">No data</span>
                     )}
                   </div>
+                </div>
+
+                <div className="col-span-1 text-gray-700 text-sm">
+                 {new Date(application.createdAt || "").toLocaleString()}
                 </div>
 
                 <div className="col-span-1 flex items-start">

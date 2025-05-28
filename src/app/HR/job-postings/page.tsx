@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Plus, Search, Loader2, Trash2, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
-import { getJobsForHR, JobListItem, deleteJob } from "@/lib/api";
+import { getJobsForHR, JobListItem, deleteJob, apiCall } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import CreateJobModal from "@/components/JobModal/CreateJobModal";
 import EditJobModal from "@/components/JobModal/EditJobModal";
@@ -127,7 +127,7 @@ export default function JobPostingsPage() {
     }
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/jobs/${jobId}/close`, {
+      const response = await apiCall(`/jobs/${jobId}/close`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -137,7 +137,7 @@ export default function JobPostingsPage() {
         }),
       });
       
-      if (!response.ok) {
+      if (!response || !response.ok) {
         throw new Error('Failed to close job');
       }
       
@@ -151,8 +151,8 @@ export default function JobPostingsPage() {
 
   const handleEditJob = async (job: JobListItem) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/jobs/${job.id}`);
-      if (!response.ok) {
+      const response = await apiCall(`/jobs/${job.id}`);
+      if (!response || !response.ok) {
         throw new Error('Failed to fetch job details');
       }
       const jobDetails = await response.json();
@@ -168,10 +168,10 @@ export default function JobPostingsPage() {
     try {
       // If job was pending and was edited, trigger keyword extraction
       if (selectedJob?.status === 'pending') {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/jobs/${selectedJob.id}/extract-keywords`, {
+        const response = await apiCall(`/jobs/${selectedJob.id}/extract-keywords`, {
           method: 'POST',
         });
-        if (!response.ok) {
+        if (!response || !response.ok) {
           throw new Error('Failed to extract keywords');
         }
       }

@@ -40,7 +40,7 @@ export interface JobDetail {
   experienceYear?: number;
 }
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
 
 // Add the Location interface
 export interface Location {
@@ -187,21 +187,26 @@ export async function getJobsForHR(options?: {
   
   const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
   
-  return fetch(`${API_BASE_URL}/jobs/hr/all${queryString}`)
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`);
-      }
-      return response.json();
-    })
-    .then(data => ({ data, error: null }))
-    .catch(error => {
-      console.error('API Error:', error);
-      return {
-        data: null,
-        error: error instanceof Error ? error.message : 'An unknown error occurred'
-      };
-    });
+  try {
+    const response = await apiCall(`/jobs/hr/all${queryString}`);
+    
+    if (!response) {
+      throw new Error('No response received');
+    }
+    
+    if (!response.ok) {
+      throw new Error(`Request failed with status ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return { data, error: null };
+  } catch (error) {
+    console.error('API Error:', error);
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'An unknown error occurred'
+    };
+  }
 }
 
 /**
@@ -210,7 +215,11 @@ export async function getJobsForHR(options?: {
  */
 export async function getPublicJobKeywords(jobId: string): Promise<ApiResponse<JobKeywordData>> {
   try {
-    const response = await fetch(`http://127.0.0.1:3000/jobs/${jobId}/keywords`);
+    const response = await apiCall(`/jobs/${jobId}/keywords`);
+    
+    if (!response) {
+      throw new Error('No response received');
+    }
     
     if (!response.ok) {
       const errorText = await response.text();
@@ -263,7 +272,11 @@ export interface Application {
  */
 export async function getApplicationsByJobId(jobId: string): Promise<ApiResponse<Application[]>> {
   try {
-    const response = await fetch(`${API_BASE_URL}/applications/by-job/${jobId}`);
+    const response = await apiCall(`/applications/by-job/${jobId}`);
+    
+    if (!response) {
+      throw new Error('No response received');
+    }
     
     if (!response.ok) {
       const errorText = await response.text();
@@ -295,7 +308,11 @@ export interface CVKeywordsResponse {
  */
 export async function getCVKeywords(applicationId: string): Promise<ApiResponse<CVKeywordsResponse>> {
   try {
-    const response = await fetch(`${API_BASE_URL}/cv-keywords/by-application/${applicationId}`);
+    const response = await apiCall(`/cv-keywords/by-application/${applicationId}`);
+    
+    if (!response) {
+      throw new Error('No response received');
+    }
     
     if (!response.ok) {
       const errorText = await response.text();
@@ -319,7 +336,11 @@ export async function getCVKeywords(applicationId: string): Promise<ApiResponse<
  */
 export async function getApplicationById(applicationId: string): Promise<ApiResponse<Application>> {
   try {
-    const response = await fetch(`${API_BASE_URL}/applications/${applicationId}`);
+    const response = await apiCall(`/applications/${applicationId}`);
+    
+    if (!response) {
+      throw new Error('No response received');
+    }
     
     if (!response.ok) {
       const errorText = await response.text();
@@ -339,11 +360,15 @@ export async function getApplicationById(applicationId: string): Promise<ApiResp
 }
 
 /**
- * Fetch detailed information for a specific job
+ * Fetch job details by ID
  */
 export async function getJobDetail(jobId: string): Promise<ApiResponse<JobDetail>> {
   try {
-    const response = await fetch(`http://127.0.0.1:3000/jobs/${jobId}`);
+    const response = await apiCall(`/jobs/${jobId}`);
+    
+    if (!response) {
+      throw new Error('No response received');
+    }
     
     if (!response.ok) {
       const errorText = await response.text();
@@ -365,7 +390,11 @@ export async function getJobDetail(jobId: string): Promise<ApiResponse<JobDetail
 // Add function to fetch locations
 export async function getLocations(): Promise<ApiResponse<Location[]>> {
   try {
-    const response = await fetch(`${API_BASE_URL}/locations`);
+    const response = await apiCall('/locations');
+    
+    if (!response) {
+      throw new Error('No response received');
+    }
     
     if (!response.ok) {
       const errorText = await response.text();
@@ -389,9 +418,13 @@ export async function getLocations(): Promise<ApiResponse<Location[]>> {
  */
 export async function deleteJob(jobId: string): Promise<ApiResponse<{ message: string }>> {
   try {
-    const response = await fetch(`${API_BASE_URL}/jobs/${jobId}`, {
+    const response = await apiCall(`/jobs/${jobId}`, {
       method: 'DELETE',
     });
+    
+    if (!response) {
+      throw new Error('No response received');
+    }
     
     if (!response.ok) {
       const errorText = await response.text();
@@ -415,12 +448,13 @@ export async function deleteJob(jobId: string): Promise<ApiResponse<{ message: s
  */
 export async function getEmailTemplates(): Promise<ApiResponse<EmailTemplate[]>> {
   try {
-    const response = await fetch(`${API_BASE_URL}/email/templates`, {
+    const response = await apiCall('/email/templates', {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
     });
+
+    if (!response) {
+      throw new Error('No response received');
+    }
 
     if (!response.ok) {
       throw new Error(`Error fetching email templates: ${response.status}`);
@@ -442,12 +476,13 @@ export async function getEmailTemplates(): Promise<ApiResponse<EmailTemplate[]>>
  */
 export async function previewEmail(applicationId: string, templateId: string): Promise<ApiResponse<{ subject: string; body: string }>> {
   try {
-    const response = await fetch(`${API_BASE_URL}/email/preview/${applicationId}/${templateId}`, {
+    const response = await apiCall(`/email/preview/${applicationId}/${templateId}`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
     });
+
+    if (!response) {
+      throw new Error('No response received');
+    }
 
     if (!response.ok) {
       throw new Error(`Error previewing email: ${response.status}`);
@@ -469,18 +504,18 @@ export async function previewEmail(applicationId: string, templateId: string): P
  */
 export async function sendSingleNotification(applicationId: string, templateId: string, markAsSent: boolean = true): Promise<ApiResponse<{success: boolean}>> {
   try {
-    const response = await fetch(`${API_BASE_URL}/email/send-notification/single`, {
+    const response = await apiCall('/email/send-notification/single', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify({ 
         applicationId, 
         templateId,
         markAsSent,
-        userId: '8318d00a-853d-48b2-a1eb-92f09ee2bcb0' // Hard-coded user ID
       }),
     });
+
+    if (!response) {
+      throw new Error('No response received');
+    }
 
     if (!response.ok) {
       throw new Error(`Error sending notification: ${response.status}`);
@@ -502,18 +537,18 @@ export async function sendSingleNotification(applicationId: string, templateId: 
  */
 export async function sendBulkNotifications(applicationIds: string[], templateId: string, markAsSent: boolean = true): Promise<ApiResponse<{success: boolean}>> {
   try {
-    const response = await fetch(`${API_BASE_URL}/email/send-notification/bulk`, {
+    const response = await apiCall('/email/send-notification/bulk', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify({ 
         applicationIds, 
         templateId,
         markAsSent,
-        userId: '8318d00a-853d-48b2-a1eb-92f09ee2bcb0' // Hard-coded user ID
       }),
     });
+
+    if (!response) {
+      throw new Error('No response received');
+    }
 
     if (!response.ok) {
       throw new Error(`Error sending notifications: ${response.status}`);
@@ -537,4 +572,29 @@ export interface EmailTemplate {
   body_template: string;
   created_at: string;
   updated_at: string;
-} 
+}
+
+export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
+  const token = localStorage.getItem('token');
+  
+  const config: RequestInit = {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+      ...options.headers,
+    },
+  };
+
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+  
+  if (response.status === 401) {
+    // Token expired, redirect to login
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/login';
+    return;
+  }
+
+  return response;
+}; 
