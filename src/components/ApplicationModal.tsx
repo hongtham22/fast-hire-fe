@@ -75,7 +75,7 @@ export default function ApplicationModal({
       }
 
       // Send the application to the API
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/applications/submit`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/applications/submit`, {
         method: 'POST',
         body: formData,
         // Don't set Content-Type header, it will be set automatically with boundary for FormData

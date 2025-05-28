@@ -55,8 +55,12 @@ export default function EditJobModal({ isOpen, onClose, onJobUpdated, job }: Edi
     const fetchJobDetails = async () => {
       try {
         const response = await apiCall(`/jobs/${job.id}`);
-        if (!response || !response.ok) {
-          throw new Error('Failed to fetch job details');
+        if (!response) {
+          throw new Error('Failed to fetch job details - no response');
+        }
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to fetch job details');
         }
         const jobData = await response.json();
 
@@ -136,7 +140,11 @@ export default function EditJobModal({ isOpen, onClose, onJobUpdated, job }: Edi
         }),
       });
 
-      if (!response || !response.ok) {
+      if (!response) {
+        throw new Error('Failed to update job - no response');
+      }
+
+      if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to update job');
       }

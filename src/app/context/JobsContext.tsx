@@ -14,9 +14,6 @@ export interface Job {
     id: string;
     name: string;
   };
-  status: string;
-  createdAt: string;
-  expireDate?: string;
   keyResponsibility?: string;
   mustHave?: string;
   niceToHave?: string;
@@ -28,11 +25,9 @@ export interface Job {
     email: string;
     role: string;
   };
-  salary?: string;
   status?: string;
   createdAt?: string;
   expireDate?: string | null;
-  experienceYear?: number;
 }
 
 interface JobsContextType {

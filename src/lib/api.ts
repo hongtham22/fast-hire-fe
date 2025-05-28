@@ -33,14 +33,13 @@ export interface JobDetail {
     id: string;
     name: string;
   };
-  salary?: string;
   status?: string;
   createdAt?: string;
   expireDate?: string | null;
   experienceYear?: number;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 // Add the Location interface
 export interface Location {

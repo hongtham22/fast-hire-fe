@@ -5,6 +5,17 @@ import JobTable from '@/components/admin/JobManagement/JobTable';
 import JobDetailsModal from '@/components/admin/JobManagement/JobDetailsModal';
 import { Search, Filter } from 'lucide-react';
 
+interface Application {
+  id: string;
+  candidateName: string;
+  email: string;
+  phone: string;
+  matchingScore: number;
+  status: 'pending' | 'reviewed' | 'accepted' | 'rejected';
+  appliedAt: string;
+  resumeUrl: string;
+}
+
 interface Job {
   id: string;
   jobTitle: string;
@@ -19,10 +30,19 @@ interface Job {
   totalApplications: number;
 }
 
+interface JobDetails extends Job {
+  mustHave: string;
+  niceToHave: string;
+  languageSkills: string;
+  keyResponsibility: string;
+  ourOffer: string;
+  applications: Application[];
+}
+
 export default function AdminJobsPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [selectedJob, setSelectedJob] = useState<JobDetails | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
@@ -55,8 +75,14 @@ export default function AdminJobsPage() {
     fetchJobs();
   }, []);
 
-  const handleViewJob = (job: Job) => {
-    setSelectedJob(job);
+  const handleViewJob = async (jobId: string) => {
+    try {
+      // TODO: Replace with actual API call to get full job details
+      const fullJobDetails = await fetch(`/api/jobs/${jobId}`).then(res => res.json());
+      setSelectedJob(fullJobDetails);
+    } catch (error) {
+      console.error('Error fetching job details:', error);
+    }
   };
 
   const handleCloseModal = () => {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -54,6 +55,7 @@ export default function HRManagementPage() {
     fetchUsers();
   }, []);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleCreateUser = (data: any) => {
     // Replace with actual API call
     const newUser: HRUser = {
