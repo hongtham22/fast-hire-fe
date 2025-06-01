@@ -1,4 +1,4 @@
-import { Edit2, Trash2, Key, UserCheck, UserX } from 'lucide-react';
+import { Edit2, Key, UserCheck, UserX } from 'lucide-react';
 
 interface HRUser {
   id: string;
