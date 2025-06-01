@@ -163,4 +163,47 @@ export interface MatchField {
   field: string;
   cv_value: string;
   jd_value: string;
+}
+
+/**
+ * Candidate data interface for HR candidates page
+ */
+export interface CandidateData {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  skills: string[];
+  technical_skills: string[];
+  languages: Array<{
+    language: string;
+    level: string;
+  }>;
+  education: Array<{
+    major: string;
+    university: string;
+    gpa: string;
+    degree: string;
+    graduation_year: string;
+  }>;
+  experience_years: number | null;
+  latest_company: string | null;
+  totalApplications: number;
+  latestApplication: {
+    id: string;
+    jobTitle: string;
+    submittedAt: string;
+    matchingScore: number | null;
+    result: boolean | null;
+    status: 'hired' | 'rejected' | 'pending';
+  };
+  applications: Array<{
+    id: string;
+    jobId: string;
+    jobTitle: string;
+    submittedAt: string;
+    matchingScore: number | null;
+    result: boolean | null;
+    status: 'hired' | 'rejected' | 'pending';
+  }>;
 } 

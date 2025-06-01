@@ -14,8 +14,10 @@ import {
 } from '@/types/job';
 import { 
   Application,
+  DetailedApplication,
   CVKeywordsResponse,
-  MatchingInput 
+  MatchingInput,
+  CandidateData
 } from '@/types/application';
 import { 
   EmailTemplate,
@@ -279,6 +281,24 @@ export async function getPublicJobKeywords(jobId: string): Promise<ApiResponse<J
 export async function getApplicationsByJobId(jobId: string): Promise<ApiResponse<Application[]>> {
   return handleApiResponse<Application[]>(
     apiCall(`/applications/by-job/${jobId}`)
+  );
+}
+
+/**
+ * Fetch all candidates from jobs created by the current HR user
+ */
+export async function getCandidatesForHR(): Promise<ApiResponse<CandidateData[]>> {
+  return handleApiResponse<CandidateData[]>(
+    apiCall('/applications/hr/candidates')
+  );
+}
+
+/**
+ * Fetch applications history for a specific applicant ID
+ */
+export async function getApplicationsByApplicantId(applicantId: string): Promise<ApiResponse<DetailedApplication[]>> {
+  return handleApiResponse<DetailedApplication[]>(
+    apiCall(`/applications/by-applicant/${applicantId}`)
   );
 }
 

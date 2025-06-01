@@ -22,6 +22,7 @@ export type {
   CVKeywordsResponse,
   MatchingInput,
   MatchField,
+  CandidateData,
 } from './application';
 
 // Email Types
