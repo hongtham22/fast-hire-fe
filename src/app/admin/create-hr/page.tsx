@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { createHRUser } from '@/lib/api';
 
 interface CreateHRFormData {
   name: string;
   email: string;
-  location: string;
   password: string;
   confirmPassword: string;
 }
@@ -16,7 +16,6 @@ export default function CreateHR() {
   const [formData, setFormData] = useState<CreateHRFormData>({
     name: '',
     email: '',
-    location: '',
     password: '',
     confirmPassword: ''
   });
@@ -33,21 +32,26 @@ export default function CreateHR() {
       return;
     }
 
-    if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters long');
+    if (formData.password.length < 5) {
+      setError("Password must be at least 5 characters long");
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // TODO: Implement API call to create HR account
-      console.log('Creating HR account:', formData);
-      
-      // Mock successful creation
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Redirect to HR management page
+      // Call the real API to create HR account
+      const result = await createHRUser({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      // Success - redirect to HR management page
       router.push('/admin/hr-management');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create HR account');
@@ -127,7 +131,7 @@ export default function CreateHR() {
             placeholder="Enter password"
           />
           <p className="mt-1 text-xs text-gray-500">
-            Password must be at least 8 characters long
+            Password must be at least 5 characters long
           </p>
         </div>
 

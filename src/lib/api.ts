@@ -168,7 +168,7 @@ export async function parseJobDescription(
 
 
 /**
- * Fetch all jobs for HR with application counts
+ * Fetch all jobs for HR with application counts (HR can only see their own jobs)
  */
 export async function getJobsForHR(options?: {
   page?: number;
@@ -188,6 +188,47 @@ export async function getJobsForHR(options?: {
   
   try {
     const response = await apiCall(`/jobs/hr/all${queryString}`);
+    
+    if (!response) {
+      throw new Error('No response received');
+    }
+    
+    if (!response.ok) {
+      throw new Error(`Request failed with status ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return { data, error: null };
+  } catch (error) {
+    console.error('API Error:', error);
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'An unknown error occurred'
+    };
+  }
+}
+
+/**
+ * Fetch all jobs for Admin with application counts (Admin can see all jobs)
+ */
+export async function getJobsForAdmin(options?: {
+  page?: number;
+  limit?: number;
+  status?: 'pending' | 'approved' | 'closed' | 'rejected';
+  query?: string;
+}): Promise<ApiResponse<JobListResponse>> {
+  // Build query parameters
+  const queryParams = new URLSearchParams();
+  
+  if (options?.page) queryParams.append('page', options.page.toString());
+  if (options?.limit) queryParams.append('limit', options.limit.toString());
+  if (options?.status) queryParams.append('status', options.status);
+  if (options?.query) queryParams.append('query', options.query);
+  
+  const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+  
+  try {
+    const response = await apiCall(`/jobs/admin/all${queryString}`);
     
     if (!response) {
       throw new Error('No response received');
@@ -571,6 +612,338 @@ export interface EmailTemplate {
   body_template: string;
   created_at: string;
   updated_at: string;
+}
+
+// Add HR User management types and functions
+export interface HRUser {
+  id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'hr';
+  isEmailVerified: boolean;
+  createdAt: string;
+}
+
+export interface CreateHRUserData {
+  name: string;
+  email: string;
+  password: string;
+}
+
+export interface UpdateHRUserData {
+  name?: string;
+  email?: string;
+}
+
+export interface ChangeHRPasswordData {
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export interface ChangeOwnPasswordData {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+/**
+ * Create a new HR user account
+ */
+export async function createHRUser(userData: CreateHRUserData): Promise<ApiResponse<HRUser>> {
+  try {
+    const response = await apiCall('/users', {
+      method: 'POST',
+      body: JSON.stringify({
+        ...userData,
+        role: 'hr'
+      }),
+    });
+
+    if (!response) {
+      throw new Error('No response received');
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || `Request failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { data, error: null };
+  } catch (error) {
+    console.error('API Error:', error);
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'An unknown error occurred'
+    };
+  }
+}
+
+/**
+ * Get all users (HR users for admin)
+ */
+export async function getAllUsers(): Promise<ApiResponse<HRUser[]>> {
+  try {
+    const response = await apiCall('/users');
+
+    if (!response) {
+      throw new Error('No response received');
+    }
+
+    if (!response.ok) {
+      throw new Error(`Request failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { data, error: null };
+  } catch (error) {
+    console.error('API Error:', error);
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'An unknown error occurred'
+    };
+  }
+}
+
+/**
+ * Update HR user
+ */
+export async function updateHRUser(userId: string, userData: UpdateHRUserData): Promise<ApiResponse<HRUser>> {
+  try {
+    const response = await apiCall(`/users/${userId}`, {
+      method: 'PUT',
+      body: JSON.stringify(userData),
+    });
+
+    if (!response) {
+      throw new Error('No response received');
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || `Request failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { data, error: null };
+  } catch (error) {
+    console.error('API Error:', error);
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'An unknown error occurred'
+    };
+  }
+}
+
+/**
+ * Update Own Profile (for HR users updating their own profile)
+ */
+export async function updateOwnProfile(userData: UpdateHRUserData): Promise<ApiResponse<HRUser>> {
+  try {
+    // Get current user ID from localStorage
+    const userDataString = localStorage.getItem('user');
+    if (!userDataString) {
+      return {
+        data: null,
+        error: 'User session not found. Please login again.'
+      };
+    }
+
+    const currentUser = JSON.parse(userDataString);
+    const userId = currentUser.id;
+
+    if (!userId) {
+      return {
+        data: null,
+        error: 'User ID not found. Please login again.'
+      };
+    }
+
+    const response = await apiCall(`/users/${userId}`, {
+      method: 'PUT',
+      body: JSON.stringify(userData),
+    });
+
+    if (!response) {
+      throw new Error('No response received');
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || `Request failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { data, error: null };
+  } catch (error) {
+    console.error('Update own profile error:', error);
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'Failed to update profile'
+    };
+  }
+}
+
+/**
+ * Delete HR user
+ */
+export async function deleteHRUser(userId: string): Promise<ApiResponse<{ message: string }>> {
+  try {
+    const response = await apiCall(`/users/${userId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response) {
+      throw new Error('No response received');
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || `Request failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { data, error: null };
+  } catch (error) {
+    console.error('Delete HR user error:', error);
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'Failed to delete HR user'
+    };
+  }
+}
+
+/**
+ * Change HR User Password
+ */
+export async function changeHRUserPassword(userId: string, passwordData: ChangeHRPasswordData): Promise<ApiResponse<{ message: string }>> {
+  try {
+    // Validate passwords match
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      return {
+        data: null,
+        error: 'Passwords do not match'
+      };
+    }
+
+    // Validate password length
+    if (passwordData.newPassword.length < 5) {
+      return {
+        data: null,
+        error: 'Password must be at least 5 characters long'
+      };
+    }
+
+    const response = await apiCall(`/users/${userId}/change-password`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        newPassword: passwordData.newPassword
+      }),
+    });
+
+    if (!response) {
+      throw new Error('No response received');
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || `Request failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { data, error: null };
+  } catch (error) {
+    console.error('Change HR user password error:', error);
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'Failed to change password'
+    };
+  }
+}
+
+/**
+ * Change Own Password (for HR users changing their own password)
+ */
+export async function changeOwnPassword(passwordData: ChangeOwnPasswordData): Promise<ApiResponse<{ message: string }>> {
+  try {
+    // Validate passwords match
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      return {
+        data: null,
+        error: 'Passwords do not match'
+      };
+    }
+
+    // Validate password length
+    if (passwordData.newPassword.length < 5) {
+      return {
+        data: null,
+        error: 'Password must be at least 5 characters long'
+      };
+    }
+
+    // Validate current password is provided
+    if (!passwordData.currentPassword) {
+      return {
+        data: null,
+        error: 'Current password is required'
+      };
+    }
+
+    // Get current user ID from localStorage
+    const userDataString = localStorage.getItem('user');
+    if (!userDataString) {
+      return {
+        data: null,
+        error: 'User session not found. Please login again.'
+      };
+    }
+
+    const userData = JSON.parse(userDataString);
+    const userId = userData.id;
+
+    if (!userId) {
+      return {
+        data: null,
+        error: 'User ID not found. Please login again.'
+      };
+    }
+
+    const response = await apiCall(`/users/${userId}/change-password`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword
+      }),
+    });
+
+    if (!response) {
+      throw new Error('No response received');
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || `Request failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { data, error: null };
+  } catch (error) {
+    console.error('Change own password error:', error);
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'Failed to change password'
+    };
+  }
 }
 
 export const apiCall = async (endpoint: string, options: RequestInit = {}) => {

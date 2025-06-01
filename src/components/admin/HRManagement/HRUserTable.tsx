@@ -1,10 +1,10 @@
-import { Edit2, Trash2 } from 'lucide-react';
+import { Edit2, Trash2, Key } from 'lucide-react';
 
 interface HRUser {
   id: string;
   name: string;
   email: string;
-  location: string;
+  role: 'admin' | 'hr';
   status: 'active' | 'inactive';
   lastActive: string;
 }
@@ -14,9 +14,10 @@ interface HRUserTableProps {
   isLoading: boolean;
   onEdit: (userId: string) => void;
   onDelete: (userId: string) => void;
+  onChangePassword: (userId: string) => void;
 }
 
-export default function HRUserTable({ users, isLoading, onEdit, onDelete }: HRUserTableProps) {
+export default function HRUserTable({ users, isLoading, onEdit, onDelete, onChangePassword }: HRUserTableProps) {
   return (
     <div className="bg-white shadow rounded-lg">
       <div className="overflow-x-auto">
@@ -30,7 +31,7 @@ export default function HRUserTable({ users, isLoading, onEdit, onDelete }: HRUs
                 Email
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                location
+                Role
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Status
@@ -66,7 +67,13 @@ export default function HRUserTable({ users, isLoading, onEdit, onDelete }: HRUs
                     <div className="text-sm text-gray-900">{user.email}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{user.location}</div>
+                    <span className={`inline-flex px-2 text-xs font-semibold leading-5 rounded-full ${
+                      user.role === 'hr'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-purple-100 text-purple-800'
+                    }`}>
+                      {user.role.toUpperCase()}
+                    </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 text-xs font-semibold leading-5 rounded-full ${
@@ -85,12 +92,21 @@ export default function HRUserTable({ users, isLoading, onEdit, onDelete }: HRUs
                       <button
                         onClick={() => onEdit(user.id)}
                         className="text-gray-400 hover:text-gray-500"
+                        title="Edit user"
                       >
                         <Edit2 className="w-5 h-5" />
                       </button>
                       <button
+                        onClick={() => onChangePassword(user.id)}
+                        className="text-gray-400 hover:text-blue-500"
+                        title="Change password"
+                      >
+                        <Key className="w-5 h-5" />
+                      </button>
+                      <button
                         onClick={() => onDelete(user.id)}
                         className="text-gray-400 hover:text-red-500"
+                        title="Delete user"
                       >
                         <Trash2 className="w-5 h-5" />
                       </button>

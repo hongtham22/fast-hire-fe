@@ -7,7 +7,7 @@ import {
   X,
   Eye,
 } from 'lucide-react';
-import { getJobsForHR, getJobDetail, JobListItem, Location, JobDetail, apiCall } from '@/lib/api';
+import { getJobsForAdmin, getJobDetail, JobListItem, Location, JobDetail, apiCall } from '@/lib/api';
 import JobDetailsModal from '@/components/JobModal/JobDetailsModal';
 
 // Type guard function to check if value is a Location object
@@ -54,7 +54,7 @@ export default function JobApprovals() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await getJobsForHR({
+      const response = await getJobsForAdmin({
         status: 'pending',
         query: searchQuery
       });
