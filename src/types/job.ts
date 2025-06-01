@@ -60,4 +60,103 @@ export interface JobKeywordData {
     soft_skill: number;
     technical_skill: number;
   };
+}
+
+/**
+ * Job list item for HR/Admin dashboard
+ */
+export interface JobListItem {
+  id: string;
+  jobTitle: string;
+  location: string;
+  applicationCount: number;
+  status: 'pending' | 'approved' | 'closed' | 'rejected';
+  expireDate: string | null;
+  createdAt: string;
+}
+
+/**
+ * Job list response wrapper
+ */
+export interface JobListResponse {
+  jobs: JobListItem[];
+  total: number;
+}
+
+/**
+ * Detailed job information
+ */
+export interface JobDetail {
+  id: string;
+  jobTitle: string;
+  description: string;
+  location: {
+    id: string;
+    name: string;
+  };
+  status?: string;
+  createdAt?: string;
+  expireDate?: string | null;
+  experienceYear?: number;
+}
+
+/**
+ * Location interface
+ */
+export interface Location {
+  id: string;
+  name: string;
+}
+
+/**
+ * Job Description Parser input
+ */
+export interface JobDescriptionInput {
+  jobTitle: string;
+  location: string;
+  experienceYears: string;
+  keyResponsibilities: string;
+  mustHave: string;
+  niceToHave: string;
+  languageSkills: string;
+}
+
+/**
+ * Simple categorized keywords, returned from the JD parser
+ */
+export interface JobDescriptionData {
+  [category: string]: string[];
+}
+
+/**
+ * Extended job posting interface for admin job approvals with additional fields
+ */
+export interface JobPosting extends Omit<JobListItem, 'location'> {
+  location: Location;
+  experienceYear?: number;
+  creator?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  mustHave?: string;
+  niceToHave?: string;
+  languageSkills?: string;
+  keyResponsibility?: string;
+  ourOffer?: string;
+  maxScoreRoleJob?: number;
+  maxScoreExperienceYears?: number;
+  maxScoreProgrammingLanguage?: number;
+  maxScoreKeyResponsibilities?: number;
+  maxScoreCertificate?: number;
+  maxScoreLanguage?: number;
+  maxScoreSoftSkill?: number;
+  maxScoreTechnicalSkill?: number;
+}
+
+/**
+ * Extended job list item for HR dashboard with additional fields
+ */
+export interface ExtendedJobListItem extends JobListItem {
+  totalApplications?: number;
 } 

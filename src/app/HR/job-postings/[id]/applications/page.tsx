@@ -3,91 +3,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Search, ArrowLeft, Loader2, Tag, X, Mail } from "lucide-react";
-import { getApplicationsByJobId, Application } from "@/lib/api";
+import { getApplicationsByJobId } from "@/lib/api";
+import { Application, ApplicationApiResponse, ApplicationWithCV } from "@/types/application";
 import MatchScoreCircle from "@/components/MatchScoreCircle";
 import BulkEmailNotificationModal from "@/components/BulkEmailNotificationModal";
-
-// Interface for the API response from backend
-interface ApplicationApiResponse {
-  id: string;
-  applicantId: string;
-  jobId: string;
-  cvFileUrl: string;
-  submittedAt: string;
-  matchingScore: number | null;
-  roleScore: number | null;
-  expScore: number | null;
-  programmingScore: number | null;
-  technicalScore: number | null;
-  softScore: number | null;
-  langsScore: number | null;
-  keyScore: number | null;
-  certScore: number | null;
-  missingFeedback: string | null;
-  note: string | null;
-  result: boolean | null;
-  applicant: {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-    createdAt: string;
-  };
-  job?: {
-    id: string;
-    jobTitle: string;
-  };
-  skills?: string[];
-  technical_skills?: string[];
-  languages?: Array<{
-    language: string;
-    level: string;
-  }>;
-  education?: Array<{
-    major: string;
-    university: string;
-    gpa: string;
-    degree: string;
-    graduation_year: string;
-  }>;
-  hasStructuredData?: boolean;
-  latest_company?: string | null;
-  experience_years?: number | null;
-  emailSent?: boolean;
-}
-
-// Extended Application interface to include cvFileUrl and detailed scores
-interface ApplicationWithCV extends Application {
-  cvFileUrl?: string;
-  missingFeedback?: string | null;
-  matchingScore?: number | null;
-  roleScore?: number;
-  expScore?: number;
-  programmingScore?: number;
-  technicalScore?: number;
-  softScore?: number;
-  langsScore?: number;
-  keyScore?: number;
-  certScore?: number;
-  skills?: string[];
-  technical_skills?: string[];
-  languages?: Array<{
-    language: string;
-    level: string;
-  }>;
-  education?: Array<{
-    major: string;
-    university: string;
-    gpa: string;
-    degree: string;
-    graduation_year: string;
-  }>;
-  hasStructuredData?: boolean;
-  latest_company?: string | null;
-  experience_years?: number | null;
-  hasNote?: boolean;
-  emailSent?: boolean;
-}
 
 // Feedback modal component
 function FeedbackModal({

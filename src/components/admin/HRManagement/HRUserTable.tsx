@@ -1,4 +1,4 @@
-import { Edit2, Trash2, Key } from 'lucide-react';
+import { Edit2, Trash2, Key, UserCheck, UserX } from 'lucide-react';
 
 interface HRUser {
   id: string;
@@ -14,10 +14,11 @@ interface HRUserTableProps {
   isLoading: boolean;
   onEdit: (userId: string) => void;
   onDelete: (userId: string) => void;
+  onActivate: (userId: string) => void;
   onChangePassword: (userId: string) => void;
 }
 
-export default function HRUserTable({ users, isLoading, onEdit, onDelete, onChangePassword }: HRUserTableProps) {
+export default function HRUserTable({ users, isLoading, onEdit, onDelete, onActivate, onChangePassword }: HRUserTableProps) {
   return (
     <div className="bg-white shadow rounded-lg">
       <div className="overflow-x-auto">
@@ -99,17 +100,27 @@ export default function HRUserTable({ users, isLoading, onEdit, onDelete, onChan
                       <button
                         onClick={() => onChangePassword(user.id)}
                         className="text-gray-400 hover:text-blue-500"
-                        title="Change password"
+                        title="Reset password"
                       >
                         <Key className="w-5 h-5" />
                       </button>
-                      <button
-                        onClick={() => onDelete(user.id)}
-                        className="text-gray-400 hover:text-red-500"
-                        title="Delete user"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
+                      {user.status === 'active' ? (
+                        <button
+                          onClick={() => onDelete(user.id)}
+                          className="text-gray-400 hover:text-red-500"
+                          title="Deactivate user"
+                        >
+                          <UserX className="w-5 h-5" />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => onActivate(user.id)}
+                          className="text-gray-400 hover:text-green-500"
+                          title="Activate user"
+                        >
+                          <UserCheck className="w-5 h-5" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

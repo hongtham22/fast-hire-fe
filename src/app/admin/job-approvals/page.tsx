@@ -1,41 +1,14 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { 
-  Search,
-  Check,
-  X,
-  Eye,
-} from 'lucide-react';
-import { getJobsForAdmin, getJobDetail, JobListItem, Location, JobDetail, apiCall } from '@/lib/api';
+import { Search, Check, X, Eye } from 'lucide-react';
+import { getJobsForAdmin, getJobDetail, apiCall } from '@/lib/api';
+import { Location, JobDetail, JobPosting } from '@/types/job';
 import JobDetailsModal from '@/components/JobModal/JobDetailsModal';
 
 // Type guard function to check if value is a Location object
 function isLocationObject(value: unknown): value is Location {
   return typeof value === 'object' && value !== null && 'id' in value && 'name' in value;
-}
-
-interface JobPosting extends Omit<JobListItem, 'location'> {
-  location: Location;
-  experienceYear?: number;
-  creator?: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  mustHave?: string;
-  niceToHave?: string;
-  languageSkills?: string;
-  keyResponsibility?: string;
-  ourOffer?: string;
-  maxScoreRoleJob?: number;
-  maxScoreExperienceYears?: number;
-  maxScoreProgrammingLanguage?: number;
-  maxScoreKeyResponsibilities?: number;
-  maxScoreCertificate?: number;
-  maxScoreLanguage?: number;
-  maxScoreSoftSkill?: number;
-  maxScoreTechnicalSkill?: number;
 }
 
 export default function JobApprovals() {

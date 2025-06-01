@@ -2,78 +2,119 @@ import { API_AI_URL, FEATURES, API_TIMEOUT } from './config';
 import { 
   ApiResponse,
   CVParserResponse,
+} from '@/types/api';
+import { 
   JobDescriptionInput,
   JobDescriptionData,
-  MatchingInput,
-} from '@/types/api';
-import { StructuredData } from '@/types/cv';
-import { JobKeywordData } from '@/types/job';
-
-// Types for the HR Job API
-export interface JobListItem {
-  id: string;
-  jobTitle: string;
-  location: string;
-  applicationCount: number;
-  status: 'pending' | 'approved' | 'closed' | 'rejected';
-  expireDate: string | null;
-  createdAt: string;
-}
-
-export interface JobListResponse {
-  jobs: JobListItem[];
-  total: number;
-}
-
-export interface JobDetail {
-  id: string;
-  jobTitle: string;
-  description: string;
-  location: {
-    id: string;
-    name: string;
-  };
-  status?: string;
-  createdAt?: string;
-  expireDate?: string | null;
-  experienceYear?: number;
-}
+  JobListItem,
+  JobListResponse,
+  JobDetail,
+  Location,
+  JobKeywordData 
+} from '@/types/job';
+import { 
+  Application,
+  CVKeywordsResponse,
+  MatchingInput 
+} from '@/types/application';
+import { 
+  EmailTemplate,
+  EmailPreview,
+  EmailNotificationResponse 
+} from '@/types/email';
+import { 
+  HRUser,
+  CreateHRUserData,
+  UpdateHRUserData,
+  ChangeHRPasswordData,
+  ChangeOwnPasswordData 
+} from '@/types/user';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-// Add the Location interface
-export interface Location {
-  id: string;
-  name: string;
-}
-
 /**
- * Generic fetch wrapper with error handling
+ * Enhanced API call function with comprehensive error handling
  */
-async function fetchApi<T>(
-  endpoint: string, 
-  options: RequestInit = {}
-): Promise<ApiResponse<T>> {
-  // Create an abort controller for timeout handling
+export const apiCall = async (endpoint: string, options: RequestInit = {}): Promise<Response | undefined> => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
   
   try {
-    if (FEATURES.enableDebugLogging) {
-      console.log(`API Request: ${endpoint}`, options);
-    }
-
+    const token = localStorage.getItem('token');
+    
     // Determine if we're sending FormData
     const isFormData = options.body instanceof FormData;
     
     // Don't automatically set Content-Type for FormData
-    // The browser will set it with the correct boundary
+    const headers = !isFormData ? {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+      ...options.headers,
+    } : {
+      ...(token && { Authorization: `Bearer ${token}` }),
+      ...options.headers
+    };
+
+    if (FEATURES.enableDebugLogging) {
+      console.log(`API Request: ${endpoint}`, { ...options, headers });
+    }
+
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+    
+    if (response.status === 401) {
+      // Token expired, redirect to login
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+      return;
+    }
+
+    if (FEATURES.enableDebugLogging && response.ok) {
+      console.log(`API Response: ${endpoint}`, response.status);
+    }
+
+    return response;
+  } catch (error: unknown) {
+    clearTimeout(timeoutId);
+    
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.error('Request timeout:', endpoint);
+      throw new Error(`Request timed out after ${API_TIMEOUT/1000} seconds`);
+    }
+    
+    console.error('API Error:', error);
+    throw error;
+  }
+};
+
+/**
+ * AI API call function (similar to apiCall but for AI endpoints)
+ */
+const aiApiCall = async (endpoint: string, options: RequestInit = {}): Promise<Response | undefined> => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
+  
+  try {
+    // Determine if we're sending FormData
+    const isFormData = options.body instanceof FormData;
+    
+    // Don't automatically set Content-Type for FormData
     const headers = !isFormData ? {
       'Content-Type': 'application/json',
       ...options.headers,
     } : {
       ...options.headers
     };
+
+    if (FEATURES.enableDebugLogging) {
+      console.log(`AI API Request: ${endpoint}`, { ...options, headers });
+    }
 
     const response = await fetch(`${API_AI_URL}${endpoint}`, {
       ...options,
@@ -83,6 +124,37 @@ async function fetchApi<T>(
 
     clearTimeout(timeoutId);
 
+    if (FEATURES.enableDebugLogging && response.ok) {
+      console.log(`AI API Response: ${endpoint}`, response.status);
+    }
+
+    return response;
+  } catch (error: unknown) {
+    clearTimeout(timeoutId);
+    
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.error('AI API Request timeout:', endpoint);
+      throw new Error(`Request timed out after ${API_TIMEOUT/1000} seconds`);
+    }
+    
+    console.error('AI API Error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Generic API wrapper that handles response parsing and error formatting
+ */
+async function handleApiResponse<T>(
+  apiCallPromise: Promise<Response | undefined>
+): Promise<ApiResponse<T>> {
+  try {
+    const response = await apiCallPromise;
+    
+    if (!response) {
+      throw new Error('No response received');
+    }
+    
     if (!response.ok) {
       const contentType = response.headers.get('content-type');
       
@@ -98,26 +170,9 @@ async function fetchApi<T>(
       }
     }
 
-    // Parse response as JSON
     const data = await response.json();
-    
-    if (FEATURES.enableDebugLogging) {
-      console.log(`API Response: ${endpoint}`, data);
-    }
-    
     return { data, error: null };
   } catch (error: unknown) {
-    clearTimeout(timeoutId);
-    
-    if (error instanceof Error && error.name === 'AbortError') {
-      console.error('Request timeout:', endpoint);
-      return {
-        data: null,
-        error: `Request timed out after ${API_TIMEOUT/1000} seconds`
-      };
-    }
-    
-    console.error('API Error:', error);
     return {
       data: null,
       error: error instanceof Error ? error.message : 'An unknown error occurred',
@@ -138,20 +193,13 @@ export async function parseCV(formData: FormData): Promise<ApiResponse<CVParserR
     };
   }
   
-  try {
-    // Remove Content-Type header to let the browser set it with the boundary
-    return fetchApi<CVParserResponse>('/parse-cv', {
+  return handleApiResponse<CVParserResponse>(
+    aiApiCall('/parse-cv', {
       method: 'POST',
       body: formData,
       headers: {} // Empty headers to prevent Content-Type being set automatically
-    });
-  } catch (error) {
-    console.error('CV parser error:', error);
-    return {
-      data: null,
-      error: error instanceof Error ? error.message : 'Failed to upload CV file'
-    };
-  }
+    })
+  );
 }
 
 /**
@@ -160,12 +208,13 @@ export async function parseCV(formData: FormData): Promise<ApiResponse<CVParserR
 export async function parseJobDescription(
   jobData: JobDescriptionInput
 ): Promise<ApiResponse<JobDescriptionData>> {
-  return fetchApi<JobDescriptionData>('/parse-jd', {
-    method: 'POST',
-    body: JSON.stringify(jobData),
-  });
+  return handleApiResponse<JobDescriptionData>(
+    aiApiCall('/parse-jd', {
+      method: 'POST',
+      body: JSON.stringify(jobData),
+    })
+  );
 }
-
 
 /**
  * Fetch all jobs for HR with application counts (HR can only see their own jobs)
@@ -186,26 +235,9 @@ export async function getJobsForHR(options?: {
   
   const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
   
-  try {
-    const response = await apiCall(`/jobs/hr/all${queryString}`);
-    
-    if (!response) {
-      throw new Error('No response received');
-    }
-    
-    if (!response.ok) {
-      throw new Error(`Request failed with status ${response.status}`);
-    }
-    
-    const data = await response.json();
-    return { data, error: null };
-  } catch (error) {
-    console.error('API Error:', error);
-    return {
-      data: null,
-      error: error instanceof Error ? error.message : 'An unknown error occurred'
-    };
-  }
+  return handleApiResponse<JobListResponse>(
+    apiCall(`/jobs/hr/all${queryString}`)
+  );
 }
 
 /**
@@ -227,55 +259,338 @@ export async function getJobsForAdmin(options?: {
   
   const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
   
-  try {
-    const response = await apiCall(`/jobs/admin/all${queryString}`);
-    
-    if (!response) {
-      throw new Error('No response received');
-    }
-    
-    if (!response.ok) {
-      throw new Error(`Request failed with status ${response.status}`);
-    }
-    
-    const data = await response.json();
-    return { data, error: null };
-  } catch (error) {
-    console.error('API Error:', error);
-    return {
-      data: null,
-      error: error instanceof Error ? error.message : 'An unknown error occurred'
-    };
-  }
+  return handleApiResponse<JobListResponse>(
+    apiCall(`/jobs/admin/all${queryString}`)
+  );
 }
 
 /**
  * Fetch job keywords for a specific job ID from the public endpoint
- * This uses the direct public URL that's known to work
  */
 export async function getPublicJobKeywords(jobId: string): Promise<ApiResponse<JobKeywordData>> {
-  try {
-    const response = await apiCall(`/jobs/${jobId}/keywords`);
-    
-    if (!response) {
-      throw new Error('No response received');
-    }
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('API Error:', errorText);
-      throw new Error(errorText || `Request failed with status ${response.status}`);
-    }
-    
-    const data = await response.json();
-    return { data, error: null };
-  } catch (error) {
-    console.error('API Error:', error);
-    return {
-      data: null,
-      error: error instanceof Error ? error.message : 'An unknown error occurred'
-    };
+  return handleApiResponse<JobKeywordData>(
+    apiCall(`/jobs/${jobId}/keywords`)
+  );
+}
+
+/**
+ * Fetch applications for a specific job ID
+ */
+export async function getApplicationsByJobId(jobId: string): Promise<ApiResponse<Application[]>> {
+  return handleApiResponse<Application[]>(
+    apiCall(`/applications/by-job/${jobId}`)
+  );
+}
+
+/**
+ * Fetch CV keywords for a specific application ID
+ */
+export async function getCVKeywords(applicationId: string): Promise<ApiResponse<CVKeywordsResponse>> {
+  return handleApiResponse<CVKeywordsResponse>(
+    apiCall(`/cv-keywords/by-application/${applicationId}`)
+  );
+}
+
+/**
+ * Fetch application details by ID
+ */
+export async function getApplicationById(applicationId: string): Promise<ApiResponse<Application>> {
+  return handleApiResponse<Application>(
+    apiCall(`/applications/${applicationId}`)
+  );
+}
+
+/**
+ * Fetch job details by ID
+ */
+export async function getJobDetail(jobId: string): Promise<ApiResponse<JobDetail>> {
+  return handleApiResponse<JobDetail>(
+    apiCall(`/jobs/${jobId}`)
+  );
+}
+
+/**
+ * Fetch all locations
+ */
+export async function getLocations(): Promise<ApiResponse<Location[]>> {
+  return handleApiResponse<Location[]>(
+    apiCall('/locations')
+  );
+}
+
+/**
+ * Delete a job and its related data
+ */
+export async function deleteJob(jobId: string): Promise<ApiResponse<{ message: string }>> {
+  return handleApiResponse<{ message: string }>(
+    apiCall(`/jobs/${jobId}`, {
+      method: 'DELETE',
+    })
+  );
+}
+
+/**
+ * Get all email templates
+ */
+export async function getEmailTemplates(): Promise<ApiResponse<EmailTemplate[]>> {
+  return handleApiResponse<EmailTemplate[]>(
+    apiCall('/email/templates', {
+      method: 'GET',
+    })
+  );
+}
+
+/**
+ * Preview email for an application with a specific template
+ */
+export async function previewEmail(applicationId: string, templateId: string): Promise<ApiResponse<EmailPreview>> {
+  return handleApiResponse<EmailPreview>(
+    apiCall(`/email/preview/${applicationId}/${templateId}`, {
+      method: 'GET',
+    })
+  );
+}
+
+/**
+ * Send email notification to a single application
+ */
+export async function sendSingleNotification(applicationId: string, templateId: string, markAsSent: boolean = true): Promise<ApiResponse<EmailNotificationResponse>> {
+  return handleApiResponse<EmailNotificationResponse>(
+    apiCall('/email/send-notification/single', {
+      method: 'POST',
+      body: JSON.stringify({ 
+        applicationId, 
+        templateId,
+        markAsSent,
+      }),
+    })
+  );
+}
+
+/**
+ * Send email notifications to multiple applications
+ */
+export async function sendBulkNotifications(applicationIds: string[], templateId: string, markAsSent: boolean = true): Promise<ApiResponse<EmailNotificationResponse>> {
+  return handleApiResponse<EmailNotificationResponse>(
+    apiCall('/email/send-notification/bulk', {
+      method: 'POST',
+      body: JSON.stringify({ 
+        applicationIds, 
+        templateId,
+        markAsSent,
+      }),
+    })
+  );
+}
+
+/**
+ * Helper function for password validation
+ */
+function validatePasswordData(passwordData: ChangeHRPasswordData | ChangeOwnPasswordData): string | null {
+  if (passwordData.newPassword !== passwordData.confirmPassword) {
+    return 'Passwords do not match';
   }
+  
+  if (passwordData.newPassword.length < 5) {
+    return 'Password must be at least 5 characters long';
+  }
+  
+  if ('currentPassword' in passwordData && !passwordData.currentPassword) {
+    return 'Current password is required';
+  }
+  
+  return null;
+}
+
+/**
+ * Helper function to get current user ID
+ */
+function getCurrentUserId(): { userId: string | null; error: string | null } {
+  try {
+    const userDataString = localStorage.getItem('user');
+    if (!userDataString) {
+      return { userId: null, error: 'User session not found. Please login again.' };
+    }
+
+    const userData = JSON.parse(userDataString);
+    const userId = userData.id;
+
+    if (!userId) {
+      return { userId: null, error: 'User ID not found. Please login again.' };
+    }
+
+    return { userId, error: null };
+  } catch {
+    return { userId: null, error: 'Invalid user session. Please login again.' };
+  }
+}
+
+/**
+ * Create a new HR user account
+ */
+export async function createHRUser(userData: CreateHRUserData): Promise<ApiResponse<HRUser>> {
+  return handleApiResponse<HRUser>(
+    apiCall('/users', {
+      method: 'POST',
+      body: JSON.stringify({
+        ...userData,
+        role: 'hr'
+      }),
+    })
+  );
+}
+
+/**
+ * Get all HR users only (for admin management)
+ */
+export async function getAllUsers(includeInactive: boolean = true): Promise<ApiResponse<HRUser[]>> {
+  const queryParam = includeInactive ? '?includeInactive=true' : '';
+  return handleApiResponse<HRUser[]>(
+    apiCall(`/users/hr-users${queryParam}`)
+  );
+}
+
+/**
+ * Update HR user
+ */
+export async function updateHRUser(userId: string, userData: UpdateHRUserData): Promise<ApiResponse<HRUser>> {
+  return handleApiResponse<HRUser>(
+    apiCall(`/users/${userId}`, {
+      method: 'PUT',
+      body: JSON.stringify(userData),
+    })
+  );
+}
+
+/**
+ * Update Own Profile (for HR users updating their own profile)
+ */
+export async function updateOwnProfile(userData: UpdateHRUserData): Promise<ApiResponse<HRUser>> {
+  const { userId, error: userIdError } = getCurrentUserId();
+  
+  if (userIdError) {
+    return { data: null, error: userIdError };
+  }
+
+  return handleApiResponse<HRUser>(
+    apiCall(`/users/${userId}`, {
+      method: 'PUT',
+      body: JSON.stringify(userData),
+    })
+  );
+}
+
+/**
+ * Deactivate HR user (soft delete)
+ */
+export async function deactivateHRUser(userId: string): Promise<ApiResponse<{ message: string }>> {
+  return handleApiResponse<{ message: string }>(
+    apiCall(`/users/${userId}/deactivate`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+  );
+}
+
+/**
+ * Activate HR user
+ */
+export async function activateHRUser(userId: string): Promise<ApiResponse<{ message: string }>> {
+  return handleApiResponse<{ message: string }>(
+    apiCall(`/users/${userId}/activate`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+  );
+}
+
+/**
+ * Delete HR user (hard delete - keep for emergency use)
+ */
+export async function deleteHRUser(userId: string): Promise<ApiResponse<{ message: string }>> {
+  return handleApiResponse<{ message: string }>(
+    apiCall(`/users/${userId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+  );
+}
+
+/**
+ * Change HR User Password
+ */
+export async function changeHRUserPassword(userId: string, passwordData: ChangeHRPasswordData): Promise<ApiResponse<{ message: string }>> {
+  const validationError = validatePasswordData(passwordData);
+  if (validationError) {
+    return { data: null, error: validationError };
+  }
+
+  return handleApiResponse<{ message: string }>(
+    apiCall(`/users/${userId}/change-password`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        newPassword: passwordData.newPassword
+      }),
+    })
+  );
+}
+
+/**
+ * Change Own Password (for HR users changing their own password)
+ */
+export async function changeOwnPassword(passwordData: ChangeOwnPasswordData): Promise<ApiResponse<{ message: string }>> {
+  const validationError = validatePasswordData(passwordData);
+  if (validationError) {
+    return { data: null, error: validationError };
+  }
+
+  const { userId, error: userIdError } = getCurrentUserId();
+  if (userIdError) {
+    return { data: null, error: userIdError };
+  }
+
+  return handleApiResponse<{ message: string }>(
+    apiCall(`/users/${userId}/change-password`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword
+      }),
+    })
+  );
+}
+
+/**
+ * Reset HR User Password (Admin only)
+ */
+export async function resetHRUserPassword(userId: string, newPassword: string): Promise<ApiResponse<{ message: string }>> {
+  if (newPassword.length < 5) {
+    return { data: null, error: 'Password must be at least 5 characters long' };
+  }
+
+  return handleApiResponse<{ message: string }>(
+    apiCall(`/users/${userId}/reset-password`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        newPassword: newPassword
+      }),
+    })
+  );
 }
 
 // Re-export types for easier access
@@ -285,688 +600,16 @@ export type {
   JobDescriptionInput,
   JobDescriptionData,
   MatchingInput,
-}; 
-
-/**
- * Application interface for job applications
- */
-export interface Application {
-  id: string;
-  applicant: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  job: {
-    id: string;
-    jobTitle: string;
-  };
-  matchScore?: number;
-  status: 'new' | 'in_review' | 'interview' | 'rejected' | 'hired';
-  createdAt: string;
-  cvFileUrl?: string;
-}
-
-/**
- * Fetch applications for a specific job ID
- */
-export async function getApplicationsByJobId(jobId: string): Promise<ApiResponse<Application[]>> {
-  try {
-    const response = await apiCall(`/applications/by-job/${jobId}`);
-    
-    if (!response) {
-      throw new Error('No response received');
-    }
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('API Error:', errorText);
-      throw new Error(errorText || `Request failed with status ${response.status}`);
-    }
-    
-    const data = await response.json();
-    return { data, error: null };
-  } catch (error) {
-    console.error('API Error:', error);
-    return {
-      data: null,
-      error: error instanceof Error ? error.message : 'An unknown error occurred'
-    };
-  }
-}
-
-/**
- * CV keywords response interface
- */
-export interface CVKeywordsResponse {
-  raw_text: string;
-  structured_data: StructuredData;
-}
-
-/**
- * Fetch CV keywords for a specific application ID
- */
-export async function getCVKeywords(applicationId: string): Promise<ApiResponse<CVKeywordsResponse>> {
-  try {
-    const response = await apiCall(`/cv-keywords/by-application/${applicationId}`);
-    
-    if (!response) {
-      throw new Error('No response received');
-    }
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('API Error:', errorText);
-      throw new Error(errorText || `Request failed with status ${response.status}`);
-    }
-    
-    const data = await response.json();
-    return { data, error: null };
-  } catch (error) {
-    console.error('API Error:', error);
-    return {
-      data: null,
-      error: error instanceof Error ? error.message : 'An unknown error occurred'
-    };
-  }
-}
-
-/**
- * Fetch application details by ID
- */
-export async function getApplicationById(applicationId: string): Promise<ApiResponse<Application>> {
-  try {
-    const response = await apiCall(`/applications/${applicationId}`);
-    
-    if (!response) {
-      throw new Error('No response received');
-    }
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('API Error:', errorText);
-      throw new Error(errorText || `Request failed with status ${response.status}`);
-    }
-    
-    const data = await response.json();
-    return { data, error: null };
-  } catch (error) {
-    console.error('API Error:', error);
-    return {
-      data: null,
-      error: error instanceof Error ? error.message : 'An unknown error occurred'
-    };
-  }
-}
-
-/**
- * Fetch job details by ID
- */
-export async function getJobDetail(jobId: string): Promise<ApiResponse<JobDetail>> {
-  try {
-    const response = await apiCall(`/jobs/${jobId}`);
-    
-    if (!response) {
-      throw new Error('No response received');
-    }
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('API Error:', errorText);
-      throw new Error(errorText || `Request failed with status ${response.status}`);
-    }
-    
-    const data = await response.json();
-    return { data, error: null };
-  } catch (error) {
-    console.error('API Error:', error);
-    return {
-      data: null,
-      error: error instanceof Error ? error.message : 'An unknown error occurred'
-    };
-  }
-}
-
-// Add function to fetch locations
-export async function getLocations(): Promise<ApiResponse<Location[]>> {
-  try {
-    const response = await apiCall('/locations');
-    
-    if (!response) {
-      throw new Error('No response received');
-    }
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('API Error:', errorText);
-      throw new Error(errorText || `Request failed with status ${response.status}`);
-    }
-    
-    const data = await response.json();
-    return { data, error: null };
-  } catch (error) {
-    console.error('API Error:', error);
-    return {
-      data: null,
-      error: error instanceof Error ? error.message : 'An unknown error occurred'
-    };
-  }
-}
-
-/**
- * Delete a job and its related data
- */
-export async function deleteJob(jobId: string): Promise<ApiResponse<{ message: string }>> {
-  try {
-    const response = await apiCall(`/jobs/${jobId}`, {
-      method: 'DELETE',
-    });
-    
-    if (!response) {
-      throw new Error('No response received');
-    }
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('API Error:', errorText);
-      throw new Error(errorText || `Request failed with status ${response.status}`);
-    }
-    
-    const data = await response.json();
-    return { data, error: null };
-  } catch (error) {
-    console.error('API Error:', error);
-    return {
-      data: null,
-      error: error instanceof Error ? error.message : 'An unknown error occurred'
-    };
-  }
-}
-
-/**
- * Get all email templates
- */
-export async function getEmailTemplates(): Promise<ApiResponse<EmailTemplate[]>> {
-  try {
-    const response = await apiCall('/email/templates', {
-      method: 'GET',
-    });
-
-    if (!response) {
-      throw new Error('No response received');
-    }
-
-    if (!response.ok) {
-      throw new Error(`Error fetching email templates: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return { data, error: null };
-  } catch (error) {
-    console.error('API Error:', error);
-    return {
-      data: null,
-      error: error instanceof Error ? error.message : 'An unknown error occurred',
-    };
-  }
-}
-
-/**
- * Preview email for an application with a specific template
- */
-export async function previewEmail(applicationId: string, templateId: string): Promise<ApiResponse<{ subject: string; body: string }>> {
-  try {
-    const response = await apiCall(`/email/preview/${applicationId}/${templateId}`, {
-      method: 'GET',
-    });
-
-    if (!response) {
-      throw new Error('No response received');
-    }
-
-    if (!response.ok) {
-      throw new Error(`Error previewing email: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return { data, error: null };
-  } catch (error) {
-    console.error('API Error:', error);
-    return {
-      data: null,
-      error: error instanceof Error ? error.message : 'An unknown error occurred',
-    };
-  }
-}
-
-/**
- * Send email notification to a single application
- */
-export async function sendSingleNotification(applicationId: string, templateId: string, markAsSent: boolean = true): Promise<ApiResponse<{success: boolean}>> {
-  try {
-    const response = await apiCall('/email/send-notification/single', {
-      method: 'POST',
-      body: JSON.stringify({ 
-        applicationId, 
-        templateId,
-        markAsSent,
-      }),
-    });
-
-    if (!response) {
-      throw new Error('No response received');
-    }
-
-    if (!response.ok) {
-      throw new Error(`Error sending notification: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return { data, error: null };
-  } catch (error) {
-    console.error('API Error:', error);
-    return {
-      data: null,
-      error: error instanceof Error ? error.message : 'An unknown error occurred',
-    };
-  }
-}
-
-/**
- * Send email notifications to multiple applications
- */
-export async function sendBulkNotifications(applicationIds: string[], templateId: string, markAsSent: boolean = true): Promise<ApiResponse<{success: boolean}>> {
-  try {
-    const response = await apiCall('/email/send-notification/bulk', {
-      method: 'POST',
-      body: JSON.stringify({ 
-        applicationIds, 
-        templateId,
-        markAsSent,
-      }),
-    });
-
-    if (!response) {
-      throw new Error('No response received');
-    }
-
-    if (!response.ok) {
-      throw new Error(`Error sending notifications: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return { data, error: null };
-  } catch (error) {
-    console.error('API Error:', error);
-    return {
-      data: null,
-      error: error instanceof Error ? error.message : 'An unknown error occurred',
-    };
-  }
-}
-
-export interface EmailTemplate {
-  id: string;
-  name: string;
-  subject_template: string;
-  body_template: string;
-  created_at: string;
-  updated_at: string;
-}
-
-// Add HR User management types and functions
-export interface HRUser {
-  id: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'hr';
-  isEmailVerified: boolean;
-  createdAt: string;
-}
-
-export interface CreateHRUserData {
-  name: string;
-  email: string;
-  password: string;
-}
-
-export interface UpdateHRUserData {
-  name?: string;
-  email?: string;
-}
-
-export interface ChangeHRPasswordData {
-  newPassword: string;
-  confirmPassword: string;
-}
-
-export interface ChangeOwnPasswordData {
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
-}
-
-/**
- * Create a new HR user account
- */
-export async function createHRUser(userData: CreateHRUserData): Promise<ApiResponse<HRUser>> {
-  try {
-    const response = await apiCall('/users', {
-      method: 'POST',
-      body: JSON.stringify({
-        ...userData,
-        role: 'hr'
-      }),
-    });
-
-    if (!response) {
-      throw new Error('No response received');
-    }
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText || `Request failed with status ${response.status}`);
-    }
-
-    const data = await response.json();
-    return { data, error: null };
-  } catch (error) {
-    console.error('API Error:', error);
-    return {
-      data: null,
-      error: error instanceof Error ? error.message : 'An unknown error occurred'
-    };
-  }
-}
-
-/**
- * Get all users (HR users for admin)
- */
-export async function getAllUsers(): Promise<ApiResponse<HRUser[]>> {
-  try {
-    const response = await apiCall('/users');
-
-    if (!response) {
-      throw new Error('No response received');
-    }
-
-    if (!response.ok) {
-      throw new Error(`Request failed with status ${response.status}`);
-    }
-
-    const data = await response.json();
-    return { data, error: null };
-  } catch (error) {
-    console.error('API Error:', error);
-    return {
-      data: null,
-      error: error instanceof Error ? error.message : 'An unknown error occurred'
-    };
-  }
-}
-
-/**
- * Update HR user
- */
-export async function updateHRUser(userId: string, userData: UpdateHRUserData): Promise<ApiResponse<HRUser>> {
-  try {
-    const response = await apiCall(`/users/${userId}`, {
-      method: 'PUT',
-      body: JSON.stringify(userData),
-    });
-
-    if (!response) {
-      throw new Error('No response received');
-    }
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText || `Request failed with status ${response.status}`);
-    }
-
-    const data = await response.json();
-    return { data, error: null };
-  } catch (error) {
-    console.error('API Error:', error);
-    return {
-      data: null,
-      error: error instanceof Error ? error.message : 'An unknown error occurred'
-    };
-  }
-}
-
-/**
- * Update Own Profile (for HR users updating their own profile)
- */
-export async function updateOwnProfile(userData: UpdateHRUserData): Promise<ApiResponse<HRUser>> {
-  try {
-    // Get current user ID from localStorage
-    const userDataString = localStorage.getItem('user');
-    if (!userDataString) {
-      return {
-        data: null,
-        error: 'User session not found. Please login again.'
-      };
-    }
-
-    const currentUser = JSON.parse(userDataString);
-    const userId = currentUser.id;
-
-    if (!userId) {
-      return {
-        data: null,
-        error: 'User ID not found. Please login again.'
-      };
-    }
-
-    const response = await apiCall(`/users/${userId}`, {
-      method: 'PUT',
-      body: JSON.stringify(userData),
-    });
-
-    if (!response) {
-      throw new Error('No response received');
-    }
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText || `Request failed with status ${response.status}`);
-    }
-
-    const data = await response.json();
-    return { data, error: null };
-  } catch (error) {
-    console.error('Update own profile error:', error);
-    return {
-      data: null,
-      error: error instanceof Error ? error.message : 'Failed to update profile'
-    };
-  }
-}
-
-/**
- * Delete HR user
- */
-export async function deleteHRUser(userId: string): Promise<ApiResponse<{ message: string }>> {
-  try {
-    const response = await apiCall(`/users/${userId}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response) {
-      throw new Error('No response received');
-    }
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText || `Request failed with status ${response.status}`);
-    }
-
-    const data = await response.json();
-    return { data, error: null };
-  } catch (error) {
-    console.error('Delete HR user error:', error);
-    return {
-      data: null,
-      error: error instanceof Error ? error.message : 'Failed to delete HR user'
-    };
-  }
-}
-
-/**
- * Change HR User Password
- */
-export async function changeHRUserPassword(userId: string, passwordData: ChangeHRPasswordData): Promise<ApiResponse<{ message: string }>> {
-  try {
-    // Validate passwords match
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      return {
-        data: null,
-        error: 'Passwords do not match'
-      };
-    }
-
-    // Validate password length
-    if (passwordData.newPassword.length < 5) {
-      return {
-        data: null,
-        error: 'Password must be at least 5 characters long'
-      };
-    }
-
-    const response = await apiCall(`/users/${userId}/change-password`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        newPassword: passwordData.newPassword
-      }),
-    });
-
-    if (!response) {
-      throw new Error('No response received');
-    }
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText || `Request failed with status ${response.status}`);
-    }
-
-    const data = await response.json();
-    return { data, error: null };
-  } catch (error) {
-    console.error('Change HR user password error:', error);
-    return {
-      data: null,
-      error: error instanceof Error ? error.message : 'Failed to change password'
-    };
-  }
-}
-
-/**
- * Change Own Password (for HR users changing their own password)
- */
-export async function changeOwnPassword(passwordData: ChangeOwnPasswordData): Promise<ApiResponse<{ message: string }>> {
-  try {
-    // Validate passwords match
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      return {
-        data: null,
-        error: 'Passwords do not match'
-      };
-    }
-
-    // Validate password length
-    if (passwordData.newPassword.length < 5) {
-      return {
-        data: null,
-        error: 'Password must be at least 5 characters long'
-      };
-    }
-
-    // Validate current password is provided
-    if (!passwordData.currentPassword) {
-      return {
-        data: null,
-        error: 'Current password is required'
-      };
-    }
-
-    // Get current user ID from localStorage
-    const userDataString = localStorage.getItem('user');
-    if (!userDataString) {
-      return {
-        data: null,
-        error: 'User session not found. Please login again.'
-      };
-    }
-
-    const userData = JSON.parse(userDataString);
-    const userId = userData.id;
-
-    if (!userId) {
-      return {
-        data: null,
-        error: 'User ID not found. Please login again.'
-      };
-    }
-
-    const response = await apiCall(`/users/${userId}/change-password`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        currentPassword: passwordData.currentPassword,
-        newPassword: passwordData.newPassword
-      }),
-    });
-
-    if (!response) {
-      throw new Error('No response received');
-    }
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText || `Request failed with status ${response.status}`);
-    }
-
-    const data = await response.json();
-    return { data, error: null };
-  } catch (error) {
-    console.error('Change own password error:', error);
-    return {
-      data: null,
-      error: error instanceof Error ? error.message : 'Failed to change password'
-    };
-  }
-}
-
-export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
-  const token = localStorage.getItem('token');
-  
-  const config: RequestInit = {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
-      ...options.headers,
-    },
-  };
-
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
-  
-  if (response.status === 401) {
-    // Token expired, redirect to login
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    window.location.href = '/login';
-    return;
-  }
-
-  return response;
+  JobListItem,
+  JobListResponse,
+  JobDetail,
+  Location,
+  Application,
+  CVKeywordsResponse,
+  EmailTemplate,
+  HRUser,
+  CreateHRUserData,
+  UpdateHRUserData,
+  ChangeHRPasswordData,
+  ChangeOwnPasswordData,
 }; 

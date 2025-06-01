@@ -1,249 +1,340 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
-import HRUserTable from '@/components/admin/HRManagement/HRUserTable';
-import HRUserForm from '@/components/admin/HRManagement/HRUserForm';
-import PasswordChangeForm from '@/components/admin/HRManagement/PasswordChangeForm';
-import { getAllUsers, createHRUser, updateHRUser, deleteHRUser, changeHRUserPassword, type HRUser } from '@/lib/api';
-
-// Update interface to match API response
-interface DisplayHRUser {
-  id: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'hr';
-  status: 'active' | 'inactive';
-  lastActive: string;
-}
+import { useEffect, useState } from "react";
+import { Plus, Search, AlertCircle } from "lucide-react";
+import HRUserTable from "@/components/admin/HRManagement/HRUserTable";
+import HRUserForm from "@/components/admin/HRManagement/HRUserForm";
+import PasswordResetForm from "@/components/admin/HRManagement/PasswordResetForm";
+import {
+  getAllUsers,
+  createHRUser,
+  updateHRUser,
+  deactivateHRUser,
+  activateHRUser,
+  resetHRUserPassword,
+} from "@/lib/api";
+import {
+  HRUser,
+  DisplayHRUser,
+  HRUserFormData,
+} from "@/types/user";
 
 export default function HRManagementPage() {
-  const [users, setUsers] = useState<DisplayHRUser[]>([]);
+  const [users, setUsers] = useState<HRUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [editingUser, setEditingUser] = useState<DisplayHRUser | null>(null);
-  const [showPasswordForm, setShowPasswordForm] = useState(false);
-  const [changingPasswordUser, setChangingPasswordUser] = useState<DisplayHRUser | null>(null);
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Convert API HRUser to DisplayHRUser
-  const convertToDisplayUser = (user: HRUser): DisplayHRUser => ({
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    status: user.isEmailVerified ? 'active' : 'inactive',
-    lastActive: new Date(user.createdAt).toLocaleString(),
-  });
+  // Modal states
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<HRUser | null>(null);
 
   useEffect(() => {
     fetchUsers();
   }, []);
 
   const fetchUsers = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      const result = await getAllUsers();
-      
-      if (result.error) {
-        throw new Error(result.error);
-      }
+    setIsLoading(true);
+    setError(null);
 
-      if (result.data) {
-        // Filter only HR users and convert to display format
-        const hrUsers = result.data
-          .filter(user => user.role === 'hr')
-          .map(convertToDisplayUser);
-        setUsers(hrUsers);
+    try {
+      const { data, error } = await getAllUsers(true); // Include inactive users
+
+      if (error) {
+        setError(error);
+      } else {
+        setUsers(data || []);
       }
-    } catch (error) {
-      console.error('Error fetching HR users:', error);
-      setError(error instanceof Error ? error.message : 'Failed to fetch HR users');
+    } catch {
+      setError("Failed to fetch users");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleCreateUser = async (data: any) => {
+  const handleCreateUser = async (userData: HRUserFormData) => {
+    // Ensure password is provided for create
+    if (!userData.password) {
+      alert("Password is required");
+      return;
+    }
+
     try {
-      setError(null);
-      
-      const result = await createHRUser({
-        name: data.name,
-        email: data.email,
-        password: data.password,
+      const { error } = await createHRUser({
+        name: userData.name,
+        email: userData.email,
+        password: userData.password,
       });
 
-      if (result.error) {
-        throw new Error(result.error);
+      if (error) {
+        alert(`Error: ${error}`);
+      } else {
+        setIsCreateModalOpen(false);
+        fetchUsers(); // Refresh the user list
+        alert("HR user created successfully!");
       }
-
-      if (result.data) {
-        const newDisplayUser = convertToDisplayUser(result.data);
-        setUsers((prev) => [...prev, newDisplayUser]);
-      }
-      
-      setShowForm(false);
-    } catch (error) {
-      console.error('Error creating HR user:', error);
-      setError(error instanceof Error ? error.message : 'Failed to create HR user');
+    } catch {
+      alert("Failed to create HR user");
     }
   };
 
-  const handleEditUser = (userId: string) => {
+  const handleEditUser = async (userData: HRUserFormData) => {
+    if (!selectedUser) return;
+
+    try {
+      const { error } = await updateHRUser(selectedUser.id, {
+        name: userData.name,
+        email: userData.email,
+      });
+
+      if (error) {
+        alert(`Error: ${error}`);
+      } else {
+        setIsEditModalOpen(false);
+        setSelectedUser(null);
+        fetchUsers(); // Refresh the user list
+        alert("HR user updated successfully!");
+      }
+    } catch {
+      alert("Failed to update HR user");
+    }
+  };
+
+  const handleDeactivateUser = async (userId: string) => {
+    if (!confirm("Are you sure you want to deactivate this HR user? They will not be able to access the system.")) {
+      return;
+    }
+
+    try {
+      const { error } = await deactivateHRUser(userId);
+
+      if (error) {
+        alert(`Error: ${error}`);
+      } else {
+        fetchUsers(); // Refresh the user list
+        alert("HR user deactivated successfully!");
+      }
+    } catch {
+      alert("Failed to deactivate HR user");
+    }
+  };
+
+  const handleActivateUser = async (userId: string) => {
+    if (!confirm("Are you sure you want to activate this HR user?")) {
+      return;
+    }
+
+    try {
+      const { error } = await activateHRUser(userId);
+
+      if (error) {
+        alert(`Error: ${error}`);
+      } else {
+        fetchUsers(); // Refresh the user list
+        alert("HR user activated successfully!");
+      }
+    } catch {
+      alert("Failed to activate HR user");
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!selectedUser) return;
+
+    try {
+      const { error } = await resetHRUserPassword(selectedUser.id, "hr123");
+
+      if (error) {
+        alert(`Error: ${error}`);
+      } else {
+        setIsPasswordModalOpen(false);
+        setSelectedUser(null);
+        alert(
+          "Password reset successfully! The new password is: hr123\nPlease notify the HR user."
+        );
+      }
+    } catch {
+      alert("Failed to reset password");
+    }
+  };
+
+  const openEditModal = (userId: string) => {
     const user = users.find((u) => u.id === userId);
     if (user) {
-      setEditingUser(user);
-      setShowForm(true);
+      setSelectedUser(user);
+      setIsEditModalOpen(true);
     }
   };
 
-  const handleUpdateUser = async (data: any) => {
-    if (editingUser) {
-      try {
-        setError(null);
-        
-        const result = await updateHRUser(editingUser.id, {
-          name: data.name,
-          email: data.email,
-        });
-
-        if (result.error) {
-          throw new Error(result.error);
-        }
-
-        if (result.data) {
-          const updatedDisplayUser = convertToDisplayUser(result.data);
-          setUsers((prev) =>
-            prev.map((user) =>
-              user.id === editingUser.id ? updatedDisplayUser : user
-            )
-          );
-        }
-        
-        setShowForm(false);
-        setEditingUser(null);
-      } catch (error) {
-        console.error('Error updating HR user:', error);
-        setError(error instanceof Error ? error.message : 'Failed to update HR user');
-      }
-    }
-  };
-
-  const handleDeleteUser = async (userId: string) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      try {
-        setError(null);
-        
-        const result = await deleteHRUser(userId);
-        
-        if (result.error) {
-          throw new Error(result.error);
-        }
-
-        setUsers((prev) => prev.filter((user) => user.id !== userId));
-      } catch (error) {
-        console.error('Error deleting HR user:', error);
-        setError(error instanceof Error ? error.message : 'Failed to delete HR user');
-      }
-    }
-  };
-
-  const handleChangePassword = (userId: string) => {
+  const openPasswordModal = (userId: string) => {
     const user = users.find((u) => u.id === userId);
     if (user) {
-      setChangingPasswordUser(user);
-      setShowPasswordForm(true);
+      setSelectedUser(user);
+      setIsPasswordModalOpen(true);
     }
   };
 
-  const handlePasswordChange = async (passwordData: { newPassword: string; confirmPassword: string }) => {
-    if (changingPasswordUser) {
-      try {
-        setError(null);
-        setIsChangingPassword(true);
-        
-        const result = await changeHRUserPassword(changingPasswordUser.id, passwordData);
-
-        if (result.error) {
-          throw new Error(result.error);
-        }
-
-        // Show success message (you could add a success state here)
-        alert('Password changed successfully!');
-        
-        setShowPasswordForm(false);
-        setChangingPasswordUser(null);
-      } catch (error) {
-        console.error('Error changing password:', error);
-        setError(error instanceof Error ? error.message : 'Failed to change password');
-      } finally {
-        setIsChangingPassword(false);
-      }
-    }
+  // Transform API HRUser data to DisplayHRUser format for the table
+  const transformUsersForDisplay = (apiUsers: HRUser[]): DisplayHRUser[] => {
+    return apiUsers.map((user) => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      status: user.isActive ? "active" : "inactive",
+      lastActive: new Date(user.createdAt).toLocaleDateString(),
+    }));
   };
+
+  // Filter users based on search query
+  const filteredUsers = transformUsersForDisplay(users).filter(
+    (user) =>
+      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">HR Management</h1>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">HR Management</h1>
+          <p className="text-gray-600">Manage HR users and their permissions</p>
+        </div>
         <button
-          onClick={() => {
-            setEditingUser(null);
-            setShowForm(true);
-          }}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          onClick={() => setIsCreateModalOpen(true)}
+          className="flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
         >
-          <Plus className="w-5 h-5 mr-2" />
+          <Plus className="h-4 w-4" />
           Add HR User
         </button>
       </div>
 
+      {/* Search */}
+      <div className="relative">
+        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+          <Search className="h-4 w-4 text-gray-400" />
+        </div>
+        <input
+          type="text"
+          placeholder="Search HR users..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="block w-full rounded-md border-gray-300 pl-10 focus:border-indigo-500 focus:ring-indigo-500"
+        />
+      </div>
+
+      {/* Error Display */}
       {error && (
-        <div className="mb-4 p-3 rounded bg-red-50 text-red-700 text-sm">
-          {error}
+        <div className="rounded-md bg-red-50 p-4">
+          <div className="flex">
+            <AlertCircle className="h-5 w-5 text-red-400" />
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">Error</h3>
+              <p className="mt-1 text-sm text-red-700">{error}</p>
+            </div>
+          </div>
         </div>
       )}
 
+      {/* HR Users Table */}
       <HRUserTable
-        users={users}
+        users={filteredUsers}
         isLoading={isLoading}
-        onEdit={handleEditUser}
-        onDelete={handleDeleteUser}
-        onChangePassword={handleChangePassword}
+        onEdit={openEditModal}
+        onDelete={handleDeactivateUser}
+        onActivate={handleActivateUser}
+        onChangePassword={openPasswordModal}
       />
 
-      {showForm && (
-        <HRUserForm
-          initialData={editingUser ? {
-            name: editingUser.name,
-            email: editingUser.email,
-          } : undefined}
-          onSubmit={editingUser ? handleUpdateUser : handleCreateUser}
-          onCancel={() => {
-            setShowForm(false);
-            setEditingUser(null);
-          }}
-          isEditing={!!editingUser}
-        />
+      {/* Create User Modal */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4">
+            <div
+              className="fixed inset-0 bg-gray-500 bg-opacity-75"
+              onClick={() => setIsCreateModalOpen(false)}
+            />
+            <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full">
+              <div className="px-6 py-4 border-b">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Create New HR User
+                </h3>
+              </div>
+              <div className="p-6">
+                <HRUserForm
+                  onSubmit={handleCreateUser}
+                  onCancel={() => setIsCreateModalOpen(false)}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
-      {showPasswordForm && changingPasswordUser && (
-        <PasswordChangeForm
-          userName={changingPasswordUser.name}
-          onSubmit={handlePasswordChange}
-          onCancel={() => {
-            setShowPasswordForm(false);
-            setChangingPasswordUser(null);
-            setError(null);
-          }}
-          isLoading={isChangingPassword}
-        />
+      {/* Edit User Modal */}
+      {isEditModalOpen && selectedUser && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4">
+            <div
+              className="fixed inset-0 bg-gray-500 bg-opacity-75"
+              onClick={() => setIsEditModalOpen(false)}
+            />
+            <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full">
+              <div className="px-6 py-4 border-b">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Edit HR User
+                </h3>
+              </div>
+              <div className="p-6">
+                <HRUserForm
+                  initialData={{
+                    name: selectedUser.name,
+                    email: selectedUser.email,
+                    password: "", // Don't pre-fill password for editing
+                  }}
+                  onSubmit={handleEditUser}
+                  onCancel={() => {
+                    setIsEditModalOpen(false);
+                    setSelectedUser(null);
+                  }}
+                  isEditing={true}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reset Password Modal */}
+      {isPasswordModalOpen && selectedUser && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4">
+            <div
+              className="fixed inset-0 bg-gray-500 bg-opacity-75"
+              onClick={() => setIsPasswordModalOpen(false)}
+            />
+            <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full">
+              <div className="px-6 py-4 border-b">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Reset Password for {selectedUser.name}
+                </h3>
+              </div>
+              <div className="p-6">
+                <PasswordResetForm
+                  userName={selectedUser.name}
+                  onSubmit={handleResetPassword}
+                  onCancel={() => {
+                    setIsPasswordModalOpen(false);
+                    setSelectedUser(null);
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
-} 
+}

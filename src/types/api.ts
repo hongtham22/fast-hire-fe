@@ -10,14 +10,17 @@ export interface ApiResponse<T> {
 }
 
 /**
- * CV Parser API types
+ * CV Parser API response
  */
 export interface CVParserResponse {
   raw_text: string;
   structured_data: StructuredData;
 }
 
-export interface JobKeyworRespone {
+/**
+ * Job keyword response (typo fixed from JobKeyworRespone)
+ */
+export interface JobKeywordResponse {
   jobKeywordData: JobKeywordData;
 }
 
