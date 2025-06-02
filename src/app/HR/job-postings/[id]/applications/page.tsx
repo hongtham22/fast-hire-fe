@@ -7,6 +7,7 @@ import { getApplicationsByJobId } from "@/lib/api";
 import { Application, ApplicationApiResponse, ApplicationWithCV } from "@/types/application";
 import MatchScoreCircle from "@/components/MatchScoreCircle";
 import BulkEmailNotificationModal from "@/components/BulkEmailNotificationModal";
+import ApplicationStatusChart from "@/components/ApplicationStatusChart";
 
 // Feedback modal component
 function FeedbackModal({
@@ -304,193 +305,204 @@ export default function JobApplicationsPage() {
         <div className="rounded-md bg-red-50 p-4 text-red-700">{error}</div>
       )}
 
-      <div className="rounded-xl border shadow-sm">
-        <div className="grid grid-cols-12 gap-2 border-b bg-gray-50 px-4 py-3 text-sm font-medium text-gray-600">
-          <div className="col-span-2">Candidate</div>
-          <div className="col-span-2">Programming</div>
-          <div className="col-span-2">Technical Skills</div>
-          <div className="col-span-1">Exp (Years)</div>
-          <div className="col-span-1">University</div>
-          <div className="col-span-1">GPA</div>
-          <div className="col-span-1">Languages</div>
-          <div className="col-span-1">Applied At</div>
-          <div className="col-span-1">Status</div>
+      {/* Main content with applications table and status chart */}
+      <div className="flex gap-6">
+        {/* Applications table - left side */}
+        <div className="flex-1 min-w-0">
+          <div className="rounded-xl border shadow-sm">
+            <div className="grid grid-cols-12 gap-2 border-b bg-gray-50 px-4 py-3 text-sm font-medium text-gray-600">
+              <div className="col-span-2">Candidate</div>
+              <div className="col-span-2">Programming</div>
+              <div className="col-span-2">Technical Skills</div>
+              <div className="col-span-1">Exp (Years)</div>
+              <div className="col-span-1">University</div>
+              <div className="col-span-1">GPA</div>
+              <div className="col-span-1">Languages</div>
+              <div className="col-span-1">Applied At</div>
+              <div className="col-span-1">Status</div>
+            </div>
+
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+              </div>
+            ) : filteredApplications.length === 0 ? (
+              <div className="p-8 text-center text-gray-500">
+                {searchQuery
+                  ? "No applications found matching your search."
+                  : "No applications for this job posting yet."}
+              </div>
+            ) : (
+              <div className="divide-y">
+                {filteredApplications.map((application) => (
+                  <div
+                    key={application.id}
+                    className="grid grid-cols-12 gap-2 px-2 py-4 hover:bg-gray-50 cursor-pointer"
+                    onClick={() =>
+                      router.push(
+                        `/HR/job-postings/${jobId}/applications/${application.id}/evaluate`
+                      )
+                    }
+                  >
+                    <div className="col-span-2 flex items-start gap-4">
+                      <MatchScoreCircle
+                        score={application.matchScore || 0}
+                        scores={
+                          application.roleScore !== undefined
+                            ? {
+                                roleScore: application.roleScore,
+                                expScore: application.expScore || 0,
+                                programmingScore: application.programmingScore || 0,
+                                technicalScore: application.technicalScore || 0,
+                                softScore: application.softScore || 0,
+                                langsScore: application.langsScore || 0,
+                                keyScore: application.keyScore || 0,
+                                certScore: application.certScore || 0,
+                              }
+                            : undefined
+                        }
+                      />
+
+                      <div className="flex flex-col">
+                        <span className="font-medium text-gray-800">
+                          {application.applicant.name}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {application.applicant.email}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="col-span-2">
+                      <div className="flex flex-wrap max-w-[210px] gap-1">
+                        {application.skills && application.skills.length > 0 ? (
+                          application.skills.map((skill, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700"
+                            >
+                              {skill}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-xs text-gray-500">No data</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="col-span-2">
+                      <div className="flex flex-wrap max-w-[210px] gap-1">
+                        {application.technical_skills &&
+                        application.technical_skills.length > 0 ? (
+                          application.technical_skills.map((skill, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700"
+                            >
+                              {skill}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-xs text-gray-500">No data</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="col-span-1 text-sm text-gray-700">
+                      {application.experience_years !== null ? (
+                        `${application.experience_years} yrs`
+                      ) : (
+                        <span className="text-gray-400">No data</span>
+                      )}
+                    </div>
+
+                    <div className="col-span-1 text-gray-700 text-sm">
+                      {(application.education &&
+                        application.education[0]?.university) || (
+                        <span className="text-gray-400">No data</span>
+                      )}
+                    </div>
+
+                    <div className="col-span-1 text-gray-700 text-sm">
+                      {(application.education && application.education[0]?.gpa) || (
+                        <span className="text-gray-400">No data</span>
+                      )}
+                    </div>
+
+                    <div className="col-span-1 text-gray-700">
+                      <div className="flex flex-col gap-1">
+                        {application.languages &&
+                        application.languages.length > 0 ? (
+                          application.languages.map((lang, index) => (
+                            <span key={index} className="text-xs">
+                              {lang.language}:{" "}
+                              <span className="font-medium">{lang.level}</span>
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-xs text-gray-500">No data</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="col-span-1 text-gray-700 text-sm">
+                     {new Date(application.createdAt || "").toLocaleString()}
+                    </div>
+
+                    <div className="col-span-1 flex items-start">
+                      <div className="flex flex-col items-start gap-1">
+                        <span
+                          className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getStatusBadgeClass(
+                            application.status
+                          )}`}
+                        >
+                          {getStatusDisplay(application.status)}
+                        </span>
+
+                        {application.hasNote && (
+                          <span className="flex items-center gap-1 text-xs text-blue-600">
+                            <span className="h-1.5 w-1.5 rounded-full bg-blue-600"></span>
+                            Has note
+                          </span>
+                        )}
+                        {application.missingFeedback && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openFeedbackModal(application.missingFeedback || "");
+                            }}
+                            className="flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200"
+                            title="View missing requirements"
+                          >
+                            <span>View Feedback</span>
+                          </button>
+                        )}
+                        
+                        {/* Email notification flag */}
+                        {application.status !== "new" && (
+                          <span 
+                            className={`flex items-center gap-1 text-xs ${
+                              application.emailSent ? "text-green-600" : "text-gray-500"
+                            }`}
+                            title={application.emailSent ? "Email notification sent" : "No email notification sent yet"}
+                          >
+                            <Mail className="h-3 w-3" />
+                            {application.emailSent ? "Email sent" : "No email"}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-          </div>
-        ) : filteredApplications.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
-            {searchQuery
-              ? "No applications found matching your search."
-              : "No applications for this job posting yet."}
-          </div>
-        ) : (
-          <div className="divide-y">
-            {filteredApplications.map((application) => (
-              <div
-                key={application.id}
-                className="grid grid-cols-12 gap-2 px-2 py-4 hover:bg-gray-50 cursor-pointer"
-                onClick={() =>
-                  router.push(
-                    `/HR/job-postings/${jobId}/applications/${application.id}/evaluate`
-                  )
-                }
-              >
-                <div className="col-span-2 flex items-start gap-4">
-                  <MatchScoreCircle
-                    score={application.matchScore || 0}
-                    scores={
-                      application.roleScore !== undefined
-                        ? {
-                            roleScore: application.roleScore,
-                            expScore: application.expScore || 0,
-                            programmingScore: application.programmingScore || 0,
-                            technicalScore: application.technicalScore || 0,
-                            softScore: application.softScore || 0,
-                            langsScore: application.langsScore || 0,
-                            keyScore: application.keyScore || 0,
-                            certScore: application.certScore || 0,
-                          }
-                        : undefined
-                    }
-                  />
-
-                  <div className="flex flex-col">
-                    <span className="font-medium text-gray-800">
-                      {application.applicant.name}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      {application.applicant.email}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="col-span-2">
-                  <div className="flex flex-wrap max-w-[210px] gap-1">
-                    {application.skills && application.skills.length > 0 ? (
-                      application.skills.map((skill, index) => (
-                        <span
-                          key={index}
-                          className="inline-flex rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700"
-                        >
-                          {skill}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-xs text-gray-500">No data</span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="col-span-2">
-                  <div className="flex flex-wrap max-w-[210px] gap-1">
-                    {application.technical_skills &&
-                    application.technical_skills.length > 0 ? (
-                      application.technical_skills.map((skill, index) => (
-                        <span
-                          key={index}
-                          className="inline-flex rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700"
-                        >
-                          {skill}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-xs text-gray-500">No data</span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="col-span-1 text-sm text-gray-700">
-                  {application.experience_years !== null ? (
-                    `${application.experience_years} yrs`
-                  ) : (
-                    <span className="text-gray-400">No data</span>
-                  )}
-                </div>
-
-                <div className="col-span-1 text-gray-700 text-sm">
-                  {(application.education &&
-                    application.education[0]?.university) || (
-                    <span className="text-gray-400">No data</span>
-                  )}
-                </div>
-
-                <div className="col-span-1 text-gray-700 text-sm">
-                  {(application.education && application.education[0]?.gpa) || (
-                    <span className="text-gray-400">No data</span>
-                  )}
-                </div>
-
-                <div className="col-span-1 text-gray-700">
-                  <div className="flex flex-col gap-1">
-                    {application.languages &&
-                    application.languages.length > 0 ? (
-                      application.languages.map((lang, index) => (
-                        <span key={index} className="text-xs">
-                          {lang.language}:{" "}
-                          <span className="font-medium">{lang.level}</span>
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-xs text-gray-500">No data</span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="col-span-1 text-gray-700 text-sm">
-                 {new Date(application.createdAt || "").toLocaleString()}
-                </div>
-
-                <div className="col-span-1 flex items-start">
-                  <div className="flex flex-col items-start gap-1">
-                    <span
-                      className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getStatusBadgeClass(
-                        application.status
-                      )}`}
-                    >
-                      {getStatusDisplay(application.status)}
-                    </span>
-
-                    {application.hasNote && (
-                      <span className="flex items-center gap-1 text-xs text-blue-600">
-                        <span className="h-1.5 w-1.5 rounded-full bg-blue-600"></span>
-                        Has note
-                      </span>
-                    )}
-                    {application.missingFeedback && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openFeedbackModal(application.missingFeedback || "");
-                        }}
-                        className="flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200"
-                        title="View missing requirements"
-                      >
-                        <span>View Feedback</span>
-                      </button>
-                    )}
-                    
-                    {/* Email notification flag */}
-                    {application.status !== "new" && (
-                      <span 
-                        className={`flex items-center gap-1 text-xs ${
-                          application.emailSent ? "text-green-600" : "text-gray-500"
-                        }`}
-                        title={application.emailSent ? "Email notification sent" : "No email notification sent yet"}
-                      >
-                        <Mail className="h-3 w-3" />
-                        {application.emailSent ? "Email sent" : "No email"}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        {/* Status chart - right side */}
+        <div className="w-72 flex-shrink-0">
+          <ApplicationStatusChart applications={applications} />
+        </div>
       </div>
 
       <FeedbackModal
