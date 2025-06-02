@@ -8,7 +8,7 @@ interface Job {
     name: string;
   };
   experienceYear: number;
-  status: 'draft' | 'pending' | 'approved' | 'rejected' | 'closed';
+  status: 'pending' | 'approved' | 'rejected' | 'closed';
   createdAt: string;
   expireDate?: string;
   totalApplications: number;
@@ -23,8 +23,6 @@ interface JobTableProps {
 export default function JobTable({ jobs, isLoading, onViewDetails }: JobTableProps) {
   const getStatusColor = (status: Job['status']) => {
     switch (status) {
-      case 'draft':
-        return 'bg-gray-100 text-gray-800';
       case 'pending':
         return 'bg-yellow-100 text-yellow-800';
       case 'approved':

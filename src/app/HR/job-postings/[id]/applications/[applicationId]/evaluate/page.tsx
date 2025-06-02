@@ -9,14 +9,16 @@ import { MissingRequirementsCard } from "@/components/MissingRequirementsCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Application } from "@/types/api";
+import { JobDetail } from "@/types/job";
 import MatchScoreChartInline from "@/components/matchScoreChartInline";
 import { IoArrowForwardOutline } from 'react-icons/io5';
 import Link from 'next/link';
 import EmailNotificationModal from "@/components/EmailNotificationModal";
-import { apiCall } from "@/lib/api";
+import { apiCall, getJobDetail } from "@/lib/api";
 
 export default function ApplicationEvaluationPage() {
   const [application, setApplication] = useState<Application | null>(null);
+  const [jobDetails, setJobDetails] = useState<JobDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
@@ -25,9 +27,38 @@ export default function ApplicationEvaluationPage() {
   const { id: jobId, applicationId } = params;
 
   useEffect(() => {
-    fetchApplication();
+    fetchApplicationAndJob();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [applicationId]);
+
+  const fetchApplicationAndJob = async () => {
+    try {
+      // Fetch both application and job details in parallel
+      const [applicationResponse, jobResponse] = await Promise.all([
+        apiCall(`/applications/${jobId}/applications/${applicationId}`),
+        getJobDetail(jobId as string)
+      ]);
+
+      if (!applicationResponse || !applicationResponse.ok) {
+        throw new Error("Failed to fetch application");
+      }
+      
+      const applicationData = await applicationResponse.json();
+      setApplication(applicationData);
+
+      if (jobResponse.error) {
+        console.error("Failed to fetch job details:", jobResponse.error);
+        // Continue without job details if fetch fails
+      } else if (jobResponse.data) {
+        setJobDetails(jobResponse.data);
+      }
+    } catch (error) {
+      toast.error("Failed to load application details");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchApplication = async () => {
     try {
@@ -40,8 +71,6 @@ export default function ApplicationEvaluationPage() {
     } catch (error) {
       toast.error("Failed to load application details");
       console.error(error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -73,6 +102,12 @@ export default function ApplicationEvaluationPage() {
     note?: string;
     result: boolean | null;
   }) => {
+    // Don't allow submission if job is closed
+    if (jobDetails?.status === 'closed') {
+      toast.error("Cannot evaluate application - job is closed");
+      return;
+    }
+
     setSaving(true);
     try {
       const response = await apiCall(
@@ -98,6 +133,8 @@ export default function ApplicationEvaluationPage() {
       setSaving(false);
     }
   };
+
+  const isJobClosed = jobDetails?.status === 'closed';
 
   if (loading) {
     return (
@@ -125,6 +162,12 @@ export default function ApplicationEvaluationPage() {
           <ArrowLeft className="h-4 w-4" />
           Back to Applications
         </button>
+        {isJobClosed && (
+          <div className="flex items-center gap-2 bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">
+            <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
+            Job Closed
+          </div>
+        )}
       </div>
 
       <div className="flex flex-row gap-6">
@@ -189,7 +232,7 @@ export default function ApplicationEvaluationPage() {
                       </button>
                     </Link>
                     
-                    {application.result !== null && (
+                    {application.result !== null && !isJobClosed && (
                       <button
                         type="button"
                         onClick={() => setIsEmailModalOpen(true)}
@@ -235,6 +278,7 @@ export default function ApplicationEvaluationPage() {
                 initialResult={application.result}
                 onSubmit={handleEvaluationSubmit}
                 isLoading={saving}
+                disabled={isJobClosed}
               />
             </CardContent>
           </Card>

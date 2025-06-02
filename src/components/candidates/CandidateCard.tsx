@@ -1,4 +1,4 @@
-import { History, Mail, MapPin, Clock, Award } from "lucide-react";
+import { History, MapPin, Clock, Award } from "lucide-react";
 import { CandidateData } from '@/types';
 
 // Utility functions
@@ -115,10 +115,6 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate, onViewHistory 
         >
           <History className="h-3 w-3 flex-shrink-0" />
           History
-        </button>
-        <button className="rounded border px-3 py-1.5 text-xs font-medium hover:bg-gray-50 flex items-center gap-1 min-w-0">
-          <Mail className="h-3 w-3 flex-shrink-0" />
-          Contact
         </button>
       </div>
     </div>

@@ -11,7 +11,7 @@ interface Application {
   email: string;
   phone: string;
   matchingScore: number;
-  status: 'pending' | 'reviewed' | 'accepted' | 'rejected';
+  status: 'pending' | 'accepted' | 'rejected';
   appliedAt: string;
   resumeUrl: string;
 }
@@ -24,7 +24,7 @@ interface Job {
     name: string;
   };
   experienceYear: number;
-  status: 'draft' | 'pending' | 'approved' | 'rejected' | 'closed';
+  status: 'pending' | 'approved' | 'rejected' | 'closed';
   createdAt: string;
   expireDate?: string;
   totalApplications: number;
@@ -127,7 +127,6 @@ export default function AdminJobsPage() {
             onChange={(e) => setStatusFilter(e.target.value)}
           >
             <option value="all">All Status</option>
-            <option value="draft">Draft</option>
             <option value="pending">Pending</option>
             <option value="approved">Approved</option>
             <option value="rejected">Rejected</option>
