@@ -10,10 +10,11 @@ const CandidatesTable: React.FC<CandidatesTableProps> = ({ candidates, onViewHis
   return (
     <div className="rounded-xl border shadow-sm">
       {/* Table Header */}
-      <div className="grid grid-cols-7 gap-4 border-b bg-gray-50 px-6 py-3 font-medium">
-        <div className="col-span-2">Candidate Info</div>
+      <div className="grid grid-cols-7 gap-4 border-b bg-gray-50 px-6 py-3 text-sm font-medium text-gray-600">
+        <div className="">Candidate Info</div>
         <div>Key Skills</div>
         <div>Experience</div>
+        <div>Languages</div>
         <div>Latest Application</div>
         <div>Total Applications</div>
         <div>Actions</div>

@@ -17,7 +17,7 @@ const formatDate = (dateString: string) => {
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case 'hired':
+    case 'accepted':
       return 'bg-green-100 text-green-700';
     case 'rejected':
       return 'bg-red-100 text-red-700';
@@ -29,8 +29,8 @@ const getStatusColor = (status: string) => {
 
 const getStatusText = (status: string) => {
   switch (status) {
-    case 'hired':
-      return 'Hired';
+    case 'accepted':
+      return 'Accepted';
     case 'rejected':
       return 'Rejected';
     case 'pending':

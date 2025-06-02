@@ -15,7 +15,7 @@ export interface Application {
     jobTitle: string;
   };
   matchScore?: number;
-  status: 'new' | 'in_review' | 'interview' | 'rejected' | 'hired';
+  status: 'new' | 'rejected' | 'accepted';
   createdAt: string;
   cvFileUrl?: string;
 }
@@ -195,7 +195,7 @@ export interface CandidateData {
     submittedAt: string;
     matchingScore: number | null;
     result: boolean | null;
-    status: 'hired' | 'rejected' | 'pending';
+    status: 'accepted' | 'rejected' | 'pending';
   };
   applications: Array<{
     id: string;
@@ -204,6 +204,6 @@ export interface CandidateData {
     submittedAt: string;
     matchingScore: number | null;
     result: boolean | null;
-    status: 'hired' | 'rejected' | 'pending';
+    status: 'accepted' | 'rejected' | 'pending';
   }>;
 } 

@@ -50,7 +50,7 @@ const ApplicationStatusChart: React.FC<ApplicationStatusChartProps> = ({
 
   // Prepare data for chart
   const data = [
-    { name: "Hired", value: statusCounts["hired"] || 0, status: "hired" },
+    { name: "Accepted", value: statusCounts["accepted"] || 0, status: "accepted" },
     { name: "Rejected", value: statusCounts["rejected"] || 0, status: "rejected" },
     { name: "Not Evaluated", value: statusCounts["new"] || 0, status: "new" },
   ].filter(item => item.value > 0); // Only show statuses that have applications
@@ -59,7 +59,7 @@ const ApplicationStatusChart: React.FC<ApplicationStatusChartProps> = ({
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "hired":
+      case "accepted":
         return COLORS[0]; // cam đậm
       case "rejected":
         return COLORS[3]; // cam

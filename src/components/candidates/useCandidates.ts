@@ -11,7 +11,7 @@ interface ApplicationHistory {
   submittedAt: string;
   matchingScore: number | null;
   result: boolean | null;
-  status: 'hired' | 'rejected' | 'pending';
+  status: 'accepted' | 'rejected' | 'pending';
 }
 
 export const useCandidates = () => {
@@ -98,7 +98,7 @@ export const useCandidates = () => {
         submittedAt: app.submittedAt,
         matchingScore: app.matchingScore,
         result: app.result,
-        status: app.result === true ? 'hired' : app.result === false ? 'rejected' : 'pending'
+        status: app.result === true ? 'accepted' : app.result === false ? 'rejected' : 'pending'
       }));
     } catch {
       throw new Error('Failed to fetch application history');

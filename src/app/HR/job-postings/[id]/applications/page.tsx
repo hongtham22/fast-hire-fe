@@ -92,7 +92,7 @@ export default function JobApplicationsPage() {
             // Map result (boolean | null) to status string
             let status: Application["status"];
             if (item.result === true) {
-              status = "hired";
+              status = "accepted";
             } else if (item.result === false) {
               status = "rejected";
             } else {
@@ -187,17 +187,17 @@ export default function JobApplicationsPage() {
 
   const openBulkEmailModal = (status: string) => {
     const applicationsWithStatus = applications.filter(app => 
-      (status === "hired" && app.status === "hired" && !app.emailSent) ||
+      (status === "accepted" && app.status === "accepted" && !app.emailSent) ||
       (status === "rejected" && app.status === "rejected" && !app.emailSent)
     );
     
     if (applicationsWithStatus.length === 0) {
-      setError(`No ${status === "hired" ? "accepted" : "rejected"} applications without email notifications.`);
+      setError(`No ${status === "accepted" ? "accepted" : "rejected"} applications without email notifications.`);
       return;
     }
     
     setSelectedApplicationIds(applicationsWithStatus.map(app => app.id));
-    setSelectedStatus(status === "hired" ? "Accepted" : "Rejected");
+    setSelectedStatus(status === "accepted" ? "Accepted" : "Rejected");
     setIsBulkEmailModalOpen(true);
   };
 
@@ -207,12 +207,12 @@ export default function JobApplicationsPage() {
 
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
-      case "hired":
+      case "accepted":
         return "bg-green-100 text-green-700";
       case "rejected":
         return "bg-red-100 text-red-700";
       case "new":
-        return "bg-purple-100 text-purple-700";
+        return "bg-orange-100 text-orange-700";
       default:
         return "bg-gray-100 text-gray-700";
     }
@@ -220,7 +220,7 @@ export default function JobApplicationsPage() {
 
   const getStatusDisplay = (status: string) => {
     switch (status) {
-      case "hired":
+      case "accepted":
         return "Accepted";
       case "rejected":
         return "Rejected";
@@ -234,6 +234,17 @@ export default function JobApplicationsPage() {
     }
   };
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString('en-US', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+  
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -257,8 +268,8 @@ export default function JobApplicationsPage() {
         </div>
         <div className="flex space-x-2">
           <button
-            onClick={() => openBulkEmailModal("hired")}
-            className="flex items-center gap-2 rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+            onClick={() => openBulkEmailModal("accepted")}
+            className="flex items-center gap-2 rounded-md bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
             disabled={loading}
           >
             <Mail className="h-4 w-4" />
@@ -266,7 +277,7 @@ export default function JobApplicationsPage() {
           </button>
           <button
             onClick={() => openBulkEmailModal("rejected")}
-            className="flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+            className="flex items-center gap-2 rounded-md bg-gray-500 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
             disabled={loading}
           >
             <Mail className="h-4 w-4" />
@@ -337,7 +348,7 @@ export default function JobApplicationsPage() {
                 {filteredApplications.map((application) => (
                   <div
                     key={application.id}
-                    className="grid grid-cols-12 gap-2 px-2 py-4 hover:bg-gray-50 cursor-pointer"
+                    className="grid grid-cols-12 gap-2 px-4 py-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100"
                     onClick={() =>
                       router.push(
                         `/HR/job-postings/${jobId}/applications/${application.id}/evaluate`
@@ -379,7 +390,7 @@ export default function JobApplicationsPage() {
                           application.skills.map((skill, index) => (
                             <span
                               key={index}
-                              className="inline-flex rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700"
+                              className="inline-flex rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800"
                             >
                               {skill}
                             </span>
@@ -446,50 +457,58 @@ export default function JobApplicationsPage() {
                     </div>
 
                     <div className="col-span-1 text-gray-700 text-sm">
-                     {new Date(application.createdAt || "").toLocaleString()}
+                     {formatDate(application.createdAt || "")}
                     </div>
 
-                    <div className="col-span-1 flex items-start">
-                      <div className="flex flex-col items-start gap-1">
-                        <span
-                          className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getStatusBadgeClass(
-                            application.status
-                          )}`}
-                        >
-                          {getStatusDisplay(application.status)}
-                        </span>
+                    <div className="col-span-1">
+                      <div className="space-y-2">
+                        {/* Status badge */}
+                        <div className="flex">
+                          <span
+                            className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getStatusBadgeClass(
+                              application.status
+                            )}`}
+                          >
+                            {getStatusDisplay(application.status)}
+                          </span>
+                        </div>
 
-                        {application.hasNote && (
-                          <span className="flex items-center gap-1 text-xs text-blue-600">
-                            <span className="h-1.5 w-1.5 rounded-full bg-blue-600"></span>
-                            Has note
-                          </span>
-                        )}
-                        {application.missingFeedback && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openFeedbackModal(application.missingFeedback || "");
-                            }}
-                            className="flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200"
-                            title="View missing requirements"
-                          >
-                            <span>View Feedback</span>
-                          </button>
-                        )}
-                        
-                        {/* Email notification flag */}
-                        {application.status !== "new" && (
-                          <span 
-                            className={`flex items-center gap-1 text-xs ${
-                              application.emailSent ? "text-green-600" : "text-gray-500"
-                            }`}
-                            title={application.emailSent ? "Email notification sent" : "No email notification sent yet"}
-                          >
-                            <Mail className="h-3 w-3" />
-                            {application.emailSent ? "Email sent" : "No email"}
-                          </span>
-                        )}
+                        {/* Additional indicators */}
+                        <div className="space-y-1">
+
+                          {application.missingFeedback && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openFeedbackModal(application.missingFeedback || "");
+                              }}
+                              className="text-left rounded bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-200 transition-colors"
+                              title="View missing requirements"
+                            >
+                              View Feedback
+                            </button>
+                          )}
+                          
+                          {application.hasNote && (
+                            <div className="flex items-center gap-1 text-xs text-blue-600">
+                              <span className="h-1.5 w-1.5 rounded-full bg-blue-600"></span>
+                              <span>Has note</span>
+                            </div>
+                          )}
+
+                          {/* Email notification flag */}
+                          {application.status !== "new" && (
+                            <div 
+                              className={`flex items-center gap-1 text-xs ${
+                                application.emailSent ? "text-blue-600" : "text-gray-500"
+                              }`}
+                              title={application.emailSent ? "Email notification sent" : "No email notification sent yet"}
+                            >
+                              <Mail className="h-3 w-3" />
+                              <span>{application.emailSent ? "Email sent" : "No email"}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
