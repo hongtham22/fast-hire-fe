@@ -39,4 +39,15 @@ export type {
   UpdateHRUserData,
   ChangeHRPasswordData,
   ChangeOwnPasswordData,
-} from './user'; 
+} from './user';
+
+// Admin Dashboard Types
+export type {
+  DashboardStats,
+  RecentApplication,
+  JobMatchingScore,
+  ApplicationsChartData,
+  ApplicationsChart,
+  JobMatchingChart,
+  DashboardData,
+} from './admin'; 

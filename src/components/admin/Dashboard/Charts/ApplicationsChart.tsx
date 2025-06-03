@@ -24,10 +24,41 @@ interface ApplicationsChartProps {
 }
 
 export default function ApplicationsChart({ data }: ApplicationsChartProps) {
+  // Validate data structure
+  if (!data || !data.labels || !Array.isArray(data.labels) || !data.datasets || !Array.isArray(data.datasets) || data.datasets.length === 0) {
+    return (
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Applications Over Time</h3>
+        <div className="h-[300px] flex items-center justify-center">
+          <div className="text-center text-gray-500">
+            <p>No application data available</p>
+            <p className="text-sm mt-1">Chart data is loading or unavailable</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Additional validation for dataset structure
+  const firstDataset = data.datasets[0];
+  if (!firstDataset || !firstDataset.data || !Array.isArray(firstDataset.data)) {
+    return (
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Applications Over Time</h3>
+        <div className="h-[300px] flex items-center justify-center">
+          <div className="text-center text-gray-500">
+            <p>Invalid chart data structure</p>
+            <p className="text-sm mt-1">Please check the data format</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Transform data for Recharts
   const chartData = data.labels.map((label, index) => ({
     name: label,
-    [data.datasets[0].label]: data.datasets[0].data[index]
+    [firstDataset.label]: firstDataset.data[index] || 0
   }));
 
   return (
@@ -51,8 +82,8 @@ export default function ApplicationsChart({ data }: ApplicationsChartProps) {
             <Legend />
             <Line
               type="monotone"
-              dataKey={data.datasets[0].label}
-              stroke={data.datasets[0].borderColor}
+              dataKey={firstDataset.label}
+              stroke={firstDataset.borderColor}
               strokeWidth={2}
               dot={{ r: 4 }}
               activeDot={{ r: 6 }}

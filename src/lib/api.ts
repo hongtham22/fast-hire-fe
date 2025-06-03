@@ -31,6 +31,12 @@ import {
   ChangeHRPasswordData,
   ChangeOwnPasswordData 
 } from '@/types/user';
+import {
+  DashboardStats,
+  RecentApplication,
+  JobMatchingScore,
+  DashboardData
+} from '@/types/admin';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -613,6 +619,139 @@ export async function resetHRUserPassword(userId: string, newPassword: string): 
   );
 }
 
+// =============================================================================
+// ADMIN DASHBOARD API FUNCTIONS
+// =============================================================================
+
+/**
+ * Get dashboard statistics (total candidates, jobs, HR, avg matching score)
+ */
+export async function getDashboardStats(): Promise<ApiResponse<DashboardStats>> {
+  return handleApiResponse<DashboardStats>(
+    apiCall('/admin/dashboard/stats')
+  );
+}
+
+/**
+ * Get recent applications for dashboard
+ */
+export async function getRecentApplications(): Promise<ApiResponse<RecentApplication[]>> {
+  return handleApiResponse<RecentApplication[]>(
+    apiCall('/admin/dashboard/recent-applications')
+  );
+}
+
+/**
+ * Get job matching scores for dashboard
+ */
+export async function getJobMatchingScores(): Promise<ApiResponse<JobMatchingScore[]>> {
+  return handleApiResponse<JobMatchingScore[]>(
+    apiCall('/admin/dashboard/job-matching-scores')
+  );
+}
+
+/**
+ * Get applications chart data
+ */
+export async function getApplicationsChartData(): Promise<ApiResponse<{ labels: string[]; data: number[] }>> {
+  return handleApiResponse<{ labels: string[]; data: number[] }>(
+    apiCall('/admin/dashboard/applications-chart')
+  );
+}
+
+/**
+ * Get complete dashboard data (combines all dashboard endpoints)
+ */
+export async function getDashboardData(): Promise<ApiResponse<DashboardData>> {
+  try {
+    console.log('Fetching dashboard data from API...');
+    
+    const [statsResult, applicationsResult, matchingScoresResult, chartResult] = await Promise.all([
+      getDashboardStats(),
+      getRecentApplications(),
+      getJobMatchingScores(),
+      getApplicationsChartData(),
+    ]);
+
+    // Check for any errors in individual requests
+    if (statsResult.error) {
+      throw new Error(`Failed to load statistics: ${statsResult.error}`);
+    }
+    if (applicationsResult.error) {
+      throw new Error(`Failed to load recent applications: ${applicationsResult.error}`);
+    }
+    if (chartResult.error) {
+      throw new Error(`Failed to load chart data: ${chartResult.error}`);
+    }
+
+    // Ensure all data exists
+    if (!statsResult.data || !applicationsResult.data || !matchingScoresResult.data || !chartResult.data) {
+      throw new Error('Incomplete data received from API');
+    }
+
+    console.log('Successfully loaded all dashboard data');
+
+    const dashboardData: DashboardData = {
+      stats: statsResult.data,
+      recentApplications: applicationsResult.data,
+      applicationsChart: {
+        labels: chartResult.data.labels,
+        datasets: [
+          {
+            label: 'Applications',
+            data: chartResult.data.data,
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.5)',
+            tension: 0.1,
+          },
+        ],
+      },
+      jobMatchingScores: matchingScoresResult.data,
+    };
+
+    return { data: dashboardData, error: null };
+  } catch (error: unknown) {
+    console.error('Error fetching dashboard data:', error);
+    
+    // Provide more specific error messages
+    if (error instanceof Error) {
+      if (error.message.includes('connect') || error.message.includes('fetch')) {
+        return {
+          data: null,
+          error: 'Cannot connect to the server. Please ensure the backend API is running and accessible.'
+        };
+      }
+      if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+        return {
+          data: null,
+          error: 'Authentication failed. Please login again.'
+        };
+      }
+      if (error.message.includes('403') || error.message.includes('Forbidden')) {
+        return {
+          data: null,
+          error: 'Access denied. You do not have permission to view this dashboard.'
+        };
+      }
+      if (error.message.includes('404')) {
+        return {
+          data: null,
+          error: 'Dashboard API endpoint not found. Please check the API configuration.'
+        };
+      }
+      if (error.message.includes('500')) {
+        return {
+          data: null,
+          error: 'Server error occurred. Please try again later or contact support.'
+        };
+      }
+      return { data: null, error: error.message };
+    }
+    
+    return { data: null, error: 'An unexpected error occurred while loading dashboard data.' };
+  }
+}
+
 // Re-export types for easier access
 export type {
   ApiResponse,
@@ -632,4 +771,9 @@ export type {
   UpdateHRUserData,
   ChangeHRPasswordData,
   ChangeOwnPasswordData,
+  // Admin Dashboard types
+  DashboardStats,
+  RecentApplication,
+  JobMatchingScore,
+  DashboardData,
 }; 
