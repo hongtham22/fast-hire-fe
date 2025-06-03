@@ -4,8 +4,11 @@ import { useState, useEffect } from 'react';
 import JobTable from '@/components/admin/JobManagement/JobTable';
 import JobDetailsModal from '@/components/admin/JobManagement/JobDetailsModal';
 import { Search, Filter } from 'lucide-react';
+import { getJobsForAdmin, getJobDetail, getApplicationsByJobId } from '@/lib/api';
+import { JobListItem } from '@/types/job';
+import { Application } from '@/types/application';
 
-interface Application {
+interface ApplicationDisplay {
   id: string;
   candidateName: string;
   email: string;
@@ -23,10 +26,14 @@ interface Job {
     id: string;
     name: string;
   };
-  experienceYear: number;
+  creator?: {
+    id: string;
+    name: string;
+    email: string;
+  };
   status: 'pending' | 'approved' | 'rejected' | 'closed';
   createdAt: string;
-  expireDate?: string;
+  expireDate?: string | null;
   totalApplications: number;
 }
 
@@ -36,7 +43,7 @@ interface JobDetails extends Job {
   languageSkills: string;
   keyResponsibility: string;
   ourOffer: string;
-  applications: Application[];
+  applications: ApplicationDisplay[];
 }
 
 export default function AdminJobsPage() {
@@ -45,43 +52,110 @@ export default function AdminJobsPage() {
   const [selectedJob, setSelectedJob] = useState<JobDetails | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchJobs = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await getJobsForAdmin({
+        limit: 1000, // Get all jobs for admin
+        status: statusFilter !== 'all' ? (statusFilter as 'pending' | 'approved' | 'closed' | 'rejected') : undefined,
+        query: searchQuery || undefined,
+      });
+
+      if (response.error) {
+        throw new Error(response.error);
+      }
+
+      if (response.data) {
+        // Transform JobListItem to Job interface
+        const transformedJobs: Job[] = response.data.jobs.map((job: JobListItem & { creator?: { id: string; name: string; email: string } }) => ({
+          id: job.id,
+          jobTitle: job.jobTitle,
+          location: {
+            id: '1', // Default location id
+            name: job.location
+          },
+          creator: job.creator,
+          status: job.status,
+          createdAt: job.createdAt,
+          expireDate: job.expireDate || undefined,
+          totalApplications: job.applicationCount
+        }));
+        
+        setJobs(transformedJobs);
+      }
+    } catch (error) {
+      console.error('Error fetching jobs:', error);
+      setError(error instanceof Error ? error.message : 'Failed to fetch jobs');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // TODO: Replace with actual API call
-    const fetchJobs = async () => {
-      try {
-        // Simulated API response
-        const mockJobs: Job[] = [
-          {
-            id: '1',
-            jobTitle: 'Senior Frontend Developer',
-            location: { id: '1', name: 'Ho Chi Minh City' },
-            experienceYear: 5,
-            status: 'approved',
-            createdAt: '2024-03-15',
-            expireDate: '2024-04-15',
-            totalApplications: 12
-          },
-          // Add more mock jobs as needed
-        ];
-        setJobs(mockJobs);
-      } catch (error) {
-        console.error('Error fetching jobs:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchJobs();
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, statusFilter]);
 
   const handleViewJob = async (jobId: string) => {
     try {
-      // TODO: Replace with actual API call to get full job details
-      const fullJobDetails = await fetch(`/api/jobs/${jobId}`).then(res => res.json());
-      setSelectedJob(fullJobDetails);
+      setLoading(true);
+      
+      // Fetch job details
+      const jobDetailResponse = await getJobDetail(jobId);
+      if (jobDetailResponse.error) {
+        throw new Error(jobDetailResponse.error);
+      }
+
+      // Fetch applications for this job
+      const applicationsResponse = await getApplicationsByJobId(jobId);
+      if (applicationsResponse.error) {
+        console.warn('Could not fetch applications:', applicationsResponse.error);
+      }
+
+      if (jobDetailResponse.data) {
+        const jobDetail = jobDetailResponse.data;
+        const applications = applicationsResponse.data || [];
+        
+        // Find the job in our current list to get creator info
+        const currentJob = jobs.find(j => j.id === jobId);
+        
+        const fullJobDetails: JobDetails = {
+          id: jobDetail.id,
+          jobTitle: jobDetail.jobTitle,
+          location: jobDetail.location,
+          creator: currentJob?.creator,
+          status: (jobDetail.status as 'pending' | 'approved' | 'rejected' | 'closed') || 'pending',
+          createdAt: jobDetail.createdAt || new Date().toISOString(),
+          expireDate: jobDetail.expireDate || undefined,
+          totalApplications: applications.length,
+          mustHave: '', // These fields might not be in JobDetail type
+          niceToHave: '',
+          languageSkills: '',
+          keyResponsibility: '',
+          ourOffer: '',
+          applications: applications.map((app: Application) => ({
+            id: app.id,
+            candidateName: app.applicant?.name || 'N/A',
+            email: app.applicant?.email || 'N/A',
+            phone: 'N/A', // Phone not available in basic Application type
+            matchingScore: app.matchScore || 0,
+            status: (app.status === 'new' ? 'pending' : app.status) as 'pending' | 'accepted' | 'rejected',
+            appliedAt: app.createdAt || new Date().toISOString(),
+            resumeUrl: app.cvFileUrl || ''
+          }))
+        };
+        
+        setSelectedJob(fullJobDetails);
+      }
     } catch (error) {
       console.error('Error fetching job details:', error);
+      setError(error instanceof Error ? error.message : 'Failed to fetch job details');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -91,15 +165,36 @@ export default function AdminJobsPage() {
 
   const filteredJobs = jobs.filter(job => {
     const matchesSearch = job.jobTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         job.location.name.toLowerCase().includes(searchQuery.toLowerCase());
+                         job.location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         (job.creator?.name || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || job.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="bg-red-50 border border-red-200 rounded-md p-4">
+          <h3 className="text-red-800 font-medium mb-2">Error Loading Jobs</h3>
+          <p className="text-red-600">{error}</p>
+          <button 
+            onClick={fetchJobs}
+            className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Job Management</h1>
+        <div className="text-sm text-gray-600">
+          Total Jobs: {jobs.length}
+        </div>
       </div>
 
       {/* Search and Filter Section */}
@@ -111,7 +206,7 @@ export default function AdminJobsPage() {
           <input
             type="text"
             className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            placeholder="Search jobs..."
+            placeholder="Search jobs by title, location, or creator..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />

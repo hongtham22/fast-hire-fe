@@ -18,10 +18,14 @@ interface JobDetails {
     id: string;
     name: string;
   };
-  experienceYear: number;
+  creator?: {
+    id: string;
+    name: string;
+    email: string;
+  };
   status: 'pending' | 'approved' | 'rejected' | 'closed';
   createdAt: string;
-  expireDate?: string;
+  expireDate?: string | null;
   mustHave: string;
   niceToHave: string;
   languageSkills: string;
@@ -48,6 +52,20 @@ export default function JobDetailsModal({ job, onClose }: JobDetailsModalProps) 
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return dateString;
     }
   };
 
@@ -79,12 +97,19 @@ export default function JobDetailsModal({ job, onClose }: JobDetailsModalProps) 
                   <p className="mt-1 text-sm text-gray-900">{job.location?.name || 'Not specified'}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-500">Experience Required</label>
-                  <p className="mt-1 text-sm text-gray-900">{job.experienceYear} years</p>
+                  <label className="block text-sm font-medium text-gray-500">Created By</label>
+                  {job.creator ? (
+                    <div className="mt-1">
+                      <p className="text-sm text-gray-900 font-medium">{job.creator.name}</p>
+                      <p className="text-sm text-gray-500">{job.creator.email}</p>
+                    </div>
+                  ) : (
+                    <p className="mt-1 text-sm text-gray-900">N/A</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-500">Status</label>
-                  <p className="mt-1 text-sm text-gray-900">{job.status}</p>
+                  <p className="mt-1 text-sm text-gray-900 capitalize">{job.status}</p>
                 </div>
               </div>
             </div>
@@ -94,15 +119,15 @@ export default function JobDetailsModal({ job, onClose }: JobDetailsModalProps) 
               <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-500">Created At</label>
-                  <p className="mt-1 text-sm text-gray-900">{job.createdAt}</p>
+                  <p className="mt-1 text-sm text-gray-900">{formatDate(job.createdAt)}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-500">Expire Date</label>
-                  <p className="mt-1 text-sm text-gray-900">{job.expireDate || 'N/A'}</p>
+                  <p className="mt-1 text-sm text-gray-900">{job.expireDate ? formatDate(job.expireDate) : 'N/A'}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-500">Total Applications</label>
-                  <p className="mt-1 text-sm text-gray-900">{job.applications?.length}</p>
+                  <p className="mt-1 text-sm text-gray-900">{job.applications?.length || 0}</p>
                 </div>
               </div>
             </div>
@@ -114,11 +139,11 @@ export default function JobDetailsModal({ job, onClose }: JobDetailsModalProps) 
             <div className="grid grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-500">Must Have Skills</label>
-                <p className="mt-1 text-sm text-gray-900 whitespace-pre-line">{job.mustHave}</p>
+                <p className="mt-1 text-sm text-gray-900 whitespace-pre-line">{job.mustHave || 'Not specified'}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-500">Nice to Have Skills</label>
-                <p className="mt-1 text-sm text-gray-900 whitespace-pre-line">{job.niceToHave}</p>
+                <p className="mt-1 text-sm text-gray-900 whitespace-pre-line">{job.niceToHave || 'Not specified'}</p>
               </div>
             </div>
           </div>
@@ -129,65 +154,71 @@ export default function JobDetailsModal({ job, onClose }: JobDetailsModalProps) 
             <div className="grid grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-500">Key Responsibilities</label>
-                <p className="mt-1 text-sm text-gray-900 whitespace-pre-line">{job.keyResponsibility}</p>
+                <p className="mt-1 text-sm text-gray-900 whitespace-pre-line">{job.keyResponsibility || 'Not specified'}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-500">Our Offer</label>
-                <p className="mt-1 text-sm text-gray-900 whitespace-pre-line">{job.ourOffer}</p>
+                <p className="mt-1 text-sm text-gray-900 whitespace-pre-line">{job.ourOffer || 'Not specified'}</p>
               </div>
             </div>
           </div>
 
           {/* Applications */}
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Applications</h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Candidate
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Contact
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Matching Score
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Applied At
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {job.applications?.map((application) => (
-                    <tr key={application.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{application.candidateName}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{application.email}</div>
-                        <div className="text-sm text-gray-500">{application.phone}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{application.matchingScore}%</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 text-xs font-semibold leading-5 rounded-full ${getStatusColor(application.status)}`}>
-                          {application.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {application.appliedAt}
-                      </td>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Applications ({job.applications?.length || 0})</h3>
+            {job.applications && job.applications.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Candidate
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Contact
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Matching Score
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Applied At
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {job.applications.map((application) => (
+                      <tr key={application.id}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">{application.candidateName}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{application.email}</div>
+                          <div className="text-sm text-gray-500">{application.phone}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{application.matchingScore}%</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex px-2 text-xs font-semibold leading-5 rounded-full ${getStatusColor(application.status)}`}>
+                            {application.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {formatDate(application.appliedAt)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <p>No applications submitted yet.</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

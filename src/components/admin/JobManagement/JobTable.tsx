@@ -1,3 +1,4 @@
+import { formatDate } from '@/lib/utils';
 import { Eye } from 'lucide-react';
 
 interface Job {
@@ -7,10 +8,14 @@ interface Job {
     id: string;
     name: string;
   };
-  experienceYear: number;
+  creator?: {
+    id: string;
+    name: string;
+    email: string;
+  };
   status: 'pending' | 'approved' | 'rejected' | 'closed';
   createdAt: string;
-  expireDate?: string;
+  expireDate?: string | null;
   totalApplications: number;
 }
 
@@ -36,6 +41,8 @@ export default function JobTable({ jobs, isLoading, onViewDetails }: JobTablePro
     }
   };
 
+
+
   return (
     <div className="bg-white shadow rounded-lg">
       <div className="overflow-x-auto">
@@ -49,7 +56,7 @@ export default function JobTable({ jobs, isLoading, onViewDetails }: JobTablePro
                 Location
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Experience
+                Created By
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Status
@@ -91,7 +98,16 @@ export default function JobTable({ jobs, isLoading, onViewDetails }: JobTablePro
                     <div className="text-sm text-gray-900">{job.location.name}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{job.experienceYear} years</div>
+                    <div className="text-sm text-gray-900">
+                      {job.creator ? (
+                        <div>
+                          <div className="font-medium">{job.creator.name}</div>
+                          <div className="text-gray-500 text-xs">{job.creator.email}</div>
+                        </div>
+                      ) : (
+                        'N/A'
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 text-xs font-semibold leading-5 rounded-full ${getStatusColor(job.status)}`}>
@@ -102,10 +118,10 @@ export default function JobTable({ jobs, isLoading, onViewDetails }: JobTablePro
                     <div className="text-sm text-gray-900">{job.totalApplications}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {job.createdAt}
+                    {formatDate(job.createdAt)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {job.expireDate || 'N/A'}
+                    {job.expireDate ? formatDate(job.expireDate) : 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button

@@ -19,7 +19,7 @@ export interface DisplayHRUser {
   email: string;
   role: 'admin' | 'hr';
   status: 'active' | 'inactive';
-  lastActive: string;
+  createdAt: string;
 }
 
 /**

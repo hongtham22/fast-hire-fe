@@ -1,3 +1,4 @@
+import { formatDate } from '@/lib/utils';
 import { Edit2, Key, UserCheck, UserX } from 'lucide-react';
 
 interface HRUser {
@@ -6,7 +7,7 @@ interface HRUser {
   email: string;
   role: 'admin' | 'hr';
   status: 'active' | 'inactive';
-  lastActive: string;
+  createdAt: string;
 }
 
 interface HRUserTableProps {
@@ -38,7 +39,7 @@ export default function HRUserTable({ users, isLoading, onEdit, onDelete, onActi
                 Status
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Last Active
+                Created At
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions
@@ -86,7 +87,7 @@ export default function HRUserTable({ users, isLoading, onEdit, onDelete, onActi
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {user.lastActive}
+                    {formatDate(user.createdAt)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end space-x-2">

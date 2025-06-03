@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Search, AlertCircle } from "lucide-react";
+import { Search, AlertCircle } from "lucide-react";
 import HRUserTable from "@/components/admin/HRManagement/HRUserTable";
 import HRUserForm from "@/components/admin/HRManagement/HRUserForm";
 import PasswordResetForm from "@/components/admin/HRManagement/PasswordResetForm";
 import {
   getAllUsers,
-  createHRUser,
   updateHRUser,
   deactivateHRUser,
   activateHRUser,
@@ -26,7 +25,6 @@ export default function HRManagementPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   // Modal states
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<HRUser | null>(null);
@@ -51,32 +49,6 @@ export default function HRManagementPage() {
       setError("Failed to fetch users");
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleCreateUser = async (userData: HRUserFormData) => {
-    // Ensure password is provided for create
-    if (!userData.password) {
-      alert("Password is required");
-      return;
-    }
-
-    try {
-      const { error } = await createHRUser({
-        name: userData.name,
-        email: userData.email,
-        password: userData.password,
-      });
-
-      if (error) {
-        alert(`Error: ${error}`);
-      } else {
-        setIsCreateModalOpen(false);
-        fetchUsers(); // Refresh the user list
-        alert("HR user created successfully!");
-      }
-    } catch {
-      alert("Failed to create HR user");
     }
   };
 
@@ -184,7 +156,7 @@ export default function HRManagementPage() {
       email: user.email,
       role: user.role,
       status: user.isActive ? "active" : "inactive",
-      lastActive: new Date(user.createdAt).toLocaleDateString(),
+      createdAt: new Date(user.createdAt).toLocaleDateString(),
     }));
   };
 
@@ -202,13 +174,6 @@ export default function HRManagementPage() {
           <h1 className="text-2xl font-bold text-gray-900">HR Management</h1>
           <p className="text-gray-600">Manage HR users and their permissions</p>
         </div>
-        <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
-        >
-          <Plus className="h-4 w-4" />
-          Add HR User
-        </button>
       </div>
 
       {/* Search */}
@@ -221,7 +186,7 @@ export default function HRManagementPage() {
           placeholder="Search HR users..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="block w-full rounded-md border-gray-300 pl-10 focus:border-indigo-500 focus:ring-indigo-500"
+          className="block w-full rounded-md border-gray-300 pl-10 p-2 focus:border-indigo-500 focus:ring-indigo-500"
         />
       </div>
 
@@ -248,31 +213,7 @@ export default function HRManagementPage() {
         onChangePassword={openPasswordModal}
       />
 
-      {/* Create User Modal */}
-      {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4">
-            <div
-              className="fixed inset-0 bg-gray-500 bg-opacity-75"
-              onClick={() => setIsCreateModalOpen(false)}
-            />
-            <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full">
-              <div className="px-6 py-4 border-b">
-                <h3 className="text-lg font-medium text-gray-900">
-                  Create New HR User
-                </h3>
-              </div>
-              <div className="p-6">
-                <HRUserForm
-                  onSubmit={handleCreateUser}
-                  onCancel={() => setIsCreateModalOpen(false)}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
+    
       {/* Edit User Modal */}
       {isEditModalOpen && selectedUser && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
