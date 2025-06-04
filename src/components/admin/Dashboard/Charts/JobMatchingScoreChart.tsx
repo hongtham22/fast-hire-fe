@@ -120,7 +120,7 @@ export default function JobMatchingScoreChart({ jobMatchingScores }: JobMatching
               label={{ value: 'Applications Count', angle: 90, position: 'insideRight' }}
             />
             <Tooltip content={<CustomTooltip />} />
-            <Legend />
+            <Legend verticalAlign="top" height={36}/>
             
             {/* Reference lines for score thresholds */}
             <ReferenceLine yAxisId="score" y={80} stroke="#10b981" strokeDasharray="2 2" label="High Score" />

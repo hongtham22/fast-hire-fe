@@ -27,9 +27,9 @@ export default function ApplicationsChart({ data }: ApplicationsChartProps) {
   // Validate data structure
   if (!data || !data.labels || !Array.isArray(data.labels) || !data.datasets || !Array.isArray(data.datasets) || data.datasets.length === 0) {
     return (
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Applications Over Time</h3>
-        <div className="h-[300px] flex items-center justify-center">
+      <div className="bg-white p-6 rounded-lg shadow h-full flex flex-col">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Applications Over Time (Last 30 Days)</h3>
+        <div className="h-[300px] flex-1 flex items-center justify-center">
           <div className="text-center text-gray-500">
             <p>No application data available</p>
             <p className="text-sm mt-1">Chart data is loading or unavailable</p>
@@ -43,9 +43,9 @@ export default function ApplicationsChart({ data }: ApplicationsChartProps) {
   const firstDataset = data.datasets[0];
   if (!firstDataset || !firstDataset.data || !Array.isArray(firstDataset.data)) {
     return (
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Applications Over Time</h3>
-        <div className="h-[300px] flex items-center justify-center">
+      <div className="bg-white p-6 rounded-lg shadow h-full flex flex-col">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Applications Over Time (Last 30 Days)</h3>
+        <div className="h-[300px] flex-1 flex items-center justify-center">
           <div className="text-center text-gray-500">
             <p>Invalid chart data structure</p>
             <p className="text-sm mt-1">Please check the data format</p>
@@ -62,34 +62,45 @@ export default function ApplicationsChart({ data }: ApplicationsChartProps) {
   }));
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow">
-      <h3 className="text-lg font-medium text-gray-900 mb-4">Applications Over Time</h3>
-      <div className="h-[300px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={chartData}
-            margin={{
-              top: 5,
-              right: 30,
-              left: 20,
-              bottom: 5,
-            }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line
-              type="monotone"
-              dataKey={firstDataset.label}
-              stroke={firstDataset.borderColor}
-              strokeWidth={2}
-              dot={{ r: 4 }}
-              activeDot={{ r: 6 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+    <div className="bg-white p-6 rounded-lg shadow h-full flex flex-col">
+      <h3 className="text-lg font-medium text-gray-900 mb-4">Applications Over Time (Last 30 Days)</h3>
+      <div className="h-[300px] flex-1 flex items-end">
+        <div className="w-full h-[450px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart
+              data={chartData}
+              margin={{
+                top: 5,
+                right: 30,
+                left: 20,
+                bottom: 20,
+              }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="name" 
+                angle={-45}
+                textAnchor="end"
+                height={60}
+                interval={Math.floor(chartData.length / 8)} 
+              />
+              <YAxis 
+                allowDecimals={false}
+                domain={[0, (dataMax: number) => dataMax + 1]}
+              />
+              <Tooltip />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey={firstDataset.label}
+                stroke={firstDataset.borderColor}
+                strokeWidth={2}
+                dot={{ r: 3 }}
+                activeDot={{ r: 5 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </div>
   );

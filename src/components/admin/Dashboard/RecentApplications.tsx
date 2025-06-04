@@ -1,3 +1,4 @@
+import { formatDate } from '@/lib/utils';
 import { RecentApplication } from '@/types';
 
 interface RecentApplicationsProps {
@@ -11,8 +12,6 @@ export default function RecentApplications({ applications }: RecentApplicationsP
     switch (status.toLowerCase()) {
       case 'pending':
         return `${baseClasses} bg-yellow-100 text-yellow-800`;
-      case 'reviewed':
-        return `${baseClasses} bg-blue-100 text-blue-800`;
       case 'approved':
         return `${baseClasses} bg-green-100 text-green-800`;
       case 'rejected':
@@ -20,14 +19,6 @@ export default function RecentApplications({ applications }: RecentApplicationsP
       default:
         return `${baseClasses} bg-gray-100 text-gray-800`;
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
   };
 
   return (

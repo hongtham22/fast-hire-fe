@@ -49,7 +49,7 @@ export default function JobMatchingBreakdownChart({ jobMatchingScores }: JobMatc
 
   // Transform data for stacked bar chart
   const chartData = jobMatchingScores.map(job => ({
-    name: job.jobTitle.length > 12 ? job.jobTitle.substring(0, 12) + '...' : job.jobTitle,
+    name: job.jobTitle.length > 18 ? job.jobTitle.substring(0, 18) + '...' : job.jobTitle,
     fullName: job.jobTitle,
     highScore: job.highScoreCount,
     mediumScore: job.mediumScoreCount,
@@ -96,7 +96,7 @@ export default function JobMatchingBreakdownChart({ jobMatchingScores }: JobMatc
   return (
     <div className="bg-white p-6 rounded-lg shadow">
       <h3 className="text-lg font-medium text-gray-900 mb-4">Matching Score Distribution by Job</h3>
-      <div className="h-[350px]">
+      <div className="h-[400px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={chartData}
@@ -116,10 +116,11 @@ export default function JobMatchingBreakdownChart({ jobMatchingScores }: JobMatc
               interval={0}
             />
             <YAxis 
-              label={{ value: 'Number of Applications', angle: -90, position: 'insideLeft' }}
+              width={70}
+              label={{ value: 'Number of Applications', angle: -90, position: 'insideLeft', dx: 0 }}
             />
             <Tooltip content={<CustomTooltip />} />
-            <Legend />
+            <Legend verticalAlign="top" height={36}/>
             
             <Bar 
               dataKey="highScore" 
