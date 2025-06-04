@@ -125,21 +125,21 @@ export default function JobMatchingBreakdownChart({ jobMatchingScores }: JobMatc
             <Bar 
               dataKey="highScore" 
               stackId="a"
-              fill="#10b981" 
+              fill="#059669" 
               name="High Score (&gt;80%)"
               radius={[0, 0, 0, 0]}
             />
             <Bar 
               dataKey="mediumScore" 
               stackId="a"
-              fill="#f59e0b" 
+              fill="#ca8a04" 
               name="Medium Score (60-80%)"
               radius={[0, 0, 0, 0]}
             />
             <Bar 
               dataKey="lowScore" 
               stackId="a"
-              fill="#ef4444" 
+              fill="#dc2626" 
               name="Low Score (&lt;60%)"
               radius={[4, 4, 0, 0]}
             />

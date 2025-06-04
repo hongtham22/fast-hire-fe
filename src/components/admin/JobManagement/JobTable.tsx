@@ -126,10 +126,10 @@ export default function JobTable({ jobs, isLoading, onViewDetails }: JobTablePro
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
                       onClick={() => onViewDetails(job.id)}
-                      className="text-gray-400 hover:text-gray-500"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-md transition-colors"
                       title="View Details"
                     >
-                      <Eye className="w-5 h-5" />
+                      <Eye className="w-4 h-4" /> View
                     </button>
                   </td>
                 </tr>

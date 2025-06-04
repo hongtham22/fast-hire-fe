@@ -164,7 +164,7 @@ export default function JobApprovals() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className=" px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Job Approvals</h1>
         <div className="text-sm text-gray-600">

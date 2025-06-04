@@ -2,22 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import JobTable from '@/components/admin/JobManagement/JobTable';
-import JobDetailsModal from '@/components/admin/JobManagement/JobDetailsModal';
-import { Search, Filter } from 'lucide-react';
-import { getJobsForAdmin, getJobDetail, getApplicationsByJobId } from '@/lib/api';
+import { Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import { getJobsForAdmin } from '@/lib/api';
 import { JobListItem } from '@/types/job';
-import { Application } from '@/types/application';
-
-interface ApplicationDisplay {
-  id: string;
-  candidateName: string;
-  email: string;
-  phone: string;
-  matchingScore: number;
-  status: 'pending' | 'accepted' | 'rejected';
-  appliedAt: string;
-  resumeUrl: string;
-}
+import { useRouter } from 'next/navigation';
 
 interface Job {
   id: string;
@@ -37,22 +25,16 @@ interface Job {
   totalApplications: number;
 }
 
-interface JobDetails extends Job {
-  mustHave: string;
-  niceToHave: string;
-  languageSkills: string;
-  keyResponsibility: string;
-  ourOffer: string;
-  applications: ApplicationDisplay[];
-}
-
 export default function AdminJobsPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [totalJobs, setTotalJobs] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [selectedJob, setSelectedJob] = useState<JobDetails | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const router = useRouter();
 
   const fetchJobs = async () => {
     setLoading(true);
@@ -60,7 +42,8 @@ export default function AdminJobsPage() {
     
     try {
       const response = await getJobsForAdmin({
-        limit: 1000, // Get all jobs for admin
+        page: currentPage,
+        limit: itemsPerPage,
         status: statusFilter !== 'all' ? (statusFilter as 'pending' | 'approved' | 'closed' | 'rejected') : undefined,
         query: searchQuery || undefined,
       });
@@ -86,6 +69,7 @@ export default function AdminJobsPage() {
         }));
         
         setJobs(transformedJobs);
+        setTotalJobs(response.data.total || transformedJobs.length);
       }
     } catch (error) {
       console.error('Error fetching jobs:', error);
@@ -98,78 +82,58 @@ export default function AdminJobsPage() {
   useEffect(() => {
     fetchJobs();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, statusFilter]);
+  }, [searchQuery, statusFilter, currentPage]);
 
-  const handleViewJob = async (jobId: string) => {
-    try {
-      setLoading(true);
-      
-      // Fetch job details
-      const jobDetailResponse = await getJobDetail(jobId);
-      if (jobDetailResponse.error) {
-        throw new Error(jobDetailResponse.error);
-      }
+  const handleViewJob = (jobId: string) => {
+    router.push(`/admin/jobs/${jobId}`);
+  };
 
-      // Fetch applications for this job
-      const applicationsResponse = await getApplicationsByJobId(jobId);
-      if (applicationsResponse.error) {
-        console.warn('Could not fetch applications:', applicationsResponse.error);
-      }
-
-      if (jobDetailResponse.data) {
-        const jobDetail = jobDetailResponse.data;
-        const applications = applicationsResponse.data || [];
-        
-        // Find the job in our current list to get creator info
-        const currentJob = jobs.find(j => j.id === jobId);
-        
-        const fullJobDetails: JobDetails = {
-          id: jobDetail.id,
-          jobTitle: jobDetail.jobTitle,
-          location: jobDetail.location,
-          creator: currentJob?.creator,
-          status: (jobDetail.status as 'pending' | 'approved' | 'rejected' | 'closed') || 'pending',
-          createdAt: jobDetail.createdAt || new Date().toISOString(),
-          expireDate: jobDetail.expireDate || undefined,
-          totalApplications: applications.length,
-          mustHave: '', // These fields might not be in JobDetail type
-          niceToHave: '',
-          languageSkills: '',
-          keyResponsibility: '',
-          ourOffer: '',
-          applications: applications.map((app: Application) => ({
-            id: app.id,
-            candidateName: app.applicant?.name || 'N/A',
-            email: app.applicant?.email || 'N/A',
-            phone: 'N/A', // Phone not available in basic Application type
-            matchingScore: app.matchScore || 0,
-            status: (app.status === 'new' ? 'pending' : app.status) as 'pending' | 'accepted' | 'rejected',
-            appliedAt: app.createdAt || new Date().toISOString(),
-            resumeUrl: app.cvFileUrl || ''
-          }))
-        };
-        
-        setSelectedJob(fullJobDetails);
-      }
-    } catch (error) {
-      console.error('Error fetching job details:', error);
-      setError(error instanceof Error ? error.message : 'Failed to fetch job details');
-    } finally {
-      setLoading(false);
+  // Pagination helpers
+  const totalPages = Math.ceil(totalJobs / itemsPerPage);
+  
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
     }
   };
 
-  const handleCloseModal = () => {
-    setSelectedJob(null);
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
   };
 
-  const filteredJobs = jobs.filter(job => {
-    const matchesSearch = job.jobTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         job.location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         (job.creator?.name || '').toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || job.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const handlePageClick = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Generate page numbers to display
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPageButtons = 5; // Maximum number of page buttons to show
+    
+    if (totalPages <= maxPageButtons) {
+      // Show all pages if there are few pages
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      // Show a range of pages
+      let startPage = Math.max(1, currentPage - Math.floor(maxPageButtons / 2));
+      let endPage = startPage + maxPageButtons - 1;
+      
+      if (endPage > totalPages) {
+        endPage = totalPages;
+        startPage = Math.max(1, endPage - maxPageButtons + 1);
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+      }
+    }
+    
+    return pageNumbers;
+  };
 
   if (error) {
     return (
@@ -189,11 +153,11 @@ export default function AdminJobsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Job Management</h1>
         <div className="text-sm text-gray-600">
-          Total Jobs: {jobs.length}
+          Total Jobs: {totalJobs}
         </div>
       </div>
 
@@ -233,18 +197,57 @@ export default function AdminJobsPage() {
       {/* Jobs Table */}
       <div className="bg-white shadow rounded-lg">
         <JobTable
-          jobs={filteredJobs}
+          jobs={jobs}
           isLoading={loading}
           onViewDetails={handleViewJob}
         />
       </div>
 
-      {/* Job Details Modal */}
-      {selectedJob && (
-        <JobDetailsModal
-          job={selectedJob}
-          onClose={handleCloseModal}
-        />
+      {/* Pagination */}
+      {totalJobs > 0 && (
+        <div className="flex items-center justify-between mt-6">
+          <div className="text-sm text-gray-500">
+            Showing {jobs.length} of {totalJobs} jobs
+          </div>
+          
+          {/* Pagination controls */}
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={handlePreviousPage}
+              disabled={currentPage === 1 || loading}
+              className={`rounded border p-1 ${
+                currentPage === 1 || loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'
+              }`}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            
+            {getPageNumbers().map((page) => (
+              <button
+                key={page}
+                onClick={() => handlePageClick(page)}
+                disabled={loading}
+                className={`rounded px-3 py-1 text-sm font-medium ${
+                  currentPage === page
+                    ? 'bg-blue-50 text-blue-600 border border-blue-200'
+                    : 'border hover:bg-gray-100'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+            
+            <button
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages || loading}
+              className={`rounded border p-1 ${
+                currentPage === totalPages || loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'
+              }`}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
