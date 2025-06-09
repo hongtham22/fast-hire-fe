@@ -99,6 +99,7 @@ export default function CreateJobModal({ isOpen, onClose, onJobCreated }: Create
           status: 'pending',
           // Include max scores
           ...maxScores
+          
         }),
       });
 

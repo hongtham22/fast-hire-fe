@@ -210,19 +210,6 @@ export async function parseCV(formData: FormData): Promise<ApiResponse<CVParserR
   );
 }
 
-/**
- * Job Description Parser API
- */
-export async function parseJobDescription(
-  jobData: JobDescriptionInput
-): Promise<ApiResponse<JobDescriptionData>> {
-  return handleApiResponse<JobDescriptionData>(
-    aiApiCall('/parse-jd', {
-      method: 'POST',
-      body: JSON.stringify(jobData),
-    })
-  );
-}
 
 /**
  * Fetch all jobs for HR with application counts (HR can only see their own jobs)
