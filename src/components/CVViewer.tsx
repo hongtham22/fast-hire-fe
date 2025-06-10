@@ -19,7 +19,7 @@ export function CVViewer({ cvFileUrl }: CVViewerProps) {
   };
 
   return (
-    <div className="relative w-full h-full rounded-lg border bg-white">
+    <div className="relative w-full h-[900px] rounded-lg border bg-white">
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75">
           <Loader2 className="h-8 w-8 animate-spin text-gray-400" />

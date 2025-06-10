@@ -3,8 +3,6 @@
 import ProtectedRoute from '@/components/ProtectedRoute';
 import SidebarHR from "../layout/sidebarHR";
 
-
-
 export default function HRLayout({
   children,
 }: {
@@ -12,12 +10,12 @@ export default function HRLayout({
 }) {
   return (
     <ProtectedRoute allowedRoles={['hr']}>
-      <div className="flex h-screen">
-        <div className="hidden md:flex md:w-64 md:flex-col">
+      <div className="flex min-h-screen">
+        <div className="fixed inset-y-0 left-0 w-64 bg-white border-r">
           <SidebarHR/>
         </div>
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <main className="flex-1 overflow-auto p-6">{children}</main>
+        <div className="ml-64 p-10 flex-1">
+          {children}
         </div>
       </div>
     </ProtectedRoute>

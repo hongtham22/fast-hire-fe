@@ -153,135 +153,141 @@ export default function ApplicationEvaluationPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-1 text-gray-500 hover:text-gray-700"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Applications
-        </button>
-        {isJobClosed && (
-          <div className="flex items-center gap-2 bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">
-            <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
-            Job Closed
-          </div>
-        )}
+    <div className="min-h-screen bg-gray-50">
+      <div className="sticky top-0 z-10 bg-white">
+        <div className="flex items-center gap-4 p-4">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-1 text-gray-500 hover:text-gray-700"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Applications
+          </button>
+          {isJobClosed && (
+            <div className="flex items-center gap-2 bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">
+              <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
+              Job Closed
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="flex flex-row gap-6">
-        {/* Left Column - CV Viewer */}
-        <div className="w-1/2">
-          <Card className="flex flex-col h-full">
-            <CardHeader>
-              <CardTitle>CV Document</CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1">
-              <CVViewer cvFileUrl={application.cvFileUrl} />
-            </CardContent>
-          </Card>
-        </div>
+      <div className="p-6 bg-white">
+        <div className="flex flex-row gap-6">
+          {/* Left Column - CV Viewer */}
+          <div className="w-1/2">
+            <Card>
+              <CardHeader>
+                <CardTitle>CV Document</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CVViewer cvFileUrl={application.cvFileUrl} />
+              </CardContent>
+            </Card>
+          </div>
 
-        {/* Right Column - Evaluation */}
-        <div className="w-1/2 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Application Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-row gap-4">
-                <div className="w-1/2">
-                  <div>
-                    <h3 className="font-medium">Candidate</h3>
-                    <p className="text-gray-600">
-                      {application.applicant.name}
-                    </p>
-                    <p className="text-gray-600">
-                      {application.applicant.email}
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Position</h3>
-                    <p className="text-gray-600">{application.job.jobTitle}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Applied On</h3>
-                    <p className="text-gray-600">
-                      {formatDate(application.submittedAt)}
-                    </p>
-                  </div>
+          {/* Right Column - Evaluation */}
+          <div className="w-1/2">
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Application Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex flex-row gap-4">
+                    <div className="w-1/2">
+                      <div>
+                        <h3 className="font-medium">Candidate</h3>
+                        <p className="text-gray-600">
+                          {application.applicant.name}
+                        </p>
+                        <p className="text-gray-600">
+                          {application.applicant.email}
+                        </p>
+                      </div>
+                      <div>
+                        <h3 className="font-medium">Position</h3>
+                        <p className="text-gray-600">{application.job.jobTitle}</p>
+                      </div>
+                      <div>
+                        <h3 className="font-medium">Applied On</h3>
+                        <p className="text-gray-600">
+                          {formatDate(application.submittedAt)}
+                        </p>
+                      </div>
 
-                  <div className="mt-4 flex gap-2">
-                    <Link href={`/HR/applications/cv-viewer/${application.id}`}>
-                      <button
-                        type="button"
-                        className="relative flex items-center justify-between overflow-hidden rounded-full border border-orange-dark py-3 pl-6 pr-14 w-[210px] xl:py-[15px] xl:pr-[55px] bg-white group"
-                      >
-                        <div className="absolute right-0 h-[500px] w-[600px] rounded-full shadow-2xl transition-transform duration-500 ease-in-out scale-0 bg-orange-dark group-hover:scale-100"></div>
-                        <span className="relative z-10 transition-colors duration-500 text-orange-dark group-hover:text-white font-extrabold">
-                          View keywords
-                        </span>
-                        <div className="absolute right-1 top-1/2 z-10 -translate-y-1/2 transform">
-                          <div className="relative flex items-center justify-center">
-                            <div className="h-10 w-10 rounded-full transition-all duration-500 ease-in-out bg-orange-dark flex items-center justify-center group-hover:bg-white">
-                              <IoArrowForwardOutline className="h-5 w-5 text-white group-hover:text-orange-dark transition-colors duration-500" />
+                      <div className="mt-4 flex gap-2">
+                        <Link href={`/HR/applications/cv-viewer/${application.id}`}>
+                          <button
+                            type="button"
+                            className="relative flex items-center justify-between overflow-hidden rounded-full border border-orange-dark py-3 pl-6 pr-14 w-[210px] xl:py-[15px] xl:pr-[55px] bg-white group"
+                          >
+                            <div className="absolute right-0 h-[500px] w-[600px] rounded-full shadow-2xl transition-transform duration-500 ease-in-out scale-0 bg-orange-dark group-hover:scale-100"></div>
+                            <span className="relative z-10 transition-colors duration-500 text-orange-dark group-hover:text-white font-extrabold">
+                              View keywords
+                            </span>
+                            <div className="absolute right-1 top-1/2 z-10 -translate-y-1/2 transform">
+                              <div className="relative flex items-center justify-center">
+                                <div className="h-10 w-10 rounded-full transition-all duration-500 ease-in-out bg-orange-dark flex items-center justify-center group-hover:bg-white">
+                                  <IoArrowForwardOutline className="h-5 w-5 text-white group-hover:text-orange-dark transition-colors duration-500" />
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        </div>
-                      </button>
-                    </Link>
-                    
-                    {application.result !== null && !isJobClosed && (
-                      <button
-                        type="button"
-                        onClick={() => setIsEmailModalOpen(true)}
-                        className="flex items-center gap-2 rounded-full bg-white-300 px-4 py-2 text-sm font-medium text-emerald-800 border border-emerald-500"
-                        disabled={application.emailSent}
-                        title={application.emailSent ? "Notification email already sent" : "Send email notification"}
-                      >
-                        <Mail className="h-5 w-5" />
-                        {application.emailSent ? "Email Sent" : "Send Email"}
-                      </button>
-                    )}
+                          </button>
+                        </Link>
+                        
+                        {application.result !== null && !isJobClosed && (
+                          <button
+                            type="button"
+                            onClick={() => setIsEmailModalOpen(true)}
+                            className="flex items-center gap-2 rounded-full bg-white-300 px-4 py-2 text-sm font-medium text-emerald-800 border border-emerald-500"
+                            disabled={application.emailSent}
+                            title={application.emailSent ? "Notification email already sent" : "Send email notification"}
+                          >
+                            <Mail className="h-5 w-5" />
+                            {application.emailSent ? "Email Sent" : "Send Email"}
+                          </button>
+                        )}
+                      </div>
+                      
+                    </div>
+                    <div className="w-1/2">
+                      <MatchScoreChartInline
+                        roleScore={Number(application?.roleScore ?? 0)}
+                        expScore={Number(application?.expScore ?? 0)}
+                        programmingScore={Number(application?.programmingScore ?? 0)}
+                        technicalScore={Number(application?.technicalScore ?? 0)}
+                        softScore={Number(application?.softScore ?? 0)}
+                        langsScore={Number(application?.langsScore ?? 0)}
+                        keyScore={Number(application?.keyScore ?? 0)}
+                        certScore={Number(application?.certScore ?? 0)}
+                        totalScore={Number(application?.matchingScore ?? 0)}
+                      />
+                    </div>
                   </div>
-                  
-                </div>
-                <div className="w-1/2">
-                  <MatchScoreChartInline
-                    roleScore={Number(application?.roleScore ?? 0)}
-                    expScore={Number(application?.expScore ?? 0)}
-                    programmingScore={Number(application?.programmingScore ?? 0)}
-                    technicalScore={Number(application?.technicalScore ?? 0)}
-                    softScore={Number(application?.softScore ?? 0)}
-                    langsScore={Number(application?.langsScore ?? 0)}
-                    keyScore={Number(application?.keyScore ?? 0)}
-                    certScore={Number(application?.certScore ?? 0)}
-                    totalScore={Number(application?.matchingScore ?? 0)}
+                </CardContent>
+              </Card>
+
+              {application.missingFeedback && (
+                <MissingRequirementsCard feedback={application.missingFeedback} />
+              )}
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Evaluation</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ApplicationEvaluationForm
+                    initialNote={application.note || ""}
+                    initialResult={application.result}
+                    onSubmit={handleEvaluationSubmit}
+                    isLoading={saving}
+                    disabled={isJobClosed}
                   />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {application.missingFeedback && (
-            <MissingRequirementsCard feedback={application.missingFeedback} />
-          )}
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Evaluation</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ApplicationEvaluationForm
-                initialNote={application.note || ""}
-                initialResult={application.result}
-                onSubmit={handleEvaluationSubmit}
-                isLoading={saving}
-                disabled={isJobClosed}
-              />
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       </div>
 

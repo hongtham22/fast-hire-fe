@@ -317,7 +317,7 @@ export default function JobApplicationsPage() {
       )}
 
       {/* Main content with applications table and status chart */}
-      <div className="flex gap-6">
+      <div className="flex gap-4">
         {/* Applications table - left side */}
         <div className="flex-1 min-w-0">
           <div className="rounded-xl border shadow-sm">
@@ -482,10 +482,10 @@ export default function JobApplicationsPage() {
                                 e.stopPropagation();
                                 openFeedbackModal(application.missingFeedback || "");
                               }}
-                              className="text-left rounded bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-200 transition-colors"
+                              className="text-left rounded-lg bg-blue-100 px-2 py-1 text-xs font-medium text-black-600 hover:bg-gray-200 transition-colors"
                               title="View missing requirements"
                             >
-                              View Feedback
+                            View Feedback
                             </button>
                           )}
                           
@@ -519,7 +519,7 @@ export default function JobApplicationsPage() {
         </div>
 
         {/* Status chart - right side */}
-        <div className="w-72 flex-shrink-0">
+        <div className="w-64 flex-shrink-0">
           <ApplicationStatusChart applications={applications} />
         </div>
       </div>
