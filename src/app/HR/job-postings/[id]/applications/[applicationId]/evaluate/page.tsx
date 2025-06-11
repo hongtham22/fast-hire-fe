@@ -2,26 +2,31 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Loader2, Mail } from "lucide-react";
+import { ArrowLeft, Loader2, Mail, History } from "lucide-react";
 import { CVViewer } from "@/components/CVViewer";
 import { ApplicationEvaluationForm } from "@/components/ApplicationEvaluationForm";
 import { MissingRequirementsCard } from "@/components/MissingRequirementsCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Application } from "@/types/api";
+import { ApplicationApiResponse } from "@/types/application";
 import { JobDetail } from "@/types/job";
 import MatchScoreChartInline from "@/components/matchScoreChartInline";
-import { IoArrowForwardOutline } from 'react-icons/io5';
-import Link from 'next/link';
+import { IoArrowForwardOutline } from "react-icons/io5";
+import Link from "next/link";
 import EmailNotificationModal from "@/components/EmailNotificationModal";
-import { apiCall, getJobDetail } from "@/lib/api";
+import ApplicationHistoryModal from "@/components/candidates/ApplicationHistoryModal";
+import { apiCall, getJobDetail, getApplicationsByApplicantId } from "@/lib/api";
+import type { ApplicationHistory } from "@/components/candidates/useCandidates";
 
 export default function ApplicationEvaluationPage() {
-  const [application, setApplication] = useState<Application | null>(null);
+  const [application, setApplication] = useState<ApplicationApiResponse | null>(
+    null
+  );
   const [jobDetails, setJobDetails] = useState<JobDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const params = useParams();
   const router = useRouter();
   const { id: jobId, applicationId } = params;
@@ -36,13 +41,13 @@ export default function ApplicationEvaluationPage() {
       // Fetch both application and job details in parallel
       const [applicationResponse, jobResponse] = await Promise.all([
         apiCall(`/applications/${jobId}/applications/${applicationId}`),
-        getJobDetail(jobId as string)
+        getJobDetail(jobId as string),
       ]);
 
       if (!applicationResponse || !applicationResponse.ok) {
         throw new Error("Failed to fetch application");
       }
-      
+
       const applicationData = await applicationResponse.json();
       setApplication(applicationData);
 
@@ -65,7 +70,8 @@ export default function ApplicationEvaluationPage() {
       const response = await apiCall(
         `/applications/${jobId}/applications/${applicationId}`
       );
-      if (!response || !response.ok) throw new Error("Failed to fetch application");
+      if (!response || !response.ok)
+        throw new Error("Failed to fetch application");
       const data = await response.json();
       setApplication(data);
     } catch (error) {
@@ -98,12 +104,47 @@ export default function ApplicationEvaluationPage() {
     }
   };
 
+  const fetchApplicationHistory = async (
+    candidateId: string
+  ): Promise<ApplicationHistory[]> => {
+    try {
+      const response = await getApplicationsByApplicantId(candidateId);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+
+      return (response.data || []).map((app) => ({
+        id: app.id,
+        job: {
+          id: app.jobId,
+          jobTitle: app.job?.jobTitle || "Unknown Position",
+        },
+        submittedAt: app.submittedAt,
+        matchingScore: app.matchingScore,
+        result: app.result,
+        status:
+          app.result === true
+            ? ("accepted" as const)
+            : app.result === false
+            ? ("rejected" as const)
+            : ("pending" as const),
+      }));
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Failed to fetch application history");
+      }
+      throw error;
+    }
+  };
+
   const handleEvaluationSubmit = async (data: {
     note?: string;
     result: boolean | null;
   }) => {
     // Don't allow submission if job is closed
-    if (jobDetails?.status === 'closed') {
+    if (jobDetails?.status === "closed") {
       toast.error("Cannot evaluate application - job is closed");
       return;
     }
@@ -119,7 +160,8 @@ export default function ApplicationEvaluationPage() {
         }
       );
 
-      if (!response || !response.ok) throw new Error("Failed to save evaluation");
+      if (!response || !response.ok)
+        throw new Error("Failed to save evaluation");
 
       toast.success("Evaluation saved successfully");
       // Only fetch if we're submitting a result to avoid unnecessary refreshes
@@ -134,7 +176,7 @@ export default function ApplicationEvaluationPage() {
     }
   };
 
-  const isJobClosed = jobDetails?.status === 'closed';
+  const isJobClosed = jobDetails?.status === "closed";
 
   if (loading) {
     return (
@@ -207,7 +249,9 @@ export default function ApplicationEvaluationPage() {
                       </div>
                       <div>
                         <h3 className="font-medium">Position</h3>
-                        <p className="text-gray-600">{application.job.jobTitle}</p>
+                        <p className="text-gray-600">
+                          {application.job?.jobTitle || "Unknown Position"}
+                        </p>
                       </div>
                       <div>
                         <h3 className="font-medium">Applied On</h3>
@@ -217,12 +261,14 @@ export default function ApplicationEvaluationPage() {
                       </div>
 
                       <div className="mt-4 flex gap-2">
-                        <Link href={`/HR/applications/cv-viewer/${application.id}`}>
+                        <Link
+                          href={`/HR/applications/cv-viewer/${application.id}`}
+                        >
                           <button
                             type="button"
-                            className="relative flex items-center justify-between overflow-hidden rounded-full border border-orange-dark py-3 pl-6 pr-14 w-[210px] xl:py-[15px] xl:pr-[55px] bg-white group"
+                            className="relative flex items-center justify-between overflow-hidden rounded-full border border-orange-dark py-3 pl-6 pr-14 w-[200px] xl:py-[10px] xl:pr-[45px] bg-white group mb-2"
                           >
-                            <div className="absolute right-0 h-[500px] w-[600px] rounded-full shadow-2xl transition-transform duration-500 ease-in-out scale-0 bg-orange-dark group-hover:scale-100"></div>
+                            <div className="absolute right-0 h-[300px] w-[400px] rounded-full shadow-2xl transition-transform duration-500 ease-in-out scale-0 bg-orange-dark group-hover:scale-100"></div>
                             <span className="relative z-10 transition-colors duration-500 text-orange-dark group-hover:text-white font-extrabold">
                               View keywords
                             </span>
@@ -235,28 +281,47 @@ export default function ApplicationEvaluationPage() {
                             </div>
                           </button>
                         </Link>
-                        
-                        {application.result !== null && !isJobClosed && (
+                      </div>
+                      <div className="mt-4 flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setIsHistoryModalOpen(true)}
+                          className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-orange-dark border border-orange-dark hover:bg-orange-dark hover:text-white transition-colors duration-200"
+                        >
+                          <History className="h-4 w-4" />
+                          View History
+                        </button>
+
+                        {!application.emailSent && (
                           <button
                             type="button"
                             onClick={() => setIsEmailModalOpen(true)}
-                            className="flex items-center gap-2 rounded-full bg-white-300 px-4 py-2 text-sm font-medium text-emerald-800 border border-emerald-500"
+                            className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-emerald-800 border border-emerald-500 hover:bg-emerald-500 hover:text-white transition-colors duration-200"
                             disabled={application.emailSent}
-                            title={application.emailSent ? "Notification email already sent" : "Send email notification"}
+                            title={
+                              application.emailSent
+                                ? "Notification email already sent"
+                                : "Send email notification"
+                            }
                           >
-                            <Mail className="h-5 w-5" />
-                            {application.emailSent ? "Email Sent" : "Send Email"}
+                            <Mail className="h-4 w-4" />
+                            {application.emailSent
+                              ? "Email Sent"
+                              : "Send Email"}
                           </button>
                         )}
                       </div>
-                      
                     </div>
                     <div className="w-1/2">
                       <MatchScoreChartInline
                         roleScore={Number(application?.roleScore ?? 0)}
                         expScore={Number(application?.expScore ?? 0)}
-                        programmingScore={Number(application?.programmingScore ?? 0)}
-                        technicalScore={Number(application?.technicalScore ?? 0)}
+                        programmingScore={Number(
+                          application?.programmingScore ?? 0
+                        )}
+                        technicalScore={Number(
+                          application?.technicalScore ?? 0
+                        )}
                         softScore={Number(application?.softScore ?? 0)}
                         langsScore={Number(application?.langsScore ?? 0)}
                         keyScore={Number(application?.keyScore ?? 0)}
@@ -269,7 +334,9 @@ export default function ApplicationEvaluationPage() {
               </Card>
 
               {application.missingFeedback && (
-                <MissingRequirementsCard feedback={application.missingFeedback} />
+                <MissingRequirementsCard
+                  feedback={application.missingFeedback}
+                />
               )}
 
               <Card>
@@ -298,6 +365,22 @@ export default function ApplicationEvaluationPage() {
           fetchApplication(); // Refresh to update email sent status
         }}
         applicationId={applicationId as string}
+      />
+
+      <ApplicationHistoryModal
+        isOpen={isHistoryModalOpen}
+        onClose={() => setIsHistoryModalOpen(false)}
+        candidate={
+          application?.applicant
+            ? {
+                id: application.applicant.id,
+                name: application.applicant.name,
+                email: application.applicant.email,
+              }
+            : null
+        }
+        fetchApplicationHistory={fetchApplicationHistory}
+        onError={(errorMessage) => toast.error(errorMessage)}
       />
     </div>
   );

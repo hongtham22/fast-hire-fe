@@ -10,21 +10,22 @@ const CandidatesTable: React.FC<CandidatesTableProps> = ({ candidates, onViewHis
   return (
     <div className="rounded-xl border shadow-sm">
       {/* Table Header */}
-      <div className="grid grid-cols-7 gap-4 border-b bg-gray-50 px-6 py-3 text-sm font-medium text-gray-600">
-        <div className="">Candidate Info</div>
-        <div>Key Skills</div>
-        <div>Experience</div>
-        <div>Languages</div>
-        <div>Latest Application</div>
-        <div>Total Applications</div>
-        <div>Actions</div>
+      <div className="grid grid-cols-12 gap-4 border-b bg-gray-50 px-6 py-3 text-sm font-medium text-gray-600">
+        <div className="col-span-2">Candidate Info</div>
+        <div className="col-span-2">Key Skills</div>
+        <div className="col-span-1">Experience</div>
+        <div className="col-span-2">Languages</div>
+        <div className="col-span-3">Latest Application</div>
+        <div className="col-span-1">Total</div>
+        <div className="col-span-1">Actions</div>
       </div>
       
       {/* Table Body */}
       <div className="divide-y">
         {candidates.length === 0 ? (
-          <div className="px-6 py-8 text-center text-gray-500">
-            No candidates match your search criteria
+          <div className="px-6 py-12 text-center">
+            <p className="text-gray-500 text-lg">No candidates match your search criteria</p>
+            <p className="text-gray-400 text-sm mt-1">Try adjusting your filters or search term</p>
           </div>
         ) : (
           candidates.map((candidate) => (

@@ -739,6 +739,18 @@ export async function getDashboardData(): Promise<ApiResponse<DashboardData>> {
   }
 }
 
+export interface ApplicantStatistics {
+  totalApplicants: number;
+  multipleApplicationsCount: number;
+  highMatchingCount: number;
+}
+
+export async function getApplicantStatistics(): Promise<ApiResponse<ApplicantStatistics>> {
+  return handleApiResponse(
+    apiCall('/applicants/statistics')
+  );
+}
+
 // Re-export types for easier access
 export type {
   ApiResponse,

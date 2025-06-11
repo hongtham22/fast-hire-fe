@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Search, ArrowLeft, Loader2, Tag, X, Mail } from "lucide-react";
+import { Search, ArrowLeft, Loader2, Tag, X, Mail, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { getApplicationsByJobId } from "@/lib/api";
 import { Application, ApplicationApiResponse, ApplicationWithCV } from "@/types/application";
 import MatchScoreCircle from "@/components/MatchScoreCircle";
@@ -60,6 +60,11 @@ export default function JobApplicationsPage() {
   const [isBulkEmailModalOpen, setIsBulkEmailModalOpen] = useState(false);
   const [selectedApplicationIds, setSelectedApplicationIds] = useState<string[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<string>("");
+  const [sortBy, setSortBy] = useState<"none" | "score_asc" | "score_desc">("none");
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [topMatchScore, setTopMatchScore] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const params = useParams();
   const router = useRouter();
@@ -69,6 +74,20 @@ export default function JobApplicationsPage() {
     fetchApplications();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobId]);
+
+  useEffect(() => {
+    if (applications.length > 0) {
+      // Find the highest matching score
+      const highestScore = Math.max(
+        ...applications
+          .filter(app => app.matchScore !== undefined)
+          .map(app => app.matchScore || 0)
+      );
+      setTopMatchScore(highestScore > 0 ? highestScore : null);
+    } else {
+      setTopMatchScore(null);
+    }
+  }, [applications]);
 
   const fetchApplications = async () => {
     setLoading(true);
@@ -201,9 +220,28 @@ export default function JobApplicationsPage() {
     setIsBulkEmailModalOpen(true);
   };
 
-  const filteredApplications = applications.filter((app) =>
-    app.applicant.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredApplications = applications
+    .filter((app) => app.applicant.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    .sort((a, b) => {
+      if (sortBy === "score_desc") {
+        return (b.matchScore || 0) - (a.matchScore || 0);
+      } else if (sortBy === "score_asc") {
+        return (a.matchScore || 0) - (b.matchScore || 0);
+      }
+      return 0;
+    });
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredApplications.length / itemsPerPage);
+  const paginatedApplications = filteredApplications.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
   );
+
+  // Reset to first page when search query or sort changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, sortBy]);
 
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
@@ -244,7 +282,86 @@ export default function JobApplicationsPage() {
       hour12: true
     });
   };
-  
+
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+
+    // Generate page numbers to display
+    const getPageNumbers = () => {
+      const pageNumbers = [];
+      const maxPageButtons = 5; // Maximum number of page buttons to show
+      
+      if (totalPages <= maxPageButtons) {
+        // Show all pages if there are few pages
+        for (let i = 1; i <= totalPages; i++) {
+          pageNumbers.push(i);
+        }
+      } else {
+        // Show a range of pages
+        let startPage = Math.max(1, currentPage - Math.floor(maxPageButtons / 2));
+        let endPage = startPage + maxPageButtons - 1;
+        
+        if (endPage > totalPages) {
+          endPage = totalPages;
+          startPage = Math.max(1, endPage - maxPageButtons + 1);
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+          pageNumbers.push(i);
+        }
+      }
+      
+      return pageNumbers;
+    };
+
+    return (
+      <div className="mt-4 flex items-center justify-between px-6 py-3 border-t border-gray-200">
+        <div className="text-sm text-gray-500">
+          Showing {paginatedApplications.length} of {filteredApplications.length} applications
+          {searchQuery && ` matching "${searchQuery}"`}
+        </div>
+        
+        {/* Pagination controls */}
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1 || loading}
+            className={`rounded-md border border-gray-300 p-1 ${
+              currentPage === 1 || loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'
+            }`}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          
+          {getPageNumbers().map((page) => (
+            <button
+              key={page}
+              onClick={() => setCurrentPage(page)}
+              disabled={loading}
+              className={`rounded-md px-3 py-1 text-sm font-medium ${
+                currentPage === page
+                  ? 'bg-blue-50 text-blue-600 border border-blue-200'
+                  : 'border border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+          
+          <button
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages || loading}
+            className={`rounded-md border border-gray-300 p-1 ${
+              currentPage === totalPages || loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'
+            }`}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -306,10 +423,61 @@ export default function JobApplicationsPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        {/* <button className="flex items-center gap-2 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50">
-          <Filter className="h-4 w-4" />
-          Filters
-        </button> */}
+        
+        {/* Sort dropdown */}
+        <div className="relative z-50">
+          <button
+            onClick={() => setShowSortDropdown(!showSortDropdown)}
+            className="flex items-center gap-2 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50"
+          >
+            <span>
+              {sortBy === "none"
+                ? "Sort by"
+                : sortBy === "score_desc"
+                ? "Highest Score First"
+                : "Lowest Score First"}
+            </span>
+            <ChevronDown className="h-4 w-4" />
+          </button>
+
+          {showSortDropdown && (
+            <div className="absolute right-0 mt-2 w-48 rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 z-10">
+              <button
+                className={`block w-full px-4 py-2 text-left text-sm ${
+                  sortBy === "none" ? "bg-gray-100" : "hover:bg-gray-50"
+                }`}
+                onClick={() => {
+                  setSortBy("none");
+                  setShowSortDropdown(false);
+                }}
+              >
+                No Sort
+              </button>
+              <button
+                className={`block w-full px-4 py-2 text-left text-sm ${
+                  sortBy === "score_desc" ? "bg-gray-100" : "hover:bg-gray-50"
+                }`}
+                onClick={() => {
+                  setSortBy("score_desc");
+                  setShowSortDropdown(false);
+                }}
+              >
+                Highest Score First
+              </button>
+              <button
+                className={`block w-full px-4 py-2 text-left text-sm ${
+                  sortBy === "score_asc" ? "bg-gray-100" : "hover:bg-gray-50"
+                }`}
+                onClick={() => {
+                  setSortBy("score_asc");
+                  setShowSortDropdown(false);
+                }}
+              >
+                Lowest Score First
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {error && (
@@ -337,182 +505,196 @@ export default function JobApplicationsPage() {
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
               </div>
-            ) : filteredApplications.length === 0 ? (
+            ) : paginatedApplications.length === 0 ? (
               <div className="p-8 text-center text-gray-500">
                 {searchQuery
                   ? "No applications found matching your search."
                   : "No applications for this job posting yet."}
               </div>
             ) : (
-              <div className="divide-y">
-                {filteredApplications.map((application) => (
-                  <div
-                    key={application.id}
-                    className="grid grid-cols-12 gap-2 px-4 py-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100"
-                    onClick={() =>
-                      router.push(
-                        `/HR/job-postings/${jobId}/applications/${application.id}/evaluate`
-                      )
-                    }
-                  >
-                    <div className="col-span-2 flex items-start gap-4">
-                      <MatchScoreCircle
-                        score={application.matchScore || 0}
-                        scores={
-                          application.roleScore !== undefined
-                            ? {
-                                roleScore: application.roleScore,
-                                expScore: application.expScore || 0,
-                                programmingScore: application.programmingScore || 0,
-                                technicalScore: application.technicalScore || 0,
-                                softScore: application.softScore || 0,
-                                langsScore: application.langsScore || 0,
-                                keyScore: application.keyScore || 0,
-                                certScore: application.certScore || 0,
-                              }
-                            : undefined
-                        }
-                      />
+              <div>
+                <div className="divide-y">
+                  {paginatedApplications.map((application) => (
+                    <div
+                      key={application.id}
+                      className="grid grid-cols-12 gap-2 px-4 py-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100"
+                      onClick={() =>
+                        router.push(
+                          `/HR/job-postings/${jobId}/applications/${application.id}/evaluate`
+                        )
+                      }
+                    >
+                      <div className="col-span-2 flex items-start gap-4">
+                        <div className="relative">
+                          <MatchScoreCircle
+                            score={application.matchScore || 0}
+                            scores={
+                              application.roleScore !== undefined
+                                ? {
+                                    roleScore: application.roleScore,
+                                    expScore: application.expScore || 0,
+                                    programmingScore: application.programmingScore || 0,
+                                    technicalScore: application.technicalScore || 0,
+                                    softScore: application.softScore || 0,
+                                    langsScore: application.langsScore || 0,
+                                    keyScore: application.keyScore || 0,
+                                    certScore: application.certScore || 0,
+                                  }
+                                : undefined
+                            }
+                          />
+                          {topMatchScore !== null && 
+                           application.matchScore === topMatchScore && 
+                           topMatchScore > 0 && (
+                            <div className="absolute top-0 left-0 transform -translate-y-1/2 -translate-x-1/2">
+                              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white shadow-md ring-2 ring-white">
+                                ★
+                              </div>
+                            </div>
+                          )}
+                        </div>
 
-                      <div className="flex flex-col">
-                        <span className="font-medium text-gray-800">
-                          {application.applicant.name}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          {application.applicant.email}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="col-span-2">
-                      <div className="flex flex-wrap max-w-[210px] gap-1">
-                        {application.skills && application.skills.length > 0 ? (
-                          application.skills.map((skill, index) => (
-                            <span
-                              key={index}
-                              className="inline-flex rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800"
-                            >
-                              {skill}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-xs text-gray-500">No data</span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="col-span-2">
-                      <div className="flex flex-wrap max-w-[210px] gap-1">
-                        {application.technical_skills &&
-                        application.technical_skills.length > 0 ? (
-                          application.technical_skills.map((skill, index) => (
-                            <span
-                              key={index}
-                              className="inline-flex rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700"
-                            >
-                              {skill}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-xs text-gray-500">No data</span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="col-span-1 text-sm text-gray-700">
-                      {application.experience_years !== null ? (
-                        `${application.experience_years} yrs`
-                      ) : (
-                        <span className="text-gray-400">No data</span>
-                      )}
-                    </div>
-
-                    <div className="col-span-1 text-gray-700 text-sm">
-                      {(application.education &&
-                        application.education[0]?.university) || (
-                        <span className="text-gray-400">No data</span>
-                      )}
-                    </div>
-
-                    <div className="col-span-1 text-gray-700 text-sm">
-                      {(application.education && application.education[0]?.gpa) || (
-                        <span className="text-gray-400">No data</span>
-                      )}
-                    </div>
-
-                    <div className="col-span-1 text-gray-700">
-                      <div className="flex flex-col gap-1">
-                        {application.languages &&
-                        application.languages.length > 0 ? (
-                          application.languages.map((lang, index) => (
-                            <span key={index} className="text-xs">
-                              {lang.language}:{" "}
-                              <span className="font-medium">{lang.level}</span>
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-xs text-gray-500">No data</span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="col-span-1 text-gray-700 text-sm">
-                     {formatDate(application.createdAt || "")}
-                    </div>
-
-                    <div className="col-span-1">
-                      <div className="space-y-2">
-                        {/* Status badge */}
-                        <div className="flex">
-                          <span
-                            className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getStatusBadgeClass(
-                              application.status
-                            )}`}
-                          >
-                            {getStatusDisplay(application.status)}
+                        <div className="flex flex-col">
+                          <span className="font-medium text-gray-800">
+                            {application.applicant.name}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {application.applicant.email}
                           </span>
                         </div>
+                      </div>
 
-                        {/* Additional indicators */}
-                        <div className="space-y-1">
-
-                          {application.missingFeedback && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openFeedbackModal(application.missingFeedback || "");
-                              }}
-                              className="text-left rounded-lg bg-blue-100 px-2 py-1 text-xs font-medium text-black-600 hover:bg-gray-200 transition-colors"
-                              title="View missing requirements"
-                            >
-                            View Feedback
-                            </button>
-                          )}
-                          
-                          {application.hasNote && (
-                            <div className="flex items-center gap-1 text-xs text-blue-600">
-                              <span className="h-1.5 w-1.5 rounded-full bg-blue-600"></span>
-                              <span>Has note</span>
-                            </div>
-                          )}
-
-                          {/* Email notification flag */}
-                          {application.status !== "new" && (
-                            <div 
-                              className={`flex items-center gap-1 text-xs ${
-                                application.emailSent ? "text-blue-600" : "text-gray-500"
-                              }`}
-                              title={application.emailSent ? "Email notification sent" : "No email notification sent yet"}
-                            >
-                              <Mail className="h-3 w-3" />
-                              <span>{application.emailSent ? "Email sent" : "No email"}</span>
-                            </div>
+                      <div className="col-span-2">
+                        <div className="flex flex-wrap max-w-[210px] gap-1">
+                          {application.skills && application.skills.length > 0 ? (
+                            application.skills.map((skill, index) => (
+                              <span
+                                key={index}
+                                className="inline-flex rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800"
+                              >
+                                {skill}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-xs text-gray-500">No data</span>
                           )}
                         </div>
                       </div>
+
+                      <div className="col-span-2">
+                        <div className="flex flex-wrap max-w-[210px] gap-1">
+                          {application.technical_skills &&
+                          application.technical_skills.length > 0 ? (
+                            application.technical_skills.map((skill, index) => (
+                              <span
+                                key={index}
+                                className="inline-flex rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700"
+                              >
+                                {skill}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-xs text-gray-500">No data</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="col-span-1 text-sm text-gray-700">
+                        {application.experience_years !== null ? (
+                          `${application.experience_years} yrs`
+                        ) : (
+                          <span className="text-gray-400">No data</span>
+                        )}
+                      </div>
+
+                      <div className="col-span-1 text-gray-700 text-sm">
+                        {(application.education &&
+                          application.education[0]?.university) || (
+                          <span className="text-gray-400">No data</span>
+                        )}
+                      </div>
+
+                      <div className="col-span-1 text-gray-700 text-sm">
+                        {(application.education && application.education[0]?.gpa) || (
+                          <span className="text-gray-400">No data</span>
+                        )}
+                      </div>
+
+                      <div className="col-span-1 text-gray-700">
+                        <div className="flex flex-col gap-1">
+                          {application.languages &&
+                          application.languages.length > 0 ? (
+                            application.languages.map((lang, index) => (
+                              <span key={index} className="text-xs">
+                                {lang.language}:{" "}
+                                <span className="font-medium">{lang.level}</span>
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-xs text-gray-500">No data</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="col-span-1 text-gray-700 text-sm">
+                       {formatDate(application.createdAt || "")}
+                      </div>
+
+                      <div className="col-span-1">
+                        <div className="space-y-2">
+                          {/* Status badge */}
+                          <div className="flex">
+                            <span
+                              className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getStatusBadgeClass(
+                                application.status
+                              )}`}
+                            >
+                              {getStatusDisplay(application.status)}
+                            </span>
+                          </div>
+
+                          {/* Additional indicators */}
+                          <div className="space-y-1">
+
+                            {application.missingFeedback && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openFeedbackModal(application.missingFeedback || "");
+                                }}
+                                className="text-left rounded-lg bg-blue-100 px-2 py-1 text-xs font-medium text-black-600 hover:bg-gray-200 transition-colors"
+                                title="View missing requirements"
+                              >
+                              View Feedback
+                              </button>
+                            )}
+                            
+                            {application.hasNote && (
+                              <div className="flex items-center gap-1 text-xs text-blue-600">
+                                <span className="h-1.5 w-1.5 rounded-full bg-blue-600"></span>
+                                <span>Has note</span>
+                              </div>
+                            )}
+
+                            {/* Email notification flag */}
+                            {application.status !== "new" && (
+                              <div 
+                                className={`flex items-center gap-1 text-xs ${
+                                  application.emailSent ? "text-blue-600" : "text-gray-500"
+                                }`}
+                                title={application.emailSent ? "Email notification sent" : "No email notification sent yet"}
+                              >
+                                <Mail className="h-3 w-3" />
+                                <span>{application.emailSent ? "Email sent" : "No email"}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+                {renderPagination()}
               </div>
             )}
           </div>

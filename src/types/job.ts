@@ -79,7 +79,7 @@ export interface JobListItem {
  * Job list response wrapper
  */
 export interface JobListResponse {
-  jobs: JobListItem[];
+  jobs: Job[];
   total: number;
 }
 
@@ -159,4 +159,40 @@ export interface JobPosting extends Omit<JobListItem, 'location'> {
  */
 export interface ExtendedJobListItem extends JobListItem {
   totalApplications?: number;
+}
+
+export interface Job {
+  id: string;
+  jobTitle: string;
+  title?: string;
+  description: string;
+  requirements?: string;
+  experienceYear?: string;
+  location: {
+    id: string;
+    name: string;
+  };
+  keyResponsibility?: string;
+  mustHave?: string;
+  niceToHave?: string;
+  languageSkills?: string;
+  ourOffer?: string;
+  creator?: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+  };
+  status?: string;
+  createdAt?: string;
+  expireDate?: string | null;
+  applicationCount?: number;
+}
+
+export interface JobFilters {
+  page?: number;
+  limit?: number;
+  query?: string;
+  locationId?: string;
+  status?: 'pending' | 'approved' | 'closed' | 'rejected';
 } 

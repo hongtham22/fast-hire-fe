@@ -48,7 +48,7 @@ export function MatchScoreDetails({ score, scores, children }: MatchScoreDetails
   const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-2 border border-gray-200 rounded shadow-sm text-xs text-gray-700 z-50">
+        <div className="bg-white p-2 border border-gray-200 rounded shadow-sm text-xs text-gray-700 z-40">
           <p className="font-medium">{payload[0].name}</p>
           <p>{`Score: ${payload[0].value}%`}</p>
         </div>
@@ -60,7 +60,7 @@ export function MatchScoreDetails({ score, scores, children }: MatchScoreDetails
   return (
     <HoverCard>
       <HoverCardTrigger asChild>{children}</HoverCardTrigger>
-      <HoverCardContent className="w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+      <HoverCardContent className="w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-40">
         <h3 className="text-sm ml-4 mt-2 font-semibold text-gray-800">Match Score Breakdown</h3>
         <div className="h-52 relative ">
           <ResponsiveContainer width="100%" height="100%">

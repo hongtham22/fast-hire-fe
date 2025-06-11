@@ -6,7 +6,8 @@ import { getJobsForHR, JobListItem, deleteJob, apiCall } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import CreateJobModal from "@/components/JobModal/CreateJobModal";
 import EditJobModal from "@/components/JobModal/EditJobModal";
-import { Job } from "@/app/context/JobsContext";
+import { formatDate } from "@/lib/utils";
+import { Job } from "@/types/job";
 
 export default function JobPostingsPage() {
   const [jobs, setJobs] = useState<JobListItem[]>([]);
@@ -56,7 +57,15 @@ export default function JobPostingsPage() {
       if (response.error) {
         setError(response.error);
       } else {
-        setJobs(response.data?.jobs || []);
+        setJobs((response.data?.jobs || []).map(job => ({
+          id: job.id,
+          jobTitle: job.jobTitle,
+          location: job.location.name,
+          applicationCount: job.applicationCount || 0,
+          status: (job.status || 'pending') as 'pending' | 'approved' | 'closed' | 'rejected',
+          createdAt: job.createdAt || new Date().toISOString(),
+          expireDate: job.expireDate || null
+        })));
         setTotalJobs(response.data?.total || 0);
       }
     } catch (err) {
@@ -287,11 +296,12 @@ export default function JobPostingsPage() {
       )}
       
       <div className="rounded-xl border shadow-sm">
-        <div className="grid grid-cols-7 gap-4 border-b bg-gray-50 px-6 py-3 font-medium">
+        <div className="grid grid-cols-8 gap-4 border-b bg-gray-50 px-6 py-3 font-medium">
           <div className="col-span-2">Position</div>
           <div>Location</div>
-          <div>Created At</div>
           <div>Applications</div>
+          <div>Created At</div>
+          <div>Expired At</div>
           <div>Status</div>
           <div>Actions</div>
         </div>
@@ -307,11 +317,12 @@ export default function JobPostingsPage() {
         ) : (
           <div className="divide-y">
             {jobs.map((job) => (
-              <div key={job.id} className="grid grid-cols-7 gap-4 px-6 py-4">
+              <div key={job.id} className="grid grid-cols-8 gap-4 px-6 py-4 text-sm">
                 <div className="col-span-2 font-medium">{job.jobTitle}</div>
                 <div className="text-gray-600">{job.location}</div>
-                <div className="text-gray-600"> {new Date(job.createdAt || "").toLocaleString()}</div>
                 <div className="text-gray-600">{job.applicationCount}</div>
+                <div className="text-gray-600"> {formatDate(job.createdAt || "")}</div>
+                <div className="text-gray-600">{formatDate(job.expireDate || "")}</div>
                 <div>
                   <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getStatusBadgeClass(job.status)}`}>
                     {capitalizeFirstLetter(job.status)}
