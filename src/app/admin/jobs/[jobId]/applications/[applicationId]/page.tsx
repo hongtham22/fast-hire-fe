@@ -138,21 +138,21 @@ export default function AdminApplicationDetailPage() {
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6" style={{ height: "calc(100vh - 200px)" }}>
+      <div className="flex flex-col lg:flex-row gap-6">
         {/* Left Column - CV Viewer */}
-        <div className="w-full lg:w-3/5 h-full">
-          <Card className="h-full flex flex-col">
-            <CardHeader className="pb-2 flex-shrink-0">
+        <div className="w-full lg:w-1/2">
+          <Card>
+            <CardHeader className="pb-2">
               <CardTitle>CV Document</CardTitle>
             </CardHeader>
-            <CardContent className="flex-grow overflow-auto">
+            <CardContent>
               <CVViewer cvFileUrl={application.cvFileUrl} />
             </CardContent>
           </Card>
         </div>
 
         {/* Right Column - Details */}
-        <div className="w-full lg:w-2/5 space-y-6 overflow-y-auto">
+        <div className="w-full lg:w-1/2 space-y-6">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle>Application Details</CardTitle>

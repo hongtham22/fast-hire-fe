@@ -287,7 +287,7 @@ export default function JobApprovals() {
                           <>
                             <button
                               onClick={() => handleApprove(job.id, job.jobTitle)}
-                              className="inline-flex items-center px-3 py-1 border border-transparent shadow-sm text-xs leading-4 font-medium rounded-md text-white bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                              className="inline-flex items-center px-3 py-1 border border-transparent shadow-sm text-xs leading-4 font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                               title="Approve Job"
                             >
                               <Check className="w-4 h-4 mr-1" />
@@ -295,7 +295,7 @@ export default function JobApprovals() {
                             </button>
                             <button
                               onClick={() => handleReject(job.id, job.jobTitle)}
-                              className="inline-flex items-center px-3 py-1 border border-transparent shadow-sm text-xs leading-4 font-medium rounded-md text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                              className="inline-flex items-center px-3 py-1 border border-transparent shadow-sm text-xs leading-4 font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                               title="Reject Job"
                             >
                               <X className="w-4 h-4 mr-1" />

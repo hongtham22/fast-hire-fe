@@ -31,7 +31,7 @@ export default function MaxScoresEditor({ values, onChange, error }: MaxScoresEd
       setScores(defaults);
       onChange(defaults);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Update scores when values prop changes
@@ -53,6 +53,28 @@ export default function MaxScoresEditor({ values, onChange, error }: MaxScoresEd
     onChange(newScores);
   };
 
+  const handleResetToDefaults = () => {
+    const defaults: Record<string, number> = {};
+    SCORE_FIELDS.forEach(field => {
+      defaults[field.id] = field.defaultValue;
+    });
+    setScores(defaults);
+    onChange(defaults);
+  };
+
+  const handleDistributeEqually = () => {
+    const equalValue = Math.floor(100 / SCORE_FIELDS.length);
+    const remainder = 100 % SCORE_FIELDS.length;
+    const distributed: Record<string, number> = {};
+
+    SCORE_FIELDS.forEach((field, index) => {
+      distributed[field.id] = equalValue + (index < remainder ? 1 : 0);
+    });
+
+    setScores(distributed);
+    onChange(distributed);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -71,7 +93,7 @@ export default function MaxScoresEditor({ values, onChange, error }: MaxScoresEd
         </div>
       )}
 
-      <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-x-6 gap-y-4">
         {SCORE_FIELDS.map((field) => (
           <div key={field.id}>
             <div className="flex justify-between mb-1">
@@ -93,11 +115,22 @@ export default function MaxScoresEditor({ values, onChange, error }: MaxScoresEd
         ))}
       </div>
 
-      {total !== 100 && (
-        <div className="text-sm text-amber-600">
-          Total score weights must equal 100. Current total: {total}
-        </div>
-      )}
+      <div className="flex justify-end gap-4 pt-4">
+        <button
+          type="button"
+          onClick={handleDistributeEqually}
+          className="text-sm text-blue-600 hover:underline"
+        >
+          Distribute equally
+        </button>
+        <button
+          type="button"
+          onClick={handleResetToDefaults}
+          className="text-sm text-gray-600 hover:underline"
+        >
+          Reset to default
+        </button>
+      </div>
     </div>
   );
-} 
+}
