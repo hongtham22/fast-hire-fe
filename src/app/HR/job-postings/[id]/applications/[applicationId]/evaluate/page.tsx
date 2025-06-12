@@ -15,7 +15,7 @@ import { IoArrowForwardOutline } from "react-icons/io5";
 import Link from "next/link";
 import EmailNotificationModal from "@/components/EmailNotificationModal";
 import ApplicationHistoryModal from "@/components/candidates/ApplicationHistoryModal";
-import { apiCall, getJobDetail, getApplicationsByApplicantId } from "@/lib/api";
+import { apiCall, getJobDetail, getApplicationsByApplicantId, checkApplicantJobEmail } from "@/lib/api";
 import type { ApplicationHistory } from "@/components/candidates/useCandidates";
 
 export default function ApplicationEvaluationPage() {
@@ -27,6 +27,7 @@ export default function ApplicationEvaluationPage() {
   const [saving, setSaving] = useState(false);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [emailWarning, setEmailWarning] = useState<string | null>(null);
   const params = useParams();
   const router = useRouter();
   const { id: jobId, applicationId } = params;
@@ -35,6 +36,38 @@ export default function ApplicationEvaluationPage() {
     fetchApplicationAndJob();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [applicationId]);
+
+  // Check for existing emails when application is loaded
+  useEffect(() => {
+    const checkExistingEmails = async () => {
+      if (!application) return;
+      
+      try {
+        const { data, error } = await checkApplicantJobEmail(
+          application.applicantId,
+          application.jobId
+        );
+        
+        if (error) {
+          console.error('Error checking existing emails:', error);
+          return;
+        }
+        
+        if (data?.hasReceived) {
+          const sentDate = data.sentAt ? new Date(data.sentAt).toLocaleDateString() : 'Unknown date';
+          setEmailWarning(
+            `${application.applicant.name} already received a ${data.emailType} email for this position on ${sentDate}. No additional result emails can be sent.`
+          );
+        } else {
+          setEmailWarning(null);
+        }
+      } catch (error) {
+        console.error('Error checking existing emails:', error);
+      }
+    };
+
+    checkExistingEmails();
+  }, [application]);
 
   const fetchApplicationAndJob = async () => {
     try {
@@ -177,6 +210,8 @@ export default function ApplicationEvaluationPage() {
   };
 
   const isJobClosed = jobDetails?.status === "closed";
+  const isEmailSent = application?.emailSent;
+  const hasEvaluationResult = application?.result !== null && application?.result !== undefined;
 
   if (loading) {
     return (
@@ -215,6 +250,25 @@ export default function ApplicationEvaluationPage() {
       </div>
 
       <div className="p-6 bg-white">
+        {/* Email Warning */}
+        {emailWarning && (
+          <div className="mb-6 p-4 rounded-lg bg-yellow-50 border border-yellow-200">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <Mail className="h-5 w-5 text-yellow-600" />
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-yellow-800">
+                  Email Already Sent
+                </h3>
+                <p className="text-sm text-yellow-700 mt-1">
+                  {emailWarning}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="flex flex-row gap-6">
           {/* Left Column - CV Viewer */}
           <div className="w-1/2">
@@ -292,22 +346,33 @@ export default function ApplicationEvaluationPage() {
                           View History
                         </button>
 
-                        {!application.emailSent && (
+                        {hasEvaluationResult && !application.emailSent && (
                           <button
                             type="button"
                             onClick={() => setIsEmailModalOpen(true)}
                             className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-emerald-800 border border-emerald-500 hover:bg-emerald-500 hover:text-white transition-colors duration-200"
                             disabled={application.emailSent}
                             title={
-                              application.emailSent
+                              !hasEvaluationResult
+                                ? "Please complete evaluation first"
+                                : application.emailSent
                                 ? "Notification email already sent"
                                 : "Send email notification"
                             }
                           >
                             <Mail className="h-4 w-4" />
-                            {application.emailSent
-                              ? "Email Sent"
-                              : "Send Email"}
+                            Send Email
+                          </button>
+                        )}
+
+                        {application.emailSent && (
+                          <button
+                            type="button"
+                            className="flex items-center gap-2 rounded-full bg-gray-100 px-4 py-2 text-sm font-medium text-gray-500 border border-gray-300 cursor-not-allowed"
+                            disabled={true}
+                          >
+                            <Mail className="h-4 w-4" />
+                            Email Sent
                           </button>
                         )}
                       </div>
@@ -350,6 +415,8 @@ export default function ApplicationEvaluationPage() {
                     onSubmit={handleEvaluationSubmit}
                     isLoading={saving}
                     disabled={isJobClosed}
+                    disabledReason={isJobClosed ? 'job-closed' : 'email-sent'}
+                    noteOnlyMode={isEmailSent && !isJobClosed}
                   />
                 </CardContent>
               </Card>

@@ -11,6 +11,19 @@ export interface EmailTemplate {
 }
 
 /**
+ * Mail Log interface
+ */
+export interface MailLog {
+  id: string;
+  applicationId: string;
+  emailTemplateId: string;
+  subject: string;
+  message: string;
+  createdBy: string;
+  created_at: string;
+}
+
+/**
  * Email preview response
  */
 export interface EmailPreview {
@@ -23,4 +36,8 @@ export interface EmailPreview {
  */
 export interface EmailNotificationResponse {
   success: boolean;
+  successCount?: number;
+  failedApplications?: string[];
+  skippedApplications?: string[];
+  mailLog?: MailLog; 
 } 

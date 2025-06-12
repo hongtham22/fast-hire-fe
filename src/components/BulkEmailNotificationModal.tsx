@@ -76,15 +76,39 @@ export default function BulkEmailNotificationModal({
       if (error) {
         setError(`Failed to send emails: ${error}`);
       } else if (data) {
-        const success = data.success;
+        const { success, successCount, failedApplications, skippedApplications } = data;
         
         if (!success) {
           setError('Failed to send emails');
         } else {
-          setSuccess(`Successfully sent emails to all selected candidates`);
+          let resultMessage = `Successfully sent ${successCount || 0} emails`;
+          
+          if (skippedApplications && skippedApplications.length > 0) {
+            resultMessage += `\n\nSkipped ${skippedApplications.length} applications:`;
+            skippedApplications.forEach((skip, index) => {
+              if (index < 3) { // Show first 3 skipped items
+                resultMessage += `\n• ${skip}`;
+              } else if (index === 3) {
+                resultMessage += `\n• ...and ${skippedApplications.length - 3} more`;
+              }
+            });
+          }
+          
+          if (failedApplications && failedApplications.length > 0) {
+            resultMessage += `\n\nFailed ${failedApplications.length} applications:`;
+            failedApplications.forEach((fail, index) => {
+              if (index < 2) { // Show first 2 failed items
+                resultMessage += `\n• ${fail}`;
+              } else if (index === 2) {
+                resultMessage += `\n• ...and ${failedApplications.length - 2} more`;
+              }
+            });
+          }
+          
+          setSuccess(resultMessage);
           setTimeout(() => {
             onClose();
-          }, 1500);
+          }, 4000); // Increased timeout to read the detailed message
         }
       }
     } catch (err) {
@@ -124,7 +148,7 @@ export default function BulkEmailNotificationModal({
 
           {success && (
             <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-md">
-              {success}
+              <pre className="whitespace-pre-wrap text-sm font-sans">{success}</pre>
             </div>
           )}
 

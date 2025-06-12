@@ -211,7 +211,7 @@ export default function JobApplicationsPage() {
     );
     
     if (applicationsWithStatus.length === 0) {
-      setError(`No ${status === "accepted" ? "accepted" : "rejected"} applications without email notifications.`);
+      setError(`All ${status === "accepted" ? "accepted" : "rejected"} applications have already been notified via email.`);
       return;
     }
     

@@ -119,11 +119,9 @@ export default function EditJobModal({ isOpen, onClose, onJobUpdated, job }: Edi
     setError(null);
 
     try {
-      const response = await apiCall(`/jobs/${job.id}`, {
+      // Update job and extract keywords in one API call
+      const response = await apiCall(`/jobs/${job.id}/update-with-keywords`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           jobTitle,
           experienceYear,

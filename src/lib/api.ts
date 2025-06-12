@@ -397,6 +397,27 @@ export async function sendBulkNotifications(applicationIds: string[], templateId
 }
 
 /**
+ * Check if an applicant has already received an email for a specific job
+ */
+export async function checkApplicantJobEmail(applicantId: string, jobId: string): Promise<ApiResponse<{
+  hasReceived: boolean;
+  emailType?: string;
+  sentAt?: string;
+  applicationId?: string;
+}>> {
+  return handleApiResponse<{
+    hasReceived: boolean;
+    emailType?: string;
+    sentAt?: string;
+    applicationId?: string;
+  }>(
+    apiCall(`/email/check-applicant-job-email/${applicantId}/${jobId}`, {
+      method: 'GET',
+    })
+  );
+}
+
+/**
  * Helper function for password validation
  */
 function validatePasswordData(passwordData: ChangeHRPasswordData | ChangeOwnPasswordData): string | null {
