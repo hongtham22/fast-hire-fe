@@ -14,15 +14,16 @@ function Header() {
   }, []);
 
   return (
-    <header className={`fixed top-0 left-0 w-full ${scrolled ? "bg-white after:content-[''] after:w-full after:h-[2px] after:absolute after:bottom-0 after:left-0 after:bg-gradient-to-r after:from-transparent after:via-orange-primary after:to-transparent shadow-md" : "bg-gray-100"} backdrop-blur-lg  h-[90px] flex items-center justify-between px-40 py-4 z-50 transition-all duration-300`}>
+    <header className={`fixed top-0 left-0 w-full ${scrolled ? "bg-white after:content-[''] after:w-full after:h-[2px] after:absolute after:bottom-0 after:left-0 after:bg-gradient-to-r after:from-transparent after:via-orange-primary after:to-transparent shadow-md" : "bg-gray-100"} backdrop-blur-lg  h-[90px] flex items-center px-40 py-4 z-50 transition-all duration-300`}>
+      {/* Logo */}
       <div className="flex items-center">
         <Link href="/" className="text-3xl font-extrabold text-orange-primary tracking-wide">
           FastHire
         </Link>
       </div>
 
-      {/* Navigation */}
-      <nav>
+      {/* Navigation - centered */}
+      <nav className="flex-1 flex justify-center">
         <ul className="flex space-x-10 text-gray-800 font-medium text-lg">
           {["Home", "Careers", "About Us", "Contact"].map((item, index) => (
             <li key={index} className="relative group">
@@ -38,13 +39,9 @@ function Header() {
         </ul>
       </nav>
 
-      {/* Sign In Button */}
-      <Link href="/login">
-        <button className="relative px-6 py-2 border-2 border-orange-primary text-orange-primary rounded-lg overflow-hidden transition-all duration-400 hover:bg-orange-primary hover:text-white group">
-          <span className="absolute inset-0 w-0 bg-orange-primary transition-all duration-400 group-hover:w-full"></span>
-          <span className="relative">Sign In</span>
-        </button>
-      </Link>
+      {/* Empty space for balance */}
+      <div className="flex items-center">
+      </div>
     </header>
   );
 }

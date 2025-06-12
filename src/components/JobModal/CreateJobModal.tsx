@@ -27,7 +27,15 @@ export default function CreateJobModal({ isOpen, onClose, onJobCreated }: Create
   const [niceToHave, setNiceToHave] = useState("");
   const [languageSkills, setLanguageSkills] = useState("");
   const [keyResponsibility, setKeyResponsibility] = useState("");
-  const [ourOffer, setOurOffer] = useState("");
+  const [ourOffer, setOurOffer] = useState(`- Attractive salary based on your skills.
+- 100% salary during the 2-month probation period.
+- 13th-month salary and performance-based bonuses.
+- 15-18 days of paid leave per year for employees with over 1 year of service.
+- MacBook/ Laptop provided to meet your work requirements.
+- Language support programs for learning Japanese and English.
+- Performance appraisal and salary review twice a year.
+- Full gross salary payment for compulsory insurance.
+- Awards for outstanding performance on a quarterly and yearly basis.`);
   const [expireDate, setExpireDate] = useState("");
 
   // Fetch locations on component mount
