@@ -7,7 +7,16 @@ import { getApplicationsByJobId } from "@/lib/api";
 import { Application, ApplicationApiResponse, ApplicationWithCV } from "@/types/application";
 import MatchScoreCircle from "@/components/MatchScoreCircle";
 import BulkEmailNotificationModal from "@/components/BulkEmailNotificationModal";
+import ConflictWarningModal from "@/components/ConflictWarningModal";
 import ApplicationStatusChart from "@/components/ApplicationStatusChart";
+import { formatDate } from "@/lib/utils";
+
+// Types for conflict detection
+interface ConflictData {
+  applicantId: string;
+  applicantName: string;
+  applications: Application[];
+}
 
 // Feedback modal component
 function FeedbackModal({
@@ -65,6 +74,14 @@ export default function JobApplicationsPage() {
   const [topMatchScore, setTopMatchScore] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  // Conflict detection states
+  const [showConflictModal, setShowConflictModal] = useState(false);
+  const [conflictData, setConflictData] = useState<{
+    conflicts: ConflictData[];
+    selectedStatus: string;
+    selectedApps: ApplicationWithCV[];
+  } | null>(null);
 
   const params = useParams();
   const router = useRouter();
@@ -204,6 +221,38 @@ export default function JobApplicationsPage() {
     setModalOpen(true);
   };
 
+  // Conflict detection function
+  const detectConflicts = (selectedApps: ApplicationWithCV[], allApps: ApplicationWithCV[]): ConflictData[] => {
+    const conflicts: ConflictData[] = [];
+    const selectedApplicantIds = new Set(selectedApps.map(app => app.applicant.id));
+    
+    for (const applicantId of Array.from(selectedApplicantIds)) {
+      const applicantApps = allApps.filter(app => app.applicant.id === applicantId);
+      const statuses = new Set(applicantApps.map(app => app.status));
+      
+      // Check if this applicant has applications with different statuses
+      if (statuses.size > 1) {
+        conflicts.push({
+          applicantId,
+          applicantName: applicantApps[0].applicant.name,
+          applications: applicantApps.map(app => ({
+            id: app.id,
+            applicant: app.applicant,
+            job: app.job,
+            status: app.status,
+            createdAt: app.createdAt,
+            submittedAt: app.createdAt,
+            note: app.hasNote ? "Has evaluation note" : undefined,
+            emailSent: app.emailSent
+          } as Application))
+        });
+      }
+    }
+    
+    return conflicts;
+  };
+
+  // Updated openBulkEmailModal with conflict detection
   const openBulkEmailModal = (status: string) => {
     const applicationsWithStatus = applications.filter(app => 
       (status === "accepted" && app.status === "accepted" && !app.emailSent) ||
@@ -214,10 +263,41 @@ export default function JobApplicationsPage() {
       setError(`All ${status === "accepted" ? "accepted" : "rejected"} applications have already been notified via email.`);
       return;
     }
+
+    // Detect conflicts
+    const conflicts = detectConflicts(applicationsWithStatus, applications);
     
-    setSelectedApplicationIds(applicationsWithStatus.map(app => app.id));
-    setSelectedStatus(status === "accepted" ? "Accepted" : "Rejected");
-    setIsBulkEmailModalOpen(true);
+    if (conflicts.length > 0) {
+      // Show conflict warning modal
+      setConflictData({
+        conflicts,
+        selectedStatus: status,
+        selectedApps: applicationsWithStatus
+      });
+      setShowConflictModal(true);
+    } else {
+      // No conflicts, proceed normally
+      setSelectedApplicationIds(applicationsWithStatus.map(app => app.id));
+      setSelectedStatus(status === "accepted" ? "Accepted" : "Rejected");
+      setIsBulkEmailModalOpen(true);
+    }
+  };
+
+  // Handle continue from conflict modal
+  const handleConflictContinue = () => {
+    if (conflictData) {
+      setSelectedApplicationIds(conflictData.selectedApps.map(app => app.id));
+      setSelectedStatus(conflictData.selectedStatus === "accepted" ? "Accepted" : "Rejected");
+      setShowConflictModal(false);
+      setConflictData(null);
+      setIsBulkEmailModalOpen(true);
+    }
+  };
+
+  // Handle cancel from conflict modal
+  const handleConflictCancel = () => {
+    setShowConflictModal(false);
+    setConflictData(null);
   };
 
   const filteredApplications = applications
@@ -272,16 +352,6 @@ export default function JobApplicationsPage() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-US', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
-  };
 
   const renderPagination = () => {
     if (totalPages <= 1) return null;
@@ -677,7 +747,7 @@ export default function JobApplicationsPage() {
                             )}
 
                             {/* Email notification flag */}
-                            {application.status !== "new" && (
+                            {(
                               <div 
                                 className={`flex items-center gap-1 text-xs ${
                                   application.emailSent ? "text-blue-600" : "text-gray-500"
@@ -721,6 +791,24 @@ export default function JobApplicationsPage() {
           }}
           applicationIds={selectedApplicationIds}
           statusText={selectedStatus}
+          preferredTemplateName={
+            selectedStatus === "accepted" 
+              ? "Application Accepted" 
+              : selectedStatus === "rejected" 
+              ? "Application Rejected" 
+              : undefined
+          }
+        />
+      )}
+
+      {showConflictModal && conflictData && (
+        <ConflictWarningModal
+          isOpen={showConflictModal}
+          onClose={handleConflictCancel}
+          onContinue={handleConflictContinue}
+          conflicts={conflictData.conflicts}
+          selectedStatus={conflictData.selectedStatus}
+          selectedCount={conflictData.selectedApps.length}
         />
       )}
     </div>

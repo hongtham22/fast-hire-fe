@@ -1,3 +1,4 @@
+import { formatDate } from '@/lib/utils';
 import { X } from 'lucide-react';
 
 interface Application {
@@ -55,19 +56,6 @@ export default function JobDetailsModal({ job, onClose }: JobDetailsModalProps) 
     }
   };
 
-  const formatDate = (dateString: string) => {
-    try {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch {
-      return dateString;
-    }
-  };
 
   return (
     <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">

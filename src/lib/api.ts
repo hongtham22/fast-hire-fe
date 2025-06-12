@@ -22,7 +22,8 @@ import {
 import { 
   EmailTemplate,
   EmailPreview,
-  EmailNotificationResponse 
+  EmailNotificationResponse,
+  MailLog 
 } from '@/types/email';
 import { 
   HRUser,
@@ -412,6 +413,28 @@ export async function checkApplicantJobEmail(applicantId: string, jobId: string)
     applicationId?: string;
   }>(
     apiCall(`/email/check-applicant-job-email/${applicantId}/${jobId}`, {
+      method: 'GET',
+    })
+  );
+}
+
+/**
+ * Get mail logs for a specific application
+ */
+export async function getApplicationMailLogs(applicationId: string): Promise<ApiResponse<MailLog[]>> {
+  return handleApiResponse<MailLog[]>(
+    apiCall(`/email/logs/application/${applicationId}`, {
+      method: 'GET',
+    })
+  );
+}
+
+/**
+ * Get mail logs for all applications of a specific applicant and job
+ */
+export async function getApplicantJobMailLogs(applicantId: string, jobId: string): Promise<ApiResponse<MailLog[]>> {
+  return handleApiResponse<MailLog[]>(
+    apiCall(`/email/logs/applicant/${applicantId}/job/${jobId}`, {
       method: 'GET',
     })
   );

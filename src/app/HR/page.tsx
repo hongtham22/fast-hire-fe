@@ -168,6 +168,7 @@ export default function HRDashboard() {
         setMatchScoreStats({ high, medium, low, noScore });
 
         const sortedApplicants = candidates
+          .filter(candidate => candidate.latestApplication)
           .map(candidate => ({
             id: candidate.id,
             name: candidate.name,

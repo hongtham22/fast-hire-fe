@@ -13,6 +13,7 @@ interface ApplicationEvaluationFormProps {
   disabled?: boolean;
   disabledReason?: 'job-closed' | 'email-sent';
   noteOnlyMode?: boolean;
+  onEmailAlreadySentClick?: () => void;
 }
 
 export function ApplicationEvaluationForm({
@@ -23,6 +24,7 @@ export function ApplicationEvaluationForm({
   disabled = false,
   disabledReason = 'job-closed',
   noteOnlyMode = false,
+  onEmailAlreadySentClick,
 }: ApplicationEvaluationFormProps) {
   const [note, setNote] = useState(initialNote);
   const [result, setResult] = useState<boolean | null>(initialResult);
@@ -148,17 +150,22 @@ export function ApplicationEvaluationForm({
   if (noteOnlyMode) {
     return (
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <Mail className="h-5 w-5 text-blue-400" />
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-blue-800">
-                Email Already Sent
-              </h3>
-              <div className="mt-2 text-sm text-blue-700">
-                <p>Decision has been finalized and email sent. You can still update notes for record keeping.</p>
+        <div 
+          className="p-4 bg-blue-50 border border-blue-200 rounded-md cursor-pointer hover:bg-blue-100 transition-colors"
+          onClick={onEmailAlreadySentClick}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <Mail className="h-5 w-5 text-blue-400" />
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-blue-800">
+                  Email Already Sent
+                </h3>
+                <div className="mt-2 text-sm text-blue-700">
+                  <p>Decision has been finalized and email sent. You can still update notes for record keeping.</p>
+                </div>
               </div>
             </div>
           </div>

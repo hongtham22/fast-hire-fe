@@ -20,7 +20,13 @@ export interface MailLog {
   subject: string;
   message: string;
   createdBy: string;
-  created_at: string;
+  sent_at: string;
+  emailTemplate?: EmailTemplate;
+  creator?: {
+    id: string;
+    name?: string;
+    email: string;
+  };
 }
 
 /**

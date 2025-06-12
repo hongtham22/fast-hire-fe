@@ -10,6 +10,7 @@ interface BulkEmailNotificationModalProps {
   onClose: () => void;
   applicationIds: string[];
   statusText: string;
+  preferredTemplateName?: string;
 }
 
 export default function BulkEmailNotificationModal({
@@ -17,6 +18,7 @@ export default function BulkEmailNotificationModal({
   onClose,
   applicationIds,
   statusText,
+  preferredTemplateName,
 }: BulkEmailNotificationModalProps) {
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
@@ -40,9 +42,21 @@ export default function BulkEmailNotificationModal({
         setError(`Failed to fetch email templates: ${error}`);
       } else if (data) {
         setTemplates(data);
-        if (data.length > 0) {
-          setSelectedTemplateId(data[0].id);
-          setSelectedTemplate(data[0]);
+        
+        // Auto-select preferred template if specified
+        let selectedTemplate = null;
+        if (preferredTemplateName) {
+          selectedTemplate = data.find(t => t.name === preferredTemplateName);
+        }
+        
+        // Fallback to first template if preferred not found
+        if (!selectedTemplate && data.length > 0) {
+          selectedTemplate = data[0];
+        }
+        
+        if (selectedTemplate) {
+          setSelectedTemplateId(selectedTemplate.id);
+          setSelectedTemplate(selectedTemplate);
         }
       }
     } catch (err) {
@@ -186,9 +200,10 @@ export default function BulkEmailNotificationModal({
                 <div className="border-t pt-2 mt-2">
                   <div className="prose max-w-none">
                     <h4 className="text-sm font-medium mb-1">Body Template:</h4>
-                    <div className="text-sm bg-gray-50 p-3 rounded overflow-auto max-h-40">
-                      {selectedTemplate.body_template}
-                    </div>
+                    <div 
+                      className="text-sm bg-gray-50 p-3 rounded overflow-auto max-h-40 prose prose-sm"
+                      dangerouslySetInnerHTML={{ __html: selectedTemplate.body_template }}
+                    />
                   </div>
                 </div>
               </div>

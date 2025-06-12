@@ -1,17 +1,6 @@
 import { History, Clock, Award, Mail, Phone, Building2 } from "lucide-react";
 import { CandidateData } from '@/types';
-
-// Utility functions
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleString('en-US', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
-  });
-};
+import { formatDate } from "@/lib/utils";
 
 const getStatusColor = (status: string) => {
   switch (status) {

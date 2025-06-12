@@ -10,12 +10,14 @@ interface EmailNotificationModalProps {
   isOpen: boolean;
   onClose: () => void;
   applicationId: string;
+  preferredTemplateName?: string;
 }
 
 export default function EmailNotificationModal({
   isOpen,
   onClose,
   applicationId,
+  preferredTemplateName,
 }: EmailNotificationModalProps) {
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
@@ -40,9 +42,21 @@ export default function EmailNotificationModal({
         setError(`Failed to fetch email templates: ${error}`);
       } else if (data) {
         setTemplates(data);
-        if (data.length > 0) {
-          setSelectedTemplateId(data[0].id);
-          handlePreviewEmail(data[0].id);
+        
+        // Auto-select preferred template if specified
+        let selectedTemplate = null;
+        if (preferredTemplateName) {
+          selectedTemplate = data.find(t => t.name === preferredTemplateName);
+        }
+        
+        // Fallback to first template if preferred not found
+        if (!selectedTemplate && data.length > 0) {
+          selectedTemplate = data[0];
+        }
+        
+        if (selectedTemplate) {
+          setSelectedTemplateId(selectedTemplate.id);
+          handlePreviewEmail(selectedTemplate.id);
         }
       }
     } catch (err) {

@@ -74,7 +74,16 @@ export const useCandidates = () => {
         break;
       case 'recent':
       default:
-        filtered.sort((a, b) => new Date(b.latestApplication.submittedAt).getTime() - new Date(a.latestApplication.submittedAt).getTime());
+        filtered.sort((a, b) => {
+          const aDate = a.latestApplication?.submittedAt;
+          const bDate = b.latestApplication?.submittedAt;
+          
+          if (!aDate && !bDate) return 0;
+          if (!aDate) return 1;
+          if (!bDate) return -1;
+          
+          return new Date(bDate).getTime() - new Date(aDate).getTime();
+        });
         break;
     }
 
