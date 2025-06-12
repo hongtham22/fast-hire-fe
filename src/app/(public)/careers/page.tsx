@@ -10,8 +10,7 @@ import {
   IoArrowForwardOutline,
 } from "react-icons/io5";
 import { IoShareSocialOutline } from "react-icons/io5";
-import { usePublicJobs } from "@/hooks/usePublicJobs";
-import { Location } from "@/lib/api";
+
 
 interface Job {
   id: string;
@@ -27,21 +26,25 @@ interface Job {
   createdAt: string;
 }
 
+interface Location {
+  id: string;
+  name: string;
+}
+
 const CareersContent = () => {
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [loadingJobs, setLoadingJobs] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("");
+  const [totalJobs, setTotalJobs] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [limit] = useState(4);
+  const [hasMore, setHasMore] = useState(true);
 
   const searchParams = useSearchParams();
-
-  const { jobs, total: totalJobs, loading, error } = usePublicJobs({
-    page: currentPage,
-    limit,
-    query: searchQuery,
-    locationId: selectedLocation
-  });
 
   useEffect(() => {
     const page = 1;
@@ -53,7 +56,19 @@ const CareersContent = () => {
     setCurrentPage(page);
 
     fetchLocations();
-  }, [searchParams]);
+
+    fetchJobs(page, limit, locationId, search, true);
+  }, []);
+
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      setLoadingJobs(true);
+      fetchJobs(1, limit, selectedLocation, searchQuery, true);
+    }, 500);
+
+    return () => clearTimeout(delayDebounce);
+  }, [searchQuery, selectedLocation]);
+
 
   const fetchLocations = async () => {
     try {
@@ -67,21 +82,58 @@ const CareersContent = () => {
     }
   };
 
+  const fetchJobs = async (
+    page: number,
+    limit: number,
+    locationId?: string,
+    search?: string,
+    resetJobs = false
+  ) => {
+    if (resetJobs) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+
+    try {
+      let url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/jobs/open?page=${page}&limit=${limit}`;
+      if (locationId) url += `&locationId=${locationId}`;
+      if (search) url += `&query=${encodeURIComponent(search)}`;
+
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (resetJobs) {
+        setJobs(data.jobs);
+      } else {
+        setJobs((prev) => [...prev, ...data.jobs]);
+      }
+
+      setTotalJobs(data.total);
+      setCurrentPage(page);
+      const totalLoadedJobs = resetJobs ? data.jobs.length : jobs.length + data.jobs.length;
+      setHasMore(totalLoadedJobs < data.total);
+      
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+      setLoadingJobs(false);
+    }
+  };
+
   const handleLocationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedLocation(e.target.value);
-    setCurrentPage(1); // Reset to first page when changing location
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
-    setCurrentPage(1); // Reset to first page when searching
   };
 
   const handleLoadMore = () => {
-    setCurrentPage(prev => prev + 1);
+    fetchJobs(currentPage + 1, limit, selectedLocation, searchQuery, false);
   };
-
-  const hasMore = jobs.length < totalJobs;
 
   return (
     <div className="bg-gray-100 w-full h-full px-40 py-24">
@@ -131,7 +183,7 @@ const CareersContent = () => {
         {/* Jobs list */}
         <div className="w-2/3 p-6 rounded-lg relative">
           {/* Overlay loading spinner */}
-          {loading && (
+          {loadingJobs && (
             <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-60 z-10">
               <div className="h-10 w-10 border-4 border-blue-600 border-r-transparent rounded-full animate-spin"></div>
             </div>
@@ -151,6 +203,7 @@ const CareersContent = () => {
                 onClick={() => {
                   setSearchQuery("");
                   setSelectedLocation("");
+                  fetchJobs(1, limit, "", "", true);
                 }}
                 className="mt-4 text-blue-600 hover:underline"
               >
@@ -159,7 +212,11 @@ const CareersContent = () => {
             </div>
           ) : (
             <>
-              <div className={`w-full flex flex-col gap-6 ${loading ? "opacity-50 pointer-events-none" : ""}`}>
+             <div
+                className={`w-full flex flex-col gap-6 ${
+                  loadingJobs ? "opacity-50 pointer-events-none" : ""
+                }`}
+              >
                 {jobs.map((job) => (
                   <div
                     key={job.id}
@@ -207,13 +264,13 @@ const CareersContent = () => {
                 <div className="flex mt-8">
                   <button
                     onClick={handleLoadMore}
-                    disabled={loading}
+                    disabled={loadingMore}
                     type="button"
                     className="relative flex items-center justify-between overflow-hidden rounded-full border border-orange-dark py-3 pl-6 pr-14 w-[214px] xl:py-[15px] xl:pr-[55px] xl:w-[235px] bg-white group disabled:opacity-50"
                   >
                     <div className="absolute right-0 h-[500px] w-[500px] rounded-full shadow-2xl transition-transform duration-500 ease-in-out scale-0 bg-orange-dark group-hover:scale-100"></div>
                     <span className="relative z-10 transition-colors duration-500 text-orange-dark group-hover:text-white font-extrabold">
-                      {loading ? (
+                      {loadingMore ? (
                         <>
                           <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-white border-r-transparent mr-2 align-middle"></span>
                           Loading...

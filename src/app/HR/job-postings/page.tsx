@@ -1,13 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Search, Loader2, Trash2, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Plus,
+  Search,
+  Loader2,
+  Trash2,
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { getJobsForHR, JobListItem, deleteJob, apiCall } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import CreateJobModal from "@/components/JobModal/CreateJobModal";
 import EditJobModal from "@/components/JobModal/EditJobModal";
+import { Job } from "@/app/context/JobsContext";
 import { formatDate } from "@/lib/utils";
-import { Job } from "@/types/job";
 
 export default function JobPostingsPage() {
   const [jobs, setJobs] = useState<JobListItem[]>([]);
@@ -15,7 +23,9 @@ export default function JobPostingsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved" | "closed" | "rejected">("all");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "pending" | "approved" | "closed" | "rejected"
+  >("all");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
@@ -27,7 +37,7 @@ export default function JobPostingsPage() {
 
   useEffect(() => {
     fetchJobs();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, statusFilter, currentPage]);
 
   const fetchJobs = async () => {
@@ -53,19 +63,11 @@ export default function JobPostingsPage() {
       }
 
       const response = await getJobsForHR(options);
-      
+
       if (response.error) {
         setError(response.error);
       } else {
-        setJobs((response.data?.jobs || []).map(job => ({
-          id: job.id,
-          jobTitle: job.jobTitle,
-          location: job.location.name,
-          applicationCount: job.applicationCount || 0,
-          status: (job.status || 'pending') as 'pending' | 'approved' | 'closed' | 'rejected',
-          createdAt: job.createdAt || new Date().toISOString(),
-          expireDate: job.expireDate || null
-        })));
+        setJobs(response.data?.jobs || []);
         setTotalJobs(response.data?.total || 0);
       }
     } catch (err) {
@@ -106,16 +108,20 @@ export default function JobPostingsPage() {
   };
 
   const handleDeleteJob = async (jobId: string) => {
-    if (!confirm("Are you sure you want to delete this job posting? This will also delete all related keyword data.")) {
+    if (
+      !confirm(
+        "Are you sure you want to delete this job posting? This will also delete all related keyword data."
+      )
+    ) {
       return;
     }
-    
+
     setDeleteLoading(jobId);
     setDeleteError(null);
-    
+
     try {
       const response = await deleteJob(jobId);
-      
+
       if (response.error) {
         setDeleteError(response.error);
       } else {
@@ -134,27 +140,27 @@ export default function JobPostingsPage() {
     if (!confirm("Are you sure you want to close this job posting?")) {
       return;
     }
-    
+
     try {
       const response = await apiCall(`/jobs/${jobId}/close`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          closeReason: 'manual' // Flag indicating HR closed this job manually
+          closeReason: "manual", // Flag indicating HR closed this job manually
         }),
       });
-      
+
       if (!response || !response.ok) {
-        throw new Error('Failed to close job');
+        throw new Error("Failed to close job");
       }
-      
+
       // Refresh the job list
       fetchJobs();
     } catch (err) {
-      console.error('Error closing job:', err);
-      setError('Failed to close job');
+      console.error("Error closing job:", err);
+      setError("Failed to close job");
     }
   };
 
@@ -162,40 +168,43 @@ export default function JobPostingsPage() {
     try {
       const response = await apiCall(`/jobs/${job.id}`);
       if (!response || !response.ok) {
-        throw new Error('Failed to fetch job details');
+        throw new Error("Failed to fetch job details");
       }
       const jobDetails = await response.json();
       setSelectedJob(jobDetails);
       setIsEditModalOpen(true);
     } catch (err) {
-      console.error('Error fetching job details:', err);
-      setError('Failed to load job details for editing');
+      console.error("Error fetching job details:", err);
+      setError("Failed to load job details for editing");
     }
   };
 
   const handleJobUpdated = async () => {
     try {
       // If job was pending and was edited, trigger keyword extraction
-      if (selectedJob?.status === 'pending') {
-        const response = await apiCall(`/jobs/${selectedJob.id}/extract-keywords`, {
-          method: 'POST',
-        });
+      if (selectedJob?.status === "pending") {
+        const response = await apiCall(
+          `/jobs/${selectedJob.id}/extract-keywords`,
+          {
+            method: "POST",
+          }
+        );
         if (!response || !response.ok) {
-          throw new Error('Failed to extract keywords');
+          throw new Error("Failed to extract keywords");
         }
       }
       fetchJobs();
       setIsEditModalOpen(false);
       setSelectedJob(null);
     } catch (err) {
-      console.error('Error updating job:', err);
-      setError('Failed to update job');
+      console.error("Error updating job:", err);
+      setError("Failed to update job");
     }
   };
 
   // Pagination helpers
   const totalPages = Math.ceil(totalJobs / itemsPerPage);
-  
+
   const handlePreviousPage = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
@@ -216,7 +225,7 @@ export default function JobPostingsPage() {
   const getPageNumbers = () => {
     const pageNumbers = [];
     const maxPageButtons = 5; // Maximum number of page buttons to show
-    
+
     if (totalPages <= maxPageButtons) {
       // Show all pages if there are few pages
       for (let i = 1; i <= totalPages; i++) {
@@ -226,17 +235,17 @@ export default function JobPostingsPage() {
       // Show a range of pages
       let startPage = Math.max(1, currentPage - Math.floor(maxPageButtons / 2));
       let endPage = startPage + maxPageButtons - 1;
-      
+
       if (endPage > totalPages) {
         endPage = totalPages;
         startPage = Math.max(1, endPage - maxPageButtons + 1);
       }
-      
+
       for (let i = startPage; i <= endPage; i++) {
         pageNumbers.push(i);
       }
     }
-    
+
     return pageNumbers;
   };
 
@@ -245,9 +254,11 @@ export default function JobPostingsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Job Postings</h1>
-          <p className="text-gray-500">Manage your active and closed job postings</p>
+          <p className="text-gray-500">
+            Manage your active and closed job postings
+          </p>
         </div>
-        <button 
+        <button
           onClick={() => setIsCreateModalOpen(true)}
           className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
         >
@@ -269,10 +280,19 @@ export default function JobPostingsPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <select 
+        <select
           className="rounded-md border border-gray-300 py-2 pl-3 pr-8 text-sm"
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as 'all' | 'approved' | 'pending' | 'closed' | 'rejected')}
+          onChange={(e) =>
+            setStatusFilter(
+              e.target.value as
+                | "all"
+                | "approved"
+                | "pending"
+                | "closed"
+                | "rejected"
+            )
+          }
         >
           <option value="all">All Status</option>
           <option value="approved">Approved</option>
@@ -281,11 +301,9 @@ export default function JobPostingsPage() {
           <option value="rejected">Rejected</option>
         </select>
       </div>
-      
+
       {error && (
-        <div className="rounded-md bg-red-50 p-4 text-red-700">
-          {error}
-        </div>
+        <div className="rounded-md bg-red-50 p-4 text-red-700">{error}</div>
       )}
 
       {deleteError && (
@@ -294,7 +312,7 @@ export default function JobPostingsPage() {
           <span>{deleteError}</span>
         </div>
       )}
-      
+
       <div className="rounded-xl border shadow-sm">
         <div className="grid grid-cols-8 gap-4 border-b bg-gray-50 px-6 py-3 font-medium">
           <div className="col-span-2">Position</div>
@@ -305,7 +323,7 @@ export default function JobPostingsPage() {
           <div>Status</div>
           <div>Actions</div>
         </div>
-        
+
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
@@ -317,41 +335,53 @@ export default function JobPostingsPage() {
         ) : (
           <div className="divide-y">
             {jobs.map((job) => (
-              <div key={job.id} className="grid grid-cols-8 gap-4 px-6 py-4 text-sm">
+              <div
+                key={job.id}
+                className="grid grid-cols-8 gap-4 px-6 py-4 text-sm"
+              >
                 <div className="col-span-2 font-medium">{job.jobTitle}</div>
                 <div className="text-gray-600">{job.location}</div>
                 <div className="text-gray-600">{job.applicationCount}</div>
-                <div className="text-gray-600"> {formatDate(job.createdAt || "")}</div>
-                <div className="text-gray-600">{formatDate(job.expireDate || "")}</div>
+                <div className="text-gray-600">
+                  {" "}
+                  {formatDate(job.createdAt || "")}
+                </div>
+                <div className="text-gray-600">
+                  {formatDate(job.expireDate || "")}
+                </div>
                 <div>
-                  <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getStatusBadgeClass(job.status)}`}>
+                  <span
+                    className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getStatusBadgeClass(
+                      job.status
+                    )}`}
+                  >
                     {capitalizeFirstLetter(job.status)}
                   </span>
                 </div>
                 <div className="space-x-2 flex items-center">
-                  {job.status === 'pending' && (
-                    <button 
+                  {job.status === "pending" && (
+                    <button
                       className="rounded border px-2 py-1 text-xs font-medium hover:bg-gray-50 border-orange-primary"
                       onClick={() => handleEditJob(job)}
                     >
                       Edit
                     </button>
                   )}
-                  <button 
+                  <button
                     className="rounded border px-2 py-1 text-xs font-medium hover:bg-gray-50"
                     onClick={() => viewJobApplications(job.id)}
                   >
                     View
                   </button>
-                  {job.status === 'approved' && (
-                    <button 
+                  {job.status === "approved" && (
+                    <button
                       className="rounded border border-yellow-500 bg-yellow-50 hover:bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-600"
                       onClick={() => handleCloseJob(job.id)}
                     >
                       Close
                     </button>
                   )}
-                  <button 
+                  <button
                     className="rounded border border-red-200 bg-red-50 hover:bg-red-100 px-2 py-1 text-xs font-medium text-red-600 flex items-center gap-1"
                     onClick={() => handleDeleteJob(job.id)}
                     disabled={deleteLoading === job.id}
@@ -369,25 +399,27 @@ export default function JobPostingsPage() {
           </div>
         )}
       </div>
-      
+
       {totalJobs > 0 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-500">
             Showing {jobs.length} of {totalJobs} job postings
           </div>
-          
+
           {/* Pagination controls */}
           <div className="flex items-center space-x-2">
             <button
               onClick={handlePreviousPage}
               disabled={currentPage === 1 || loading}
               className={`rounded border p-1 ${
-                currentPage === 1 || loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'
+                currentPage === 1 || loading
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-gray-100"
               }`}
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
-            
+
             {getPageNumbers().map((page) => (
               <button
                 key={page}
@@ -395,19 +427,21 @@ export default function JobPostingsPage() {
                 disabled={loading}
                 className={`rounded px-3 py-1 text-sm font-medium ${
                   currentPage === page
-                    ? 'bg-blue-50 text-blue-600 border border-blue-200'
-                    : 'border hover:bg-gray-100'
+                    ? "bg-blue-50 text-blue-600 border border-blue-200"
+                    : "border hover:bg-gray-100"
                 }`}
               >
                 {page}
               </button>
             ))}
-            
+
             <button
               onClick={handleNextPage}
               disabled={currentPage === totalPages || loading}
               className={`rounded border p-1 ${
-                currentPage === totalPages || loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'
+                currentPage === totalPages || loading
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-gray-100"
               }`}
             >
               <ChevronRight className="h-4 w-4" />
@@ -415,11 +449,11 @@ export default function JobPostingsPage() {
           </div>
         </div>
       )}
-      
+
       {/* Create Job Modal */}
       {isCreateModalOpen && (
-        <CreateJobModal 
-          isOpen={isCreateModalOpen} 
+        <CreateJobModal
+          isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
           onJobCreated={handleJobCreated}
         />
@@ -439,4 +473,4 @@ export default function JobPostingsPage() {
       )}
     </div>
   );
-} 
+}

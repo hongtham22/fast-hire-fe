@@ -79,7 +79,7 @@ export interface JobListItem {
  * Job list response wrapper
  */
 export interface JobListResponse {
-  jobs: Job[];
+  jobs: JobListItem[];
   total: number;
 }
 

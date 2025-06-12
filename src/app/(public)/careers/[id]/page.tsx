@@ -1,20 +1,56 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import ListJobs from "@/components/listJobs";
 import { IoShareSocialOutline } from "react-icons/io5";
 import { IoArrowForwardOutline } from "react-icons/io5";
 import ApplicationModal from "@/components/ApplicationModal";
-import { useJobDetail } from "@/hooks/useJobDetail";
+import { useJobs } from "@/app/context/JobsContext";
 
 const JobDetailPage = () => {
+  const {
+    currentJob,
+    fetchJobById,
+    loading: contextLoading,
+    refreshJobs,
+  } = useJobs();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const params = useParams();
   const jobId = params.id as string;
 
-  const { job, loading, error } = useJobDetail(jobId);
+   useEffect(() => {
+    // Reset error state for new job ID
+    setError("");
+
+    const fetchData = async () => {
+      if (!jobId) return;
+
+      setLoading(true);
+      try {
+        const job = await fetchJobById(jobId);
+        if (!job) {
+          setError("Job not found or no longer available");
+        }
+      } catch (error) {
+        console.error("Error fetching job details:", error);
+        setError("Failed to load job details. Please try again later.");
+
+        // Try to refresh the job list if we encounter an error
+        // This might help if the job was recently added but not cached
+        refreshJobs().catch((e) =>
+          console.error("Failed to refresh jobs list:", e)
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [jobId, fetchJobById, refreshJobs]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -30,7 +66,25 @@ const JobDetailPage = () => {
     setIsModalOpen(true);
   };
 
-  if (error || !job) {
+  if ((loading || contextLoading) && !error) {
+    return (
+      <div className="bg-gray-100 w-full h-full px-40 py-24 flex flex-row gap-10 justify-between">
+        {/* Still show the job list while loading the details */}
+        <div className="w-1/3 p-6 rounded-lg">
+          <ListJobs />
+        </div>
+
+        <div className="w-2/3 p-6 rounded-lg flex justify-center items-center">
+          <div className="text-center">
+            <div className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div>
+            <p className="mt-4 text-lg text-gray-600">Loading job details...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !currentJob) {
     return (
       <div className="bg-gray-100 w-full h-full px-40 py-24 flex flex-row gap-10 justify-between">
         {/* Still show the job list even when there's an error */}
@@ -73,19 +127,7 @@ const JobDetailPage = () => {
     );
   }
 
-  if (loading) {
-    return (
-      <div className="bg-gray-100 w-full h-full px-40 py-24 flex flex-row gap-10 justify-between">
-        <div className="w-1/3 p-6 rounded-lg">
-          <ListJobs />
-        </div>
-        <div className="w-2/3 p-6 rounded-lg flex justify-center items-center">
-          <div className="h-10 w-10 border-4 border-blue-600 border-r-transparent rounded-full animate-spin"></div>
-        </div>
-      </div>
-    );
-  }
-
+  const job = currentJob;
   return (
     <>
       <div className="bg-gray-100 w-full h-full px-40 py-24">

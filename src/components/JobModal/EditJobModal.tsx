@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Loader2, X } from 'lucide-react';
 import { getLocations, Location, apiCall } from '@/lib/api';
-import { Job } from '@/types/job';
+import { Job } from '@/app/context/JobsContext';
 import MaxScoresEditor from './MaxScoresEditor';
 
 interface EditJobModalProps {
