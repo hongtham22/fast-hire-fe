@@ -49,8 +49,11 @@ export default function JobMatchingScoreChart({ jobMatchingScores }: JobMatching
     );
   }
 
+  // Take only the first 6 jobs (most recent)
+  const recentJobs = jobMatchingScores.slice(0, 6);
+
   // Transform data for Recharts
-  const chartData = jobMatchingScores.map(job => ({
+  const chartData = recentJobs.map(job => ({
     name: job.jobTitle.length > 15 ? job.jobTitle.substring(0, 15) + '...' : job.jobTitle,
     fullName: job.jobTitle,
     averageScore: job.averageScore,
@@ -88,7 +91,12 @@ export default function JobMatchingScoreChart({ jobMatchingScores }: JobMatching
 
   return (
     <div className="bg-white p-6 rounded-lg shadow">
-      <h3 className="text-lg font-medium text-gray-900 mb-4">Job Matching Scores Overview</h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-medium text-gray-900">Job Matching Scores Overview</h3>
+          <div className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+            Showing {recentJobs.length} recent jobs
+          </div>
+      </div>
       <div className="h-[400px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart

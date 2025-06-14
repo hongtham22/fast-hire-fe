@@ -47,8 +47,10 @@ export default function JobMatchingBreakdownChart({ jobMatchingScores }: JobMatc
     );
   }
 
+  // Take only the first 6 jobs (most recent)
+  const recentJobs = jobMatchingScores.slice(0, 6);
   // Transform data for stacked bar chart
-  const chartData = jobMatchingScores.map(job => ({
+  const chartData = recentJobs.map(job => ({
     name: job.jobTitle.length > 18 ? job.jobTitle.substring(0, 18) + '...' : job.jobTitle,
     fullName: job.jobTitle,
     highScore: job.highScoreCount,
@@ -95,7 +97,12 @@ export default function JobMatchingBreakdownChart({ jobMatchingScores }: JobMatc
 
   return (
     <div className="bg-white p-6 rounded-lg shadow">
-      <h3 className="text-lg font-medium text-gray-900 mb-4">Matching Score Distribution by Job</h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-medium text-gray-900">Matching Score Distribution by Job</h3>
+          <div className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+            Showing {recentJobs.length} recent jobs
+          </div>
+      </div>
       <div className="h-[400px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart

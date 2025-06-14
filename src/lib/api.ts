@@ -484,6 +484,7 @@ function getCurrentUserId(): { userId: string | null; error: string | null } {
 
 /**
  * Create a new HR user account
+ * Backend will automatically set password
  */
 export async function createHRUser(userData: CreateHRUserData): Promise<ApiResponse<HRUser>> {
   return handleApiResponse<HRUser>(

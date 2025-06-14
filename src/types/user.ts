@@ -37,7 +37,6 @@ export interface HRUserFormData {
 export interface CreateHRUserData {
   name: string;
   email: string;
-  password: string;
 }
 
 /**

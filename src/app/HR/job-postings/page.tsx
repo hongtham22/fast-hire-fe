@@ -5,12 +5,10 @@ import {
   Plus,
   Search,
   Loader2,
-  Trash2,
-  AlertCircle,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { getJobsForHR, JobListItem, deleteJob, apiCall } from "@/lib/api";
+import { getJobsForHR, JobListItem, apiCall } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import CreateJobModal from "@/components/JobModal/CreateJobModal";
 import EditJobModal from "@/components/JobModal/EditJobModal";
@@ -29,8 +27,6 @@ export default function JobPostingsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const router = useRouter();
@@ -105,35 +101,6 @@ export default function JobPostingsPage() {
     setCurrentPage(1); // Reset to first page when new job is created
     fetchJobs();
     setIsCreateModalOpen(false);
-  };
-
-  const handleDeleteJob = async (jobId: string) => {
-    if (
-      !confirm(
-        "Are you sure you want to delete this job posting? This will also delete all related keyword data."
-      )
-    ) {
-      return;
-    }
-
-    setDeleteLoading(jobId);
-    setDeleteError(null);
-
-    try {
-      const response = await deleteJob(jobId);
-
-      if (response.error) {
-        setDeleteError(response.error);
-      } else {
-        // Refresh the job list
-        fetchJobs();
-      }
-    } catch (err) {
-      setDeleteError("Failed to delete job");
-      console.error(err);
-    } finally {
-      setDeleteLoading(null);
-    }
   };
 
   const handleCloseJob = async (jobId: string) => {
@@ -306,13 +273,6 @@ export default function JobPostingsPage() {
         <div className="rounded-md bg-red-50 p-4 text-red-700">{error}</div>
       )}
 
-      {deleteError && (
-        <div className="rounded-md bg-red-50 p-4 text-red-700 flex items-center gap-2">
-          <AlertCircle className="h-5 w-5" />
-          <span>{deleteError}</span>
-        </div>
-      )}
-
       <div className="rounded-xl border shadow-sm">
         <div className="grid grid-cols-8 gap-4 border-b bg-gray-50 px-6 py-3 font-medium">
           <div className="col-span-2">Position</div>
@@ -361,38 +321,36 @@ export default function JobPostingsPage() {
                 <div className="space-x-2 flex items-center">
                   {job.status === "pending" && (
                     <button
-                      className="rounded border px-2 py-1 text-xs font-medium hover:bg-gray-50 border-orange-primary"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-orange-50 text-orange-600 hover:bg-orange-100 rounded-md transition-colors text-xs font-medium"
                       onClick={() => handleEditJob(job)}
                     >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
                       Edit
                     </button>
                   )}
                   <button
-                    className="rounded border px-2 py-1 text-xs font-medium hover:bg-gray-50"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-md transition-colors text-xs font-medium"
                     onClick={() => viewJobApplications(job.id)}
                   >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
                     View
                   </button>
                   {job.status === "approved" && (
                     <button
-                      className="rounded border border-yellow-500 bg-yellow-50 hover:bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-600"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-yellow-50 text-yellow-600 hover:bg-yellow-100 rounded-md transition-colors text-xs font-medium"
                       onClick={() => handleCloseJob(job.id)}
                     >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
                       Close
                     </button>
                   )}
-                  <button
-                    className="rounded border border-red-200 bg-red-50 hover:bg-red-100 px-2 py-1 text-xs font-medium text-red-600 flex items-center gap-1"
-                    onClick={() => handleDeleteJob(job.id)}
-                    disabled={deleteLoading === job.id}
-                  >
-                    {deleteLoading === job.id ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-3 w-3" />
-                    )}
-                    Delete
-                  </button>
                 </div>
               </div>
             ))}

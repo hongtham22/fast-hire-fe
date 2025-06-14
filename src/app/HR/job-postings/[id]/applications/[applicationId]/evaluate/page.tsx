@@ -370,9 +370,9 @@ export default function ApplicationEvaluationPage() {
     note?: string;
     result: boolean | null;
   }) => {
-    // Don't allow submission if job is closed
-    if (jobDetails?.status === "closed") {
-      toast.error("Cannot evaluate application - job is closed");
+
+    if (application?.emailSent) {
+      toast.error("Cannot evaluate application - email notification has already been sent");
       return;
     }
 
@@ -705,9 +705,9 @@ export default function ApplicationEvaluationPage() {
                     initialResult={application.result}
                     onSubmit={handleEvaluationSubmit}
                     isLoading={saving}
-                    disabled={isJobClosed}
-                    disabledReason={isJobClosed ? 'job-closed' : 'email-sent'}
-                    noteOnlyMode={isEmailSent && !isJobClosed}
+                    disabled={false}
+                    disabledReason='email-sent'
+                    noteOnlyMode={isEmailSent}
                     onEmailAlreadySentClick={() => setIsSentEmailModalOpen(true)}
                   />
                 </CardContent>
