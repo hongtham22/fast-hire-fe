@@ -8,9 +8,9 @@ import {
   IoChevronDownOutline,
   IoLocationOutline,
   IoArrowForwardOutline,
+  IoShareSocialOutline,
 } from "react-icons/io5";
-import { IoShareSocialOutline } from "react-icons/io5";
-
+import ShareModal from "@/components/ShareModal";
 
 interface Job {
   id: string;
@@ -31,6 +31,8 @@ interface Location {
   name: string;
 }
 
+
+
 const CareersContent = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
@@ -43,6 +45,11 @@ const CareersContent = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [limit] = useState(4);
   const [hasMore, setHasMore] = useState(true);
+  const [shareModal, setShareModal] = useState<{ isOpen: boolean; jobTitle: string; jobId: string }>({
+    isOpen: false,
+    jobTitle: "",
+    jobId: ""
+  });
 
   const searchParams = useSearchParams();
 
@@ -133,6 +140,15 @@ const CareersContent = () => {
 
   const handleLoadMore = () => {
     fetchJobs(currentPage + 1, limit, selectedLocation, searchQuery, false);
+  };
+
+  const handleShare = (e: React.MouseEvent, jobTitle: string, jobId: string) => {
+    e.stopPropagation();
+    setShareModal({ isOpen: true, jobTitle, jobId });
+  };
+
+  const closeShareModal = () => {
+    setShareModal({ isOpen: false, jobTitle: "", jobId: "" });
   };
 
   return (
@@ -244,10 +260,7 @@ const CareersContent = () => {
                         <div className="text-right">
                           <button
                             type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              alert(`Share job: ${job.jobTitle}`);
-                            }}
+                            onClick={(e) => handleShare(e, job.jobTitle, job.id)}
                             className="inline-flex items-center gap-2 bg-white text-orange-primary border-2 p-3 rounded-full cursor-pointer transition duration-200 z-20 relative"
                           >
                             <IoShareSocialOutline className="w-6 h-6" />
@@ -293,6 +306,14 @@ const CareersContent = () => {
           )}
         </div>
       </div>
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={shareModal.isOpen}
+        onClose={closeShareModal}
+        jobTitle={shareModal.jobTitle}
+        jobId={shareModal.jobId}
+      />
     </div>
   );
 };

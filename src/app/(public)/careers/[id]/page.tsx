@@ -4,10 +4,15 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import ListJobs from "@/components/listJobs";
-import { IoShareSocialOutline } from "react-icons/io5";
-import { IoArrowForwardOutline } from "react-icons/io5";
+import { 
+  IoShareSocialOutline,
+  IoArrowForwardOutline,
+} from "react-icons/io5";
 import ApplicationModal from "@/components/ApplicationModal";
+import ShareModal from "@/components/ShareModal";
 import { useJobs } from "@/app/context/JobsContext";
+
+
 
 const JobDetailPage = () => {
   const {
@@ -19,6 +24,11 @@ const JobDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [shareModal, setShareModal] = useState<{ isOpen: boolean; jobTitle: string; jobId: string }>({
+    isOpen: false,
+    jobTitle: "",
+    jobId: ""
+  });
   const params = useParams();
   const jobId = params.id as string;
 
@@ -64,6 +74,15 @@ const JobDetailPage = () => {
   const handleApply = () => {
     // Open the application modal instead of navigation
     setIsModalOpen(true);
+  };
+
+  const handleShare = (e: React.MouseEvent, jobTitle: string, jobId: string) => {
+    e.stopPropagation();
+    setShareModal({ isOpen: true, jobTitle, jobId });
+  };
+
+  const closeShareModal = () => {
+    setShareModal({ isOpen: false, jobTitle: "", jobId: "" });
   };
 
   if ((loading || contextLoading) && !error) {
@@ -198,10 +217,7 @@ const JobDetailPage = () => {
                   )}
                   <button
                     type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      alert(`Share job: ${job.jobTitle}`);
-                    }}
+                    onClick={(e) => handleShare(e, job.jobTitle, job.id)}
                     className="ml-auto text-right inline-flex items-center gap-2 bg-gray-100 text-orange-primary p-2 rounded-full cursor-pointer transition duration-200 z-20 relative"
                   >
                     <IoShareSocialOutline className="w-7 h-7" />
@@ -344,6 +360,14 @@ const JobDetailPage = () => {
         onClose={() => setIsModalOpen(false)}
         jobTitle={job?.title || job?.jobTitle || ""}
         jobId={jobId}
+      />
+
+      {/* Share Modal */}
+      <ShareModal 
+        isOpen={shareModal.isOpen} 
+        onClose={closeShareModal}
+        jobTitle={shareModal.jobTitle}
+        jobId={shareModal.jobId}
       />
 
     </>
