@@ -792,9 +792,9 @@ export default function JobApplicationsPage() {
           applicationIds={selectedApplicationIds}
           statusText={selectedStatus}
           preferredTemplateName={
-            selectedStatus === "accepted" 
+            selectedStatus === "Accepted" 
               ? "Application Accepted" 
-              : selectedStatus === "rejected" 
+              : selectedStatus === "Rejected" 
               ? "Application Rejected" 
               : undefined
           }

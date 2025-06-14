@@ -46,8 +46,27 @@ export default function ApplicationModal({
       newErrors.email = "Email is invalid";
     }
 
-    if (!phone.trim()) newErrors.phone = "Phone number is required";
-    if (!resumeFile) newErrors.resume = "Resume is required";
+    // Phone validation: exactly 10 digits
+    if (!phone.trim()) {
+      newErrors.phone = "Phone number is required";
+    } else if (!/^[0-9]{10}$/.test(phone.trim())) {
+      newErrors.phone = "Phone number must be exactly 10 digits";
+    }
+
+    // Resume file validation
+    if (!resumeFile) {
+      newErrors.resume = "Resume is required";
+    } else {
+      // Check file type
+      if (!resumeFile.type.includes('pdf')) {
+        newErrors.resume = "Only PDF files are allowed";
+      }
+      // Check file size (5MB = 5 * 1024 * 1024 bytes)
+      else if (resumeFile.size > 5 * 1024 * 1024) {
+        newErrors.resume = "File size must be less than 5MB";
+      }
+    }
+
     if (!agreedToTerms) newErrors.terms = "You must agree to the policies";
 
     setErrors(newErrors);
@@ -169,7 +188,7 @@ export default function ApplicationModal({
                   className={`w-full p-2 border rounded-md ${
                     errors.phone ? "border-red-500" : "border-gray-300"
                   }`}
-                  placeholder="Enter your phone"
+                  placeholder="Enter your phone number"
                 />
                 {errors.phone && (
                   <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
@@ -201,8 +220,7 @@ export default function ApplicationModal({
                 </label>
               </div>
               <p className="text-gray-500 text-xs mt-1">
-                We accept .pdf files, no password protected, up to
-                5MB
+                Only PDF files allowed, no password protected, maximum 5MB
               </p>
               {errors.resume && (
                 <p className="text-red-500 text-sm mt-1">{errors.resume}</p>
