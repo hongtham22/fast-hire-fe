@@ -14,7 +14,6 @@ export default function CVViewerPage() {
   const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
-    // Fetch application data to get the CV file URL
     const fetchApplicationData = async () => {
       setLoading(true);
       try {
@@ -24,14 +23,10 @@ export default function CVViewerPage() {
           console.error('API Error:', error);
           setError(`Failed to fetch application data: ${error}`);
         } else if (data) {
-          // The API might return cvFileUrl either directly or as part of a nested structure
-          // Handle different possible structures
           if (typeof data === 'object') {
             if ('cvFileUrl' in data) {
               setCvFileUrl(data.cvFileUrl);
             } 
-            // Log the data structure to help with debugging
-            console.log('Application data:', data);
           }
           
           if (!cvFileUrl) {

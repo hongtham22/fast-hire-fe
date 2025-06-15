@@ -46,24 +46,20 @@ export default function ApplicationModal({
       newErrors.email = "Email is invalid";
     }
 
-    // Phone validation: exactly 10 digits
     if (!phone.trim()) {
       newErrors.phone = "Phone number is required";
     } else if (!/^[0-9]{10}$/.test(phone.trim())) {
       newErrors.phone = "Phone number must be exactly 10 digits";
     }
 
-    // Resume file validation
     if (!resumeFile) {
       newErrors.resume = "Resume is required";
     } else {
-      // Check file type
       if (!resumeFile.type.includes('pdf')) {
         newErrors.resume = "Only PDF files are allowed";
       }
-      // Check file size (5MB = 5 * 1024 * 1024 bytes)
-      else if (resumeFile.size > 5 * 1024 * 1024) {
-        newErrors.resume = "File size must be less than 5MB";
+      else if (resumeFile.size > 10 * 1024 * 1024) {
+        newErrors.resume = "File size must be less than 10MB";
       }
     }
 
@@ -81,30 +77,25 @@ export default function ApplicationModal({
     setIsSubmitting(true);
 
     try {
-      // Create a FormData object for the file upload
       const formData = new FormData();
       formData.append('name', fullName);
       formData.append('email', email);
       formData.append('phone', phone);
       formData.append('jobId', jobId);
       
-      // Append the CV file
       if (resumeFile) {
         formData.append('cv', resumeFile);
       }
 
-      // Send the application to the API
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/applications/submit`, {
         method: 'POST',
         body: formData,
-        // Don't set Content-Type header, it will be set automatically with boundary for FormData
       });
 
       if (!response.ok) {
         throw new Error(`Application submission failed: ${response.status}`);
       }
 
-      // Success message and close modal
       alert("Application submitted successfully!");
       onClose();
     } catch (error) {
@@ -220,7 +211,7 @@ export default function ApplicationModal({
                 </label>
               </div>
               <p className="text-gray-500 text-xs mt-1">
-                Only PDF files allowed, no password protected, maximum 5MB
+                Only PDF files allowed, no password protected, maximum 10MB
               </p>
               {errors.resume && (
                 <p className="text-red-500 text-sm mt-1">{errors.resume}</p>

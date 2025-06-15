@@ -1,4 +1,4 @@
-import { API_AI_URL, FEATURES, API_TIMEOUT } from './config';
+import { API_AI_URL, API_TIMEOUT } from './config';
 import { 
   ApiResponse,
   CVParserResponse,
@@ -64,10 +64,6 @@ export const apiCall = async (endpoint: string, options: RequestInit = {}): Prom
       ...options.headers
     };
 
-    if (FEATURES.enableDebugLogging) {
-      console.log(`API Request: ${endpoint}`, { ...options, headers });
-    }
-
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       headers,
@@ -82,10 +78,6 @@ export const apiCall = async (endpoint: string, options: RequestInit = {}): Prom
       localStorage.removeItem('user');
       window.location.href = '/login';
       return;
-    }
-
-    if (FEATURES.enableDebugLogging && response.ok) {
-      console.log(`API Response: ${endpoint}`, response.status);
     }
 
     return response;
@@ -121,10 +113,6 @@ const aiApiCall = async (endpoint: string, options: RequestInit = {}): Promise<R
       ...options.headers
     };
 
-    if (FEATURES.enableDebugLogging) {
-      console.log(`AI API Request: ${endpoint}`, { ...options, headers });
-    }
-
     const response = await fetch(`${API_AI_URL}${endpoint}`, {
       ...options,
       headers,
@@ -132,10 +120,6 @@ const aiApiCall = async (endpoint: string, options: RequestInit = {}): Promise<R
     });
 
     clearTimeout(timeoutId);
-
-    if (FEATURES.enableDebugLogging && response.ok) {
-      console.log(`AI API Response: ${endpoint}`, response.status);
-    }
 
     return response;
   } catch (error: unknown) {
@@ -696,7 +680,6 @@ export async function getApplicationsChartData(): Promise<ApiResponse<{ labels: 
  */
 export async function getDashboardData(): Promise<ApiResponse<DashboardData>> {
   try {
-    console.log('Fetching dashboard data from API...');
     
     const [statsResult, applicationsResult, matchingScoresResult, chartResult] = await Promise.all([
       getDashboardStats(),
@@ -720,8 +703,6 @@ export async function getDashboardData(): Promise<ApiResponse<DashboardData>> {
     if (!statsResult.data || !applicationsResult.data || !matchingScoresResult.data || !chartResult.data) {
       throw new Error('Incomplete data received from API');
     }
-
-    console.log('Successfully loaded all dashboard data');
 
     const dashboardData: DashboardData = {
       stats: statsResult.data,

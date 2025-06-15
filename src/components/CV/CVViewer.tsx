@@ -27,10 +27,8 @@ const CVViewer: React.FC<CVViewerProps> = ({ applicationId, cvFileUrl }) => {
           setError(error);
           console.error('Error fetching CV keywords:', error);
         } else if (data) {
-          console.log('CV data received:', data);
           setCvText(data.raw_text || null);
           
-          // Check if structured_data exists and is properly formatted
           if (data.structured_data && typeof data.structured_data === 'object') {
             setStructuredData(data.structured_data);
           } else {
@@ -53,19 +51,15 @@ const CVViewer: React.FC<CVViewerProps> = ({ applicationId, cvFileUrl }) => {
     }
   }, [applicationId]);
 
-  // Check if we have structured data from the database
   const hasStructuredData = structuredData && Object.keys(structuredData).length > 0;
 
-  // Log data for debugging
   useEffect(() => {
     if (structuredData) {
-      console.log('Structured data ready for rendering:', structuredData);
     }
   }, [structuredData]);
 
   useEffect(() => {
     if (cvFileUrl) {
-      console.log('CV File URL:', cvFileUrl);
     }
   }, [cvFileUrl]);
 

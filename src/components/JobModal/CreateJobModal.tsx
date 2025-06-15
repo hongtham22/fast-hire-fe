@@ -11,18 +11,6 @@ interface CreateJobModalProps {
   onJobCreated: () => void;
 }
 
-interface ValidationErrors {
-  jobTitle?: string;
-  experienceYear?: string;
-  locationId?: string;
-  mustHave?: string;
-  niceToHave?: string;
-  languageSkills?: string;
-  keyResponsibility?: string;
-  ourOffer?: string;
-  expireDate?: string;
-}
-
 export default function CreateJobModal({ isOpen, onClose, onJobCreated }: CreateJobModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,9 +18,7 @@ export default function CreateJobModal({ isOpen, onClose, onJobCreated }: Create
   const [locationsLoading, setLocationsLoading] = useState(false);
   const [maxScores, setMaxScores] = useState<Record<string, number>>({});
   const [maxScoresError, setMaxScoresError] = useState<string | null>(null);
-  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
 
-  // Form state
   const [jobTitle, setJobTitle] = useState("");
   const [experienceYear, setExperienceYear] = useState(1);
   const [locationId, setLocationId] = useState("");
@@ -51,80 +37,12 @@ export default function CreateJobModal({ isOpen, onClose, onJobCreated }: Create
 - Awards for outstanding performance on a quarterly and yearly basis.`);
   const [expireDate, setExpireDate] = useState("");
 
-  // Validation functions
-  const validateField = (fieldName: string, value: string | number): string | undefined => {
-    switch (fieldName) {
-      case 'jobTitle':
-        const title = (value as string).trim();
-        if (!title) return 'Job title is required';
-        if (title.length < 3) return 'Job title must be at least 3 characters';
-        if (title.length > 255) return 'Job title must be less than 255 characters';
-        break;
-      
-      case 'experienceYear':
-        const years = value as number;
-        if (years < 0) return 'Experience cannot be negative';
-        if (years > 50) return 'Experience cannot exceed 50 years';
-        break;
-      
-      case 'locationId':
-        if (!(value as string)) return 'Location is required';
-        break;
-      
-      case 'mustHave':
-        const mustHaveText = (value as string).trim();
-        if (!mustHaveText) return 'Must have skills is required';
-        if (mustHaveText.length < 10) return 'Must have skills must be at least 10 characters';
-        if (mustHaveText.length > 2000) return 'Must have skills must be less than 3000 characters';
-        break;
-      
-      case 'niceToHave':
-        if ((value as string).length > 2000) return 'Nice to have skills must be less than 3000 characters';
-        break;
-      
-      case 'keyResponsibility':
-        if ((value as string).length > 2000) return 'Key responsibilities must be less than 3000 characters';
-        break;
-      
-      case 'languageSkills':
-        if ((value as string).length > 1000) return 'Language skills must be less than 3000 characters';
-        break;
-      
-      case 'ourOffer':
-        if ((value as string).length > 3000) return 'Our offer must be less than 3000 characters';
-        break;
-      
-      case 'expireDate':
-        if (value as string) {
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          const expire = new Date(value as string);
-          if (expire <= today) return 'Expire date must be in the future';
-        }
-        break;
-    }
-    return undefined;
-  };
-
-  const handleFieldChange = (fieldName: string, value: string | number) => {
-    // Clear previous error for this field
-    setValidationErrors(prev => ({ ...prev, [fieldName]: undefined }));
-    
-    // Validate field
-    const error = validateField(fieldName, value);
-    if (error) {
-      setValidationErrors(prev => ({ ...prev, [fieldName]: error }));
-    }
-  };
-
-  // Auto-resize textarea function
   const handleTextareaResize = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const textarea = e.target;
     textarea.style.height = 'auto';
     textarea.style.height = textarea.scrollHeight + 'px';
   };
 
-  // Auto-resize all textareas on mount and when values change
   useEffect(() => {
     if (!isOpen) return;
     
@@ -137,13 +55,18 @@ export default function CreateJobModal({ isOpen, onClose, onJobCreated }: Create
       });
     };
 
-    // Small delay to ensure DOM is fully rendered and modal is visible
     const timer = setTimeout(resizeAllTextareas, 200);
     
     return () => clearTimeout(timer);
   }, [isOpen, keyResponsibility, mustHave, niceToHave, languageSkills, ourOffer]);
 
-  // Fetch locations on component mount
+  useEffect(() => {
+    if (isOpen) {
+      setError(null);
+      setMaxScoresError(null);
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     const fetchLocations = async () => {
       setLocationsLoading(true);
@@ -153,7 +76,6 @@ export default function CreateJobModal({ isOpen, onClose, onJobCreated }: Create
           console.error('Error fetching locations:', error);
         } else if (data) {
           setLocations(data);
-          // Set default location if available
           if (data.length > 0) {
             setLocationId(data[0].id);
           }
@@ -185,46 +107,18 @@ export default function CreateJobModal({ isOpen, onClose, onJobCreated }: Create
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate all fields
-    const errors: ValidationErrors = {};
-    
-    errors.jobTitle = validateField('jobTitle', jobTitle);
-    errors.experienceYear = validateField('experienceYear', experienceYear);
-    errors.locationId = validateField('locationId', locationId);
-    errors.mustHave = validateField('mustHave', mustHave);
-    errors.niceToHave = validateField('niceToHave', niceToHave);
-    errors.keyResponsibility = validateField('keyResponsibility', keyResponsibility);
-    errors.languageSkills = validateField('languageSkills', languageSkills);
-    errors.ourOffer = validateField('ourOffer', ourOffer);
-    errors.expireDate = validateField('expireDate', expireDate);
-    
-    // Remove undefined errors
-    Object.keys(errors).forEach((key) => {
-      if (!errors[key as keyof ValidationErrors]) {
-        delete errors[key as keyof ValidationErrors];
-      }
-    });
-    
-    // Check max scores
     const totalMaxScores = Object.values(maxScores).reduce((sum, score) => sum + score, 0);
     if (totalMaxScores !== 100) {
       setMaxScoresError(`Total score weights must equal 100. Current total: ${totalMaxScores}`);
-      return;
-    }
-    
-    // If there are validation errors, show them and return
-    if (Object.keys(errors).length > 0) {
-      setValidationErrors(errors);
-      setError('Please fix the validation errors above');
+      setError('Please fix the max scores error below');
       return;
     }
     
     setLoading(true);
     setError(null);
-    setValidationErrors({});
+    setMaxScoresError(null);
 
     try {
-      // Create job and extract keywords in one API call
       const response = await apiCall('/jobs/create-with-keywords', {
         method: 'POST',
         body: JSON.stringify({
@@ -238,7 +132,6 @@ export default function CreateJobModal({ isOpen, onClose, onJobCreated }: Create
           ourOffer: ourOffer.trim(),
           expireDate: expireDate || undefined,
           status: 'pending',
-          // Include max scores
           ...maxScores
           
         }),
@@ -253,7 +146,6 @@ export default function CreateJobModal({ isOpen, onClose, onJobCreated }: Create
         throw new Error(errorData.message || 'Failed to create job');
       }
 
-      // Success - notify parent component
       onJobCreated();
     } catch (err) {
       console.error('Error creating job:', err);
@@ -263,16 +155,10 @@ export default function CreateJobModal({ isOpen, onClose, onJobCreated }: Create
     }
   };
 
-  // Get minimum date (today)
   const getMinDate = () => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
-  };
-
-  // Helper function to get input classes with error state
-  const getInputClasses = (fieldName: keyof ValidationErrors, baseClasses: string = "w-full rounded-md border px-3 py-2 text-sm") => {
-    const hasError = validationErrors[fieldName];
-    return `${baseClasses} ${hasError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'}`;
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split('T')[0];
   };
 
   if (!isOpen) return null;
@@ -305,18 +191,12 @@ export default function CreateJobModal({ isOpen, onClose, onJobCreated }: Create
               <input
                 type="text"
                 required
+                maxLength={255}
                 value={jobTitle}
-                onChange={(e) => {
-                  setJobTitle(e.target.value);
-                  handleFieldChange('jobTitle', e.target.value);
-                }}
-                className={getInputClasses('jobTitle')}
+                onChange={(e) => setJobTitle(e.target.value)}
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-500"
                 placeholder="e.g. Senior Software Engineer"
               />
-              {validationErrors.jobTitle && (
-                <p className="mt-1 text-xs text-red-600">{validationErrors.jobTitle}</p>
-              )}
-              <p className="mt-1 text-xs text-gray-400">{jobTitle.length}/255</p>
             </div>
             
             <div>
@@ -329,27 +209,19 @@ export default function CreateJobModal({ isOpen, onClose, onJobCreated }: Create
                   <span>Loading locations...</span>
                 </div>
               ) : (
-                <>
-                  <select
-                    value={locationId}
-                    onChange={(e) => {
-                      setLocationId(e.target.value);
-                      handleFieldChange('locationId', e.target.value);
-                    }}
-                    className={getInputClasses('locationId')}
-                    required
-                  >
-                    <option value="" disabled>Select a location</option>
-                    {locations.map((location) => (
-                      <option key={location.id} value={location.id}>
-                        {location.name}
-                      </option>
-                    ))}
-                  </select>
-                  {validationErrors.locationId && (
-                    <p className="mt-1 text-xs text-red-600">{validationErrors.locationId}</p>
-                  )}
-                </>
+                <select
+                  value={locationId}
+                  onChange={(e) => setLocationId(e.target.value)}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-500"
+                  required
+                >
+                  <option value="" disabled>Select a location</option>
+                  {locations.map((location) => (
+                    <option key={location.id} value={location.id}>
+                      {location.name}
+                    </option>
+                  ))}
+                </select>
               )}
             </div>
           </div>
@@ -365,16 +237,9 @@ export default function CreateJobModal({ isOpen, onClose, onJobCreated }: Create
                 min="0"
                 max="50"
                 value={experienceYear}
-                onChange={(e) => {
-                  const value = parseInt(e.target.value);
-                  setExperienceYear(value);
-                  handleFieldChange('experienceYear', value);
-                }}
-                className={getInputClasses('experienceYear')}
+                onChange={(e) => setExperienceYear(parseInt(e.target.value))}
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-500"
               />
-              {validationErrors.experienceYear && (
-                <p className="mt-1 text-xs text-red-600">{validationErrors.experienceYear}</p>
-              )}
             </div>
             
             <div>
@@ -386,15 +251,9 @@ export default function CreateJobModal({ isOpen, onClose, onJobCreated }: Create
                 required
                 min={getMinDate()}
                 value={expireDate}
-                onChange={(e) => {
-                  setExpireDate(e.target.value);
-                  handleFieldChange('expireDate', e.target.value);
-                }}
-                className={getInputClasses('expireDate')}
+                onChange={(e) => setExpireDate(e.target.value)}
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-500"
               />
-              {validationErrors.expireDate && (
-                <p className="mt-1 text-xs text-red-600">{validationErrors.expireDate}</p>
-              )}
             </div>
           </div>
           
@@ -405,18 +264,14 @@ export default function CreateJobModal({ isOpen, onClose, onJobCreated }: Create
             <textarea
               value={keyResponsibility}
               required
+              maxLength={3000}
               onChange={(e) => {
                 setKeyResponsibility(e.target.value);
-                handleFieldChange('keyResponsibility', e.target.value);
                 handleTextareaResize(e);
               }}
-              className={getInputClasses('keyResponsibility', "w-full rounded-md border px-3 py-2 text-sm min-h-[100px] resize-none overflow-hidden")}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm min-h-[100px] resize-none overflow-hidden focus:ring-blue-500"
               placeholder="List the key responsibilities for this role"
             ></textarea>
-            {validationErrors.keyResponsibility && (
-              <p className="mt-1 text-xs text-red-600">{validationErrors.keyResponsibility}</p>
-            )}
-            <p className="mt-1 text-xs text-gray-400">{keyResponsibility.length}/3000</p>
           </div>
           
           <div>
@@ -425,19 +280,15 @@ export default function CreateJobModal({ isOpen, onClose, onJobCreated }: Create
             </label>
             <textarea
               required
+              maxLength={3000}
               value={mustHave}
               onChange={(e) => {
                 setMustHave(e.target.value);
-                handleFieldChange('mustHave', e.target.value);
                 handleTextareaResize(e);
               }}
-              className={getInputClasses('mustHave', "w-full rounded-md border px-3 py-2 text-sm min-h-[100px] resize-none overflow-hidden")}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm min-h-[100px] resize-none overflow-hidden focus:ring-blue-500"
               placeholder="Required skills and qualifications"
             ></textarea>
-            {validationErrors.mustHave && (
-              <p className="mt-1 text-xs text-red-600">{validationErrors.mustHave}</p>
-            )}
-            <p className="mt-1 text-xs text-gray-400">{mustHave.length}/3000</p>
           </div>
           
           <div>
@@ -447,18 +298,14 @@ export default function CreateJobModal({ isOpen, onClose, onJobCreated }: Create
             <textarea
               value={niceToHave}
               required
+              maxLength={3000}
               onChange={(e) => {
                 setNiceToHave(e.target.value);
-                handleFieldChange('niceToHave', e.target.value);
                 handleTextareaResize(e);
               }}
-              className={getInputClasses('niceToHave', "w-full rounded-md border px-3 py-2 text-sm min-h-[100px] resize-none overflow-hidden")}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm min-h-[100px] resize-none overflow-hidden focus:ring-blue-500"
               placeholder="Preferred skills and qualifications"
             ></textarea>
-            {validationErrors.niceToHave && (
-              <p className="mt-1 text-xs text-red-600">{validationErrors.niceToHave}</p>
-            )}
-            <p className="mt-1 text-xs text-gray-400">{niceToHave.length}/3000</p>
           </div>
           
           <div>
@@ -468,18 +315,14 @@ export default function CreateJobModal({ isOpen, onClose, onJobCreated }: Create
             <textarea
               value={languageSkills}
               required
+              maxLength={1000}
               onChange={(e) => {
                 setLanguageSkills(e.target.value);
-                handleFieldChange('languageSkills', e.target.value);
                 handleTextareaResize(e);
               }}
-              className={getInputClasses('languageSkills', "w-full rounded-md border px-3 py-2 text-sm min-h-[80px] resize-none overflow-hidden")}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm min-h-[80px] resize-none overflow-hidden focus:ring-blue-500"
               placeholder="Required language proficiency"
             ></textarea>
-            {validationErrors.languageSkills && (
-              <p className="mt-1 text-xs text-red-600">{validationErrors.languageSkills}</p>
-            )}
-            <p className="mt-1 text-xs text-gray-400">{languageSkills.length}/3000</p>
           </div>
           
           <div>
@@ -489,21 +332,16 @@ export default function CreateJobModal({ isOpen, onClose, onJobCreated }: Create
             <textarea
               value={ourOffer}
               required
+              maxLength={3000}
               onChange={(e) => {
                 setOurOffer(e.target.value);
-                handleFieldChange('ourOffer', e.target.value);
                 handleTextareaResize(e);
               }}
-              className={getInputClasses('ourOffer', "w-full rounded-md border px-3 py-2 text-sm min-h-[100px] resize-none overflow-hidden")}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm min-h-[100px] resize-none overflow-hidden focus:ring-blue-500"
               placeholder="Benefits, perks, and other offerings"
             ></textarea>
-            {validationErrors.ourOffer && (
-              <p className="mt-1 text-xs text-red-600">{validationErrors.ourOffer}</p>
-            )}
-            <p className="mt-1 text-xs text-gray-400">{ourOffer.length}/3000</p>
           </div>
           
-          {/* Add MaxScoresEditor */}
           <div className="border-t pt-4 mt-4">
             <MaxScoresEditor 
               values={maxScores}
@@ -522,7 +360,7 @@ export default function CreateJobModal({ isOpen, onClose, onJobCreated }: Create
             </button>
             <button
               type="submit"
-              disabled={loading || !!maxScoresError || Object.keys(validationErrors).length > 0}
+              disabled={loading || !!maxScoresError}
               className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-70 flex items-center"
             >
               {loading ? (
