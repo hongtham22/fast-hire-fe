@@ -22,20 +22,13 @@ const CandidatesTable: React.FC<CandidatesTableProps> = ({ candidates, onViewHis
       
       {/* Table Body */}
       <div className="divide-y">
-        {candidates.length === 0 ? (
-          <div className="px-6 py-12 text-center">
-            <p className="text-gray-500 text-lg">No candidates match your search criteria</p>
-            <p className="text-gray-400 text-sm mt-1">Try adjusting your filters or search term</p>
-          </div>
-        ) : (
-          candidates.map((candidate) => (
-            <CandidateCard 
-              key={candidate.id} 
-              candidate={candidate} 
-              onViewHistory={onViewHistory}
-            />
-          ))
-        )}
+        {candidates.map((candidate) => (
+          <CandidateCard 
+            key={candidate.id} 
+            candidate={candidate} 
+            onViewHistory={onViewHistory}
+          />
+        ))}
       </div>
     </div>
   );

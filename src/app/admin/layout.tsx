@@ -10,7 +10,8 @@ import {
   BarChart2, 
   UserPlus,
   LogOut,
-  Briefcase
+  Briefcase,
+  UserCheck
 } from 'lucide-react';
 import { useAuth } from '@/app/context/AuthContext';
 
@@ -29,6 +30,7 @@ export default function AdminLayout({
     { name: 'Create HR Account', href: '/admin/create-hr', icon: UserPlus },
     { name: 'Job Management', href: '/admin/jobs', icon: Briefcase },
     { name: 'Job Approvals', href: '/admin/job-approvals', icon: FileCheck },
+    { name: 'All Candidates', href: '/admin/candidates', icon: UserCheck },
   ];
 
   return (

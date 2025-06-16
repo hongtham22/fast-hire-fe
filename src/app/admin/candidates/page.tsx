@@ -2,26 +2,29 @@
 
 import { useState, useEffect } from 'react';
 import { CandidateData } from '@/types';
-import CandidateFilters from '@/components/candidates/CandidateFilters';
+import AdminCandidateFilters from '@/components/candidates/AdminCandidateFilters';
 import CandidatesTable from '@/components/candidates/CandidatesTable';
 import ApplicationHistoryModal from '@/components/candidates/ApplicationHistoryModal';
-import { useCandidates } from '@/components/candidates/useCandidates';
+import { useAdminCandidates } from '@/components/candidates/useAdminCandidates';
 import { Card } from '@/components/ui/card';
-import { Users, BriefcaseIcon, Award, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Users, BriefcaseIcon, Award, ChevronLeft, ChevronRight, Building2 } from 'lucide-react';
 import { getApplicantStatistics, ApplicantStatistics } from '@/lib/api';
 
-export default function CandidatesPage() {
+export default function AdminCandidatesPage() {
   const {
     filteredCandidates,
+    hrUsers,
     loading,
     error,
     searchQuery,
     setSearchQuery,
     sortBy,
     setSortBy,
+    selectedHrId,
+    setSelectedHrId,
     setError,
     fetchApplicationHistory
-  } = useCandidates();
+  } = useAdminCandidates();
 
   // Statistics state
   const [statistics, setStatistics] = useState<ApplicantStatistics | null>(null);
@@ -31,10 +34,10 @@ export default function CandidatesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Reset to first page when search query or sort changes
+  // Reset to first page when search query, sort, or HR selection changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, sortBy]);
+  }, [searchQuery, sortBy, selectedHrId]);
 
   // Calculate pagination
   const totalPages = Math.ceil(filteredCandidates.length / itemsPerPage);
@@ -88,7 +91,7 @@ export default function CandidatesPage() {
     return pageNumbers;
   };
 
-  // Fetch statistics
+  // Fetch statistics (admin gets global statistics)
   useEffect(() => {
     const fetchStatistics = async () => {
       try {
@@ -124,11 +127,18 @@ export default function CandidatesPage() {
     setSelectedCandidate(null);
   };
 
+  // Get the selected HR user name for display
+  const getSelectedHrName = () => {
+    if (selectedHrId === 'all') return 'All HR Users';
+    const selectedHr = hrUsers.find(hr => hr.id === selectedHrId);
+    return selectedHr?.name || 'Unknown HR';
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">Candidates</h1>
+          <h1 className="text-2xl font-bold">All Candidates</h1>
           <p className="text-gray-500">Loading candidates...</p>
         </div>
       </div>
@@ -139,7 +149,7 @@ export default function CandidatesPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">Candidates</h1>
+          <h1 className="text-2xl font-bold">All Candidates</h1>
           <p className="text-red-500">Error: {error}</p>
         </div>
       </div>
@@ -150,12 +160,14 @@ export default function CandidatesPage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold">Candidates</h1>
-        <p className="text-gray-500">Manage candidates who applied to your job postings</p>
+        <h1 className="text-2xl font-bold">All Candidates</h1>
+        <p className="text-gray-500">
+          Manage all candidates from all HR users
+        </p>
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-4">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-blue-100 rounded-full">
@@ -165,6 +177,20 @@ export default function CandidatesPage() {
               <p className="text-sm font-medium text-gray-500">Total Candidates</p>
               <h3 className="text-2xl font-bold">
                 {statsLoading ? '...' : statistics?.totalApplicants || 0}
+              </h3>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-4">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-green-100 rounded-full">
+              <Building2 className="h-6 w-6 text-green-700" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Active HR Users</p>
+              <h3 className="text-2xl font-bold">
+                {hrUsers.length}
               </h3>
             </div>
           </div>
@@ -202,13 +228,15 @@ export default function CandidatesPage() {
       </div>
       
       {/* Filters */}
-      <CandidateFilters
+      <AdminCandidateFilters
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         sortBy={sortBy}
         onSortChange={setSortBy}
+        selectedHrId={selectedHrId}
+        onHrChange={setSelectedHrId}
+        hrUsers={hrUsers}
       />
-      
       
       {/* Candidates Table */}
       <Card>
@@ -222,6 +250,7 @@ export default function CandidatesPage() {
             <div className="text-sm text-gray-500">
               Showing {paginatedCandidates.length} of {filteredCandidates.length} candidates
               {searchQuery && ` matching "${searchQuery}"`}
+              {selectedHrId !== 'all' && ` from ${getSelectedHrName()}`}
             </div>
             
             {/* Pagination controls */}

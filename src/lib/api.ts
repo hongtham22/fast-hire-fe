@@ -272,6 +272,16 @@ export async function getCandidatesForHR(): Promise<ApiResponse<CandidateData[]>
 }
 
 /**
+ * Fetch all candidates for admin (from all HR users)
+ */
+export async function getAllCandidatesForAdmin(hrUserId?: string): Promise<ApiResponse<CandidateData[]>> {
+  const endpoint = hrUserId ? `/applications/admin/candidates?hrUserId=${hrUserId}` : '/applications/admin/candidates';
+  return handleApiResponse<CandidateData[]>(
+    apiCall(endpoint)
+  );
+}
+
+/**
  * Fetch applications history for a specific applicant ID
  */
 export async function getApplicationsByApplicantId(applicantId: string): Promise<ApiResponse<DetailedApplication[]>> {
