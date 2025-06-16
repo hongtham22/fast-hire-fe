@@ -34,6 +34,36 @@ export default function EditJobModal({ isOpen, onClose, onJobUpdated, job }: Edi
     job.expireDate ? new Date(job.expireDate).toISOString().split('T')[0] : ""
   );
 
+  const handleTextareaResize = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const textarea = e.target;
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
+  };
+
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    const resizeAllTextareas = () => {
+      const textareas = document.querySelectorAll('textarea');
+      textareas.forEach((textarea) => {
+        const element = textarea as HTMLTextAreaElement;
+        element.style.height = 'auto';
+        element.style.height = element.scrollHeight + 'px';
+      });
+    };
+
+    const timer = setTimeout(resizeAllTextareas, 200);
+    
+    return () => clearTimeout(timer);
+  }, [isOpen, keyResponsibility, mustHave, niceToHave, languageSkills, ourOffer]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setError(null);
+      setMaxScoresError(null);
+    }
+  }, [isOpen]);
+
   // Fetch locations on component mount
   useEffect(() => {
     const fetchLocations = async () => {
@@ -105,6 +135,12 @@ export default function EditJobModal({ isOpen, onClose, onJobUpdated, job }: Edi
     }
   };
 
+  const getMinDate = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split('T')[0];
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -112,6 +148,7 @@ export default function EditJobModal({ isOpen, onClose, onJobUpdated, job }: Edi
     const totalMaxScores = Object.values(maxScores).reduce((sum, score) => sum + score, 0);
     if (totalMaxScores !== 100) {
       setMaxScoresError(`Total score weights must equal 100. Current total: ${totalMaxScores}`);
+      setError('Please fix the max scores error below');
       return;
     }
     
@@ -123,14 +160,14 @@ export default function EditJobModal({ isOpen, onClose, onJobUpdated, job }: Edi
       const response = await apiCall(`/jobs/${job.id}/update-with-keywords`, {
         method: 'PUT',
         body: JSON.stringify({
-          jobTitle,
+          jobTitle: jobTitle.trim(),
           experienceYear,
           locationId,
-          mustHave,
-          niceToHave,
-          languageSkills,
-          keyResponsibility,
-          ourOffer,
+          mustHave: mustHave.trim(),
+          niceToHave: niceToHave.trim(),
+          languageSkills: languageSkills.trim(),
+          keyResponsibility: keyResponsibility.trim(),
+          ourOffer: ourOffer.trim(),
           expireDate: expireDate || undefined,
           status: 'pending', // Set status to pending when edited
           // Include max scores
@@ -179,80 +216,92 @@ export default function EditJobModal({ isOpen, onClose, onJobUpdated, job }: Edi
             </div>
           )}
           
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Job Title*
-            </label>
-            <input
-              type="text"
-              required
-              value={jobTitle}
-              onChange={(e) => setJobTitle(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-              placeholder="e.g. Senior Software Engineer"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Location*
-            </label>
-            {locationsLoading ? (
-              <div className="flex items-center space-x-2 h-9 text-sm text-gray-500">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Loading locations...</span>
-              </div>
-            ) : (
-              <select
-                value={locationId}
-                onChange={(e) => setLocationId(e.target.value)}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Job Title*
+              </label>
+              <input
+                type="text"
                 required
-              >
-                <option value="" disabled>Select a location</option>
-                {locations.map((location) => (
-                  <option key={location.id} value={location.id}>
-                    {location.name}
-                  </option>
-                ))}
-              </select>
-            )}
+                maxLength={255}
+                value={jobTitle}
+                onChange={(e) => setJobTitle(e.target.value)}
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-500"
+                placeholder="e.g. Senior Software Engineer"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Location*
+              </label>
+              {locationsLoading ? (
+                <div className="flex items-center space-x-2 h-9 text-sm text-gray-500">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Loading locations...</span>
+                </div>
+              ) : (
+                <select
+                  value={locationId}
+                  onChange={(e) => setLocationId(e.target.value)}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-500"
+                  required
+                >
+                  <option value="" disabled>Select a location</option>
+                  {locations.map((location) => (
+                    <option key={location.id} value={location.id}>
+                      {location.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Experience (years)*
+              </label>
+              <input
+                type="number"
+                required
+                min="0"
+                max="50"
+                value={experienceYear}
+                onChange={(e) => setExperienceYear(parseInt(e.target.value))}
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-500"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Expire Date
+              </label>
+              <input
+                type="date"
+                min={getMinDate()}
+                value={expireDate}
+                onChange={(e) => setExpireDate(e.target.value)}
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-blue-500"
+              />
+            </div>
           </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Experience (years)*
-            </label>
-            <input
-              type="number"
-              required
-              min="0"
-              value={experienceYear}
-              onChange={(e) => setExperienceYear(parseInt(e.target.value))}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Expire Date
-            </label>
-            <input
-              type="date"
-              value={expireDate}
-              onChange={(e) => setExpireDate(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Key Responsibilities
+              Key Responsibilities*
             </label>
             <textarea
               value={keyResponsibility}
-              onChange={(e) => setKeyResponsibility(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm min-h-[100px]"
+              required
+              maxLength={3000}
+              onChange={(e) => {
+                setKeyResponsibility(e.target.value);
+                handleTextareaResize(e);
+              }}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm min-h-[100px] resize-none overflow-hidden focus:ring-blue-500"
               placeholder="List the key responsibilities for this role"
             ></textarea>
           </div>
@@ -263,45 +312,64 @@ export default function EditJobModal({ isOpen, onClose, onJobUpdated, job }: Edi
             </label>
             <textarea
               required
+              maxLength={3000}
               value={mustHave}
-              onChange={(e) => setMustHave(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm min-h-[100px]"
+              onChange={(e) => {
+                setMustHave(e.target.value);
+                handleTextareaResize(e);
+              }}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm min-h-[100px] resize-none overflow-hidden focus:ring-blue-500"
               placeholder="Required skills and qualifications"
             ></textarea>
           </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Nice to Have Skills
+              Nice to Have Skills*
             </label>
             <textarea
               value={niceToHave}
-              onChange={(e) => setNiceToHave(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm min-h-[100px]"
+              required
+              maxLength={3000}
+              onChange={(e) => {
+                setNiceToHave(e.target.value);
+                handleTextareaResize(e);
+              }}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm min-h-[100px] resize-none overflow-hidden focus:ring-blue-500"
               placeholder="Preferred skills and qualifications"
             ></textarea>
           </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Language Skills
+              Language Skills*
             </label>
             <textarea
               value={languageSkills}
-              onChange={(e) => setLanguageSkills(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              required
+              maxLength={1000}
+              onChange={(e) => {
+                setLanguageSkills(e.target.value);
+                handleTextareaResize(e);
+              }}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm min-h-[80px] resize-none overflow-hidden focus:ring-blue-500"
               placeholder="Required language proficiency"
             ></textarea>
           </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Our Offer
+              Our Offer*
             </label>
             <textarea
               value={ourOffer}
-              onChange={(e) => setOurOffer(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm min-h-[100px]"
+              required
+              maxLength={3000}
+              onChange={(e) => {
+                setOurOffer(e.target.value);
+                handleTextareaResize(e);
+              }}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm min-h-[100px] resize-none overflow-hidden focus:ring-blue-500"
               placeholder="Benefits, perks, and other offerings"
             ></textarea>
           </div>

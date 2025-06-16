@@ -7,6 +7,7 @@ import JobKeywordView from "@/components/JD/JobKeywordView";
 import { JobKeywordData } from "@/types/job";
 import { getPublicJobKeywords } from "@/lib/api";
 import { Job, useJobs } from "@/app/context/JobsContext";
+import { formatDate } from "@/lib/utils";
 
 export default function JobKeywordsPage() {
   const [keywordData, setKeywordData] = useState<JobKeywordData | null>(null);
@@ -106,12 +107,12 @@ export default function JobKeywordsPage() {
             <div className="mb-8 flex flex-wrap items-center text-sm text-gray-600 gap-8">
               <div className="mb-2">
                 <span className="font-semibold">Posted:</span>{" "}
-                {new Date(job?.createdAt || "").toLocaleString()}
+                {formatDate(job?.createdAt || "")}
               </div>
               {job?.expireDate && (
                 <div className="mb-2">
                   <span className="font-semibold">Closing Date:</span>{" "}
-                  {new Date(job.expireDate).toLocaleString()}
+                  {formatDate(job.expireDate)}
                 </div>
               )}
               {job?.experienceYear && (
