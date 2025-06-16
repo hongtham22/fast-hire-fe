@@ -1,6 +1,7 @@
 export interface DashboardStats {
   totalCandidates: number;
   totalJobs: number;
+  pendingJobs: number;
   totalHR: number;
   averageMatchingScore: number;
 }

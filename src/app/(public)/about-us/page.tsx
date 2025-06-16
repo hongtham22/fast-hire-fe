@@ -11,7 +11,6 @@ import {
   IoStarOutline,
   IoHeartOutline,
   IoGlobeOutline,
-  IoTrophyOutline,
   IoEyeOutline,
   IoAtOutline,
 } from "react-icons/io5";
@@ -30,10 +29,9 @@ function AboutUsPage() {
               Our Story
             </h2>
             <p className="text-xl text-gray-700 max-w-4xl mx-auto mb-12 opacity-0 animate-fade-in-up animation-delay-1000">
-              FastHire is revolutionizing recruitment through cutting-edge AI
-              technology, connecting top talent with exceptional opportunities
-              across Vietnam and beyond. We&apos;re building the future of
-              hiring, one perfect match at a time.
+              FastHire is a modern recruitment platform that uses technology to 
+              help connect job seekers with employers in Vietnam. We&apos;re 
+              working to improve the hiring process for both candidates and companies.
             </p>
           </div>
         </div>
@@ -48,28 +46,26 @@ function AboutUsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div>
             <h2 className="text-5xl font-bold text-gray-900 mb-8">
-              Transforming Recruitment with{" "}
-              <span className="text-orange-primary">AI Innovation</span>
+              Building a Better{" "}
+              <span className="text-orange-primary">Recruitment Experience</span>
             </h2>
             <div className="space-y-6 text-lg text-gray-700 leading-relaxed">
               <p>
-                Founded with a vision to revolutionize the recruitment industry,
-                FastHire has emerged as Vietnam&apos;s leading AI-powered talent
-                platform. We understand that finding the right job or the
-                perfect candidate shouldn&apos;t be a time-consuming,
-                frustrating process.
+                FastHire was founded with the goal of making recruitment more 
+                efficient and accessible. We recognized that both job seekers 
+                and employers face challenges in the traditional hiring process, 
+                and we wanted to create a platform that could address these issues.
               </p>
               <p>
-                Our journey began when our founders experienced firsthand the
-                inefficiencies in traditional recruitment. They envisioned a
-                platform that could intelligently match candidates with
-                opportunities, reducing hiring time from weeks to days while
-                ensuring higher quality matches.
+                Our team started by focusing on understanding the needs of both 
+                candidates and companies in the Vietnamese job market. We built 
+                our platform to help streamline the application and screening 
+                process, making it easier for the right people to find each other.
               </p>
               <p>
-                Today, FastHire serves thousands of companies and professionals
-                across Vietnam, leveraging advanced machine learning algorithms
-                to create meaningful connections in the job market.
+                Today, FastHire serves companies and professionals across Vietnam, 
+                using modern technology to help facilitate better matches between 
+                employers and job seekers.
               </p>
             </div>
           </div>
@@ -78,27 +74,27 @@ function AboutUsPage() {
             <div className="grid grid-cols-2 gap-6">
               <div className="text-center">
                 <div className="text-4xl font-bold text-orange-primary mb-2">
-                  50,000+
+                  150+
                 </div>
-                <div className="text-sm text-gray-600">Active Job Seekers</div>
+                <div className="text-sm text-gray-600">Registered Users</div>
               </div>
               <div className="text-center">
                 <div className="text-4xl font-bold text-orange-dark mb-2">
-                  5,000+
+                  50+
                 </div>
                 <div className="text-sm text-gray-600">Partner Companies</div>
               </div>
               <div className="text-center">
                 <div className="text-4xl font-bold text-orange-primary mb-2">
-                  95%
+                  Growing
                 </div>
-                <div className="text-sm text-gray-600">Match Success Rate</div>
+                <div className="text-sm text-gray-600">Success Rate</div>
               </div>
               <div className="text-center">
                 <div className="text-4xl font-bold text-orange-dark mb-2">
-                  24hrs
+                  2024
                 </div>
-                <div className="text-sm text-gray-600">Average Match Time</div>
+                <div className="text-sm text-gray-600">Founded</div>
               </div>
             </div>
           </div>
@@ -121,11 +117,10 @@ function AboutUsPage() {
               <h3 className="text-3xl font-bold text-gray-900">Mission</h3>
             </div>
             <p className="text-lg text-gray-700 leading-relaxed">
-              To democratize access to great career opportunities by leveraging
-              AI technology to create perfect matches between talented
-              individuals and forward-thinking companies. We strive to eliminate
-              bias, reduce time-to-hire, and ensure every professional finds
-              their ideal role.
+              To improve the recruitment process by connecting job seekers with 
+              suitable opportunities and helping companies find qualified candidates. 
+              We aim to make hiring more efficient and accessible for everyone 
+              involved.
             </p>
           </div>
 
@@ -135,10 +130,10 @@ function AboutUsPage() {
               <h3 className="text-3xl font-bold text-gray-900">Vision</h3>
             </div>
             <p className="text-lg text-gray-700 leading-relaxed">
-              To become the global leader in AI-powered recruitment, where every
-              job search leads to meaningful career growth and every hiring
-              decision is data-driven and precise. We envision a world where the
-              perfect job finds you, not the other way around.
+              To become a trusted recruitment platform in Vietnam, where job 
+              seekers can easily find opportunities that match their skills and 
+              career goals, and where employers can efficiently connect with 
+              qualified candidates.
             </p>
           </div>
         </div>
@@ -149,11 +144,11 @@ function AboutUsPage() {
         <div className="text-center mb-16">
           <h2 className="text-5xl font-bold text-gray-900 mb-6">
             Meet Our{" "}
-            <span className="text-orange-primary">Leadership Team</span>
+            <span className="text-orange-primary">Team</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Experienced leaders driving innovation and growth in the recruitment
-            technology space.
+            The passionate individuals behind FastHire who are committed to 
+            improving the recruitment experience.
           </p>
         </div>
 
@@ -161,23 +156,23 @@ function AboutUsPage() {
           {[
             {
               name: "Nguyen Van A",
-              position: "Chief Executive Officer",
+              position: "CEO & Co-Founder",
               background:
-                "Former VP of Engineering at leading tech companies, 15+ years in AI/ML",
+                "Software engineer with 8+ years experience in web development and startups",
               image: "👨‍💼",
             },
             {
               name: "Tran Thi B",
-              position: "Chief Technology Officer",
+              position: "CTO & Co-Founder",
               background:
-                "PhD in Machine Learning, former lead data scientist at Fortune 500 companies",
+                "Full-stack developer with expertise in modern web technologies and system design",
               image: "👩‍💻",
             },
             {
               name: "Le Van C",
-              position: "Chief Operating Officer",
+              position: "Head of Operations",
               background:
-                "20+ years in HR operations and business development across Southeast Asia",
+                "Business development professional with 6+ years in HR and recruitment",
               image: "👨‍💻",
             },
           ].map((leader, index) => (
@@ -216,25 +211,25 @@ function AboutUsPage() {
               icon: IoRocketOutline,
               title: "Innovation",
               description:
-                "We constantly push the boundaries of what's possible in recruitment technology.",
+                "We explore new technologies and approaches to improve our platform.",
             },
             {
               icon: IoShieldCheckmarkOutline,
               title: "Integrity",
               description:
-                "We build trust through transparency, honesty, and ethical business practices.",
+                "We prioritize honest communication and transparent business practices.",
             },
             {
               icon: IoPeopleOutline,
-              title: "People-First",
+              title: "User-Focused",
               description:
-                "Every feature we build starts with understanding human needs and aspirations.",
+                "We build features based on real user needs and feedback.",
             },
             {
               icon: IoStarOutline,
-              title: "Excellence",
+              title: "Quality",
               description:
-                "We deliver exceptional results and continuously improve our platform.",
+                "We strive to deliver reliable service and continuously improve our offering.",
             },
           ].map((value, index) => (
             <div
@@ -255,52 +250,38 @@ function AboutUsPage() {
       <section className="py-20 px-40 bg-white">
         <div className="text-center mb-16">
           <h2 className="text-5xl font-bold text-gray-900 mb-6">
-            Our <span className="text-orange-primary">Achievements</span>
+            Our <span className="text-orange-primary">Journey</span>
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {[
             {
-              icon: IoTrophyOutline,
-              title: "Vietnam Technology Fast 50",
-              description:
-                "Recognized by Deloitte for rapid growth and innovation in 2023",
-              year: "2023",
-            },
-            {
-              icon: IoStarOutline,
-              title: "Great Place to Work",
-              description: "Certified as one of the best employers in Vietnam",
-              year: "2023",
-            },
-            {
               icon: IoRocketOutline,
-              title: "AI Innovation Award",
+              title: "Platform Launch",
               description:
-                "Best use of AI in HR Technology by Vietnam Tech Awards",
-              year: "2024",
-            },
-            {
-              icon: IoGlobeOutline,
-              title: "Regional Expansion",
-              description:
-                "Successfully launched operations in 3 Southeast Asian countries",
+                "Successfully launched our recruitment platform with core features",
               year: "2024",
             },
             {
               icon: IoPeopleOutline,
-              title: "1M+ Users Milestone",
-              description:
-                "Reached over 1 million registered users on our platform",
+              title: "Growing User Base",
+              description: "Reached our first milestone of registered users",
               year: "2024",
             },
             {
-              icon: IoCheckmarkCircleOutline,
-              title: "ISO 27001 Certified",
+              icon: IoGlobeOutline,
+              title: "Feature Expansion",
               description:
-                "Achieved international standard for information security",
-              year: "2024",
+                "Added new features based on user feedback and market needs",
+              year: "202",
+            },
+            {
+              icon: IoCheckmarkCircleOutline,
+              title: "Security Implementation",
+              description:
+                "Implemented robust security measures to protect user data",
+              year: "2025",
             },
           ].map((achievement, index) => (
             <div
@@ -332,13 +313,12 @@ function AboutUsPage() {
       <section className="py-20 px-40 bg-gray-100">
         <div className="text-center">
           <h2 className="text-5xl font-bold text-gray-900 mb-6">
-            Ready to{" "}
-            <span className="text-orange-primary">Join Our Mission?</span>
+            Interested in{" "}
+            <span className="text-orange-primary">Working With Us?</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-12">
-            Whether you&apos;re looking for your next career opportunity or
-            seeking to hire top talent, FastHire is here to make the perfect
-            connection.
+            Whether you&apos;re looking for career opportunities or want to 
+            partner with us as an employer, we&apos;d love to hear from you.
           </p>
 
           <div className="flex gap-6 justify-center">

@@ -72,7 +72,7 @@ export default function AdminDashboard() {
 
   // If error or no data, still render the dashboard with fallback data
   const { stats, recentApplications, applicationsChart, jobMatchingScores } = dashboardData || {
-    stats: { totalCandidates: 0, totalJobs: 0, totalHR: 0, averageMatchingScore: 0 },
+    stats: { totalCandidates: 0, totalJobs: 0, pendingJobs: 0, totalHR: 0, averageMatchingScore: 0 },
     recentApplications: [],
     applicationsChart: null,
     jobMatchingScores: []
@@ -80,16 +80,16 @@ export default function AdminDashboard() {
 
   const statCards = [
     {
+      title: 'Pending Jobs',
+      value: stats.pendingJobs,
+      icon: Briefcase,
+      color: 'bg-green-500'
+    },
+    {
       title: 'Total Candidates',
       value: stats.totalCandidates,
       icon: Users,
       color: 'bg-blue-500'
-    },
-    {
-      title: 'Active Jobs',
-      value: stats.totalJobs,
-      icon: Briefcase,
-      color: 'bg-green-500'
     },
     {
       title: 'HR Team Members',

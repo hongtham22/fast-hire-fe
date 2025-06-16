@@ -23,17 +23,16 @@ function HomePage() {
         <div className="relative z-10">
           <div className="text-center mb-16">
             <h1 className="text-6xl font-bold text-gray-900 mb-6 opacity-0 animate-fade-in-up">
-              Your Dream Career Awaits at{" "}
+              Build Your Career at{" "}
               <span className="text-orange-primary">FastHire</span>
             </h1>
             <h2 className="text-8xl font-extrabold text-orange-dark mb-8 opacity-0 animate-fade-in-up animation-delay-500">
-              Find Your Perfect Match
+              Join Our Team
             </h2>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto mb-12 opacity-0 animate-fade-in-up animation-delay-1000">
-              Join FastHire and become part of a revolutionary team that&apos;s
-              transforming the recruitment industry. Discover exciting
-              opportunities, grow your career, and make a real impact with
-              cutting-edge AI technology.
+              Join FastHire and become part of a growing team working in the 
+              recruitment technology space. Explore career opportunities, 
+              develop your skills, and contribute to innovative solutions.
             </p>
 
             <div className="flex gap-6 justify-center opacity-0 animate-fade-in-up animation-delay-1500">
@@ -82,12 +81,12 @@ function HomePage() {
       <section className="py-20 px-40 bg-white">
         <div className="text-center mb-16">
           <h2 className="text-5xl font-bold text-gray-900 mb-6">
-            Why Work at <span className="text-orange-primary">FastHire?</span>
+            Why Join <span className="text-orange-primary">FastHire?</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-4xl mx-auto">
-            We&apos;re not just building the future of recruitment – we&apos;re
-            creating an incredible workplace where innovation thrives, careers
-            flourish, and every team member makes a meaningful impact.
+            We&apos;re building a modern recruitment platform and looking for 
+            talented individuals to join our team. Here&apos;s what we offer 
+            as a growing company.
           </p>
         </div>
 
@@ -95,39 +94,39 @@ function HomePage() {
           {[
             {
               icon: IoRocketOutline,
-              title: "Innovation-Driven",
+              title: "Modern Technology",
               description:
-                "Work with cutting-edge AI technology and be at the forefront of recruitment revolution.",
+                "Work with current technology stack and contribute to product development.",
             },
             {
               icon: IoTrendingUpOutline,
-              title: "Career Growth",
+              title: "Professional Growth",
               description:
-                "Accelerate your professional development with mentorship and learning opportunities.",
+                "Opportunities for skill development and career advancement within the company.",
             },
             {
               icon: IoPeopleOutline,
-              title: "Amazing Team",
+              title: "Collaborative Team",
               description:
-                "Collaborate with passionate, talented individuals who share your drive for excellence.",
+                "Work alongside experienced professionals in a supportive environment.",
             },
             {
               icon: IoFlashOutline,
-              title: "Fast-Paced Environment",
+              title: "Dynamic Environment",
               description:
-                "Thrive in a dynamic workplace where your ideas can quickly become reality.",
+                "Be part of a startup culture where you can make a real difference.",
             },
             {
               icon: IoHeartOutline,
               title: "Work-Life Balance",
               description:
-                "Enjoy flexible working arrangements and comprehensive benefits that care for your wellbeing.",
+                "We value your personal time and offer flexible working arrangements.",
             },
             {
               icon: IoSchoolOutline,
-              title: "Continuous Learning",
+              title: "Learning Opportunities",
               description:
-                "Access to training, conferences, and resources to keep your skills sharp and current.",
+                "Access to resources and training to help you stay current with industry trends.",
             },
           ].map((feature, index) => (
             <div
@@ -148,23 +147,23 @@ function HomePage() {
       <section className="py-20 px-40 bg-gray-100">
         <div className="text-center mb-16">
           <h2 className="text-5xl font-bold text-gray-900 mb-6">
-            What We <span className="text-orange-dark">Offer You</span>
+            What We <span className="text-orange-dark">Offer</span>
           </h2>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div>
             <h3 className="text-3xl font-bold text-gray-900 mb-8">
-              Comprehensive Benefits Package
+              Benefits & Perks
             </h3>
             <div className="space-y-6">
               {[
-                "Competitive salary with performance bonuses",
-                "Comprehensive health insurance coverage",
-                "Flexible remote work options",
-                "Professional development allowance",
-                "Generous vacation and personal time",
-                "Stock options and equity participation",
+                "Competitive salary based on experience",
+                "Health insurance coverage",
+                "Remote work flexibility",
+                "Learning and development budget",
+                "Paid time off and holidays",
+                "Opportunity for equity participation",
               ].map((benefit, index) => (
                 <div key={index} className="flex items-center gap-4">
                   <IoCheckmarkCircleOutline className="h-6 w-6 text-orange-primary flex-shrink-0" />
@@ -177,30 +176,30 @@ function HomePage() {
           <div className="bg-white p-8 rounded-2xl shadow-lg">
             <div className="bg-gradient-to-br from-orange-primary/10 to-orange-dark/10 p-8 rounded-xl">
               <h4 className="text-2xl font-bold text-gray-900 mb-4">
-                Join Our Growing Team
+                Our Growing Team
               </h4>
               <div className="grid grid-cols-2 gap-6">
                 <div className="text-center">
                   <div className="text-3xl font-bold text-orange-primary">
-                    50+
+                    25+
                   </div>
                   <div className="text-sm text-gray-600">Team Members</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-orange-dark">15+</div>
+                  <div className="text-3xl font-bold text-orange-dark">10+</div>
                   <div className="text-sm text-gray-600">Open Positions</div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-orange-primary">
-                    98%
+                    Growing
                   </div>
                   <div className="text-sm text-gray-600">
-                    Employee Satisfaction
+                    Team Satisfaction
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-orange-dark">5★</div>
-                  <div className="text-sm text-gray-600">Glassdoor Rating</div>
+                  <div className="text-3xl font-bold text-orange-dark">2025</div>
+                  <div className="text-sm text-gray-600">Founded</div>
                 </div>
               </div>
             </div>
@@ -212,38 +211,38 @@ function HomePage() {
       <section className="py-20 px-40 bg-white">
         <div className="text-center mb-16">
           <h2 className="text-5xl font-bold text-gray-900 mb-6">
-            Our <span className="text-orange-primary">Culture</span>
+            Our <span className="text-orange-primary">Values</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-12">
-            At FastHire, we believe that great products come from great people.
-            Our culture is built on collaboration, innovation, and respect for
-            every individual&apos;s unique contribution.
+            At FastHire, we focus on building a positive work environment.
+            Our team values are centered around collaboration, growth, and 
+            mutual respect for everyone&apos;s contributions.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           <div className="text-center p-6">
             <IoStarOutline className="h-16 w-16 text-orange-primary mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-gray-900 mb-3">Excellence</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Quality</h3>
             <p className="text-gray-600">
-              We strive for excellence in everything we do, always pushing
-              boundaries and raising the bar.
+              We aim to deliver quality work and continuously improve our 
+              products and processes.
             </p>
           </div>
           <div className="text-center p-6">
             <IoShieldCheckmarkOutline className="h-16 w-16 text-orange-dark mx-auto mb-4" />
             <h3 className="text-xl font-bold text-gray-900 mb-3">Integrity</h3>
             <p className="text-gray-600">
-              We act with honesty and transparency, building trust through our
-              actions and decisions.
+              We believe in honest communication and transparent business 
+              practices with our team and clients.
             </p>
           </div>
           <div className="text-center p-6">
             <IoHeartOutline className="h-16 w-16 text-orange-primary mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-gray-900 mb-3">Care</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Support</h3>
             <p className="text-gray-600">
-              We care deeply about our team, our customers, and the impact we
-              make on the world.
+              We support each other&apos;s growth and work together to achieve 
+              common goals.
             </p>
           </div>
         </div>
@@ -253,13 +252,12 @@ function HomePage() {
       <section className="py-20 px-40 bg-gray-100">
         <div className="text-center">
           <h2 className="text-5xl font-bold text-gray-900 mb-6">
-            Ready to Start Your{" "}
-            <span className="text-orange-primary">Journey</span> with Us?
+            Ready to{" "}
+            <span className="text-orange-primary">Explore</span> Opportunities?
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-12">
-            Don&apos;t just find a job – discover your calling. Join FastHire
-            and be part of something extraordinary. Your next career adventure
-            starts here.
+            Interested in joining our team? Take a look at our current openings 
+            and see if there&apos;s a role that matches your skills and interests.
           </p>
 
           <div className="flex gap-6 justify-center">
@@ -269,7 +267,7 @@ function HomePage() {
 
                 {/* Text */}
                 <span className="relative z-10 text-white group-hover:text-orange-dark font-extrabold text-lg transition-colors duration-500">
-                  View Open Positions
+                  Browse Openings
                 </span>
 
                 {/* Icon container */}
@@ -286,7 +284,7 @@ function HomePage() {
 
                 {/* Button text */}
                 <span className="relative z-10 text-orange-dark group-hover:text-white font-extrabold text-lg transition-colors duration-500">
-                  Start Your Application
+                  Apply Now
                 </span>
 
                 {/* Icon container */}
