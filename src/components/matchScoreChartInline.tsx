@@ -62,7 +62,7 @@ const MatchScoreChartInline: React.FC<MatchScoreChartInlineProps> = ({
     { name: "Technical", value: parseFloat(technicalScore.toFixed(2)) },
     { name: "Soft Skills", value: parseFloat(softScore.toFixed(2)) },
     { name: "Languages", value: parseFloat(langsScore.toFixed(2)) },
-    { name: "Keywords", value: parseFloat(keyScore.toFixed(2)) },
+    { name: "Responsibilities", value: parseFloat(keyScore.toFixed(2)) },
     { name: "Certifications", value: parseFloat(certScore.toFixed(2)) },
   ];
 

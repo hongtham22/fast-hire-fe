@@ -41,7 +41,7 @@ export function MatchScoreDetails({ score, scores, children }: MatchScoreDetails
     { name: 'Technical', value: scores.technicalScore },
     { name: 'Soft Skills', value: scores.softScore },
     { name: 'Languages', value: scores.langsScore },
-    { name: 'Keywords', value: scores.keyScore },
+    { name: 'Responsibilities', value: scores.keyScore },
     { name: 'Certifications', value: scores.certScore },
   ];
 
